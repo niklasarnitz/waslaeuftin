@@ -7,7 +7,7 @@ export default async function Home() {
         <h1 className="text-4xl font-bold">wasläuft.in</h1>
         <Link
           href="/city/karlsruhe"
-          className="rounded-lg border p-4  underline shadow-sm"
+          className="rounded-lg border px-4 py-2 underline shadow-sm"
         >
           Karlsruhe
         </Link>
