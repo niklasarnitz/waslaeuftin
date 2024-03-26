@@ -9,7 +9,7 @@ export default async function WhatsShowingInCity({
 }) {
   const moviesObject = Cities[params.city ?? ""];
 
-  if (!moviesObject) {
+  if (!moviesObject || !params.city) {
     return <div>Not found</div>;
   }
 
