@@ -23,6 +23,9 @@ export default function RootLayout({
       <body className={`font-sans ${inter.variable}`}>
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
+      <footer>
+        <div className="flex flex-col items-center justify-center space-y-4"></div>
+      </footer>
     </html>
   );
 }
