@@ -1,5 +1,8 @@
-import { postRouter } from "@waslaeuftin/server/api/routers/post";
-import { createCallerFactory, createTRPCRouter } from "@waslaeuftin/server/api/trpc";
+import { kinoTicketsExpressRouter } from "@waslaeuftin/server/api/routers/kino-tickets-express-router";
+import {
+  createCallerFactory,
+  createTRPCRouter,
+} from "@waslaeuftin/server/api/trpc";
 
 /**
  * This is the primary router for your server.
@@ -7,7 +10,7 @@ import { createCallerFactory, createTRPCRouter } from "@waslaeuftin/server/api/t
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
+  kinoTicketsExpress: kinoTicketsExpressRouter,
 });
 
 // export type definition of API
