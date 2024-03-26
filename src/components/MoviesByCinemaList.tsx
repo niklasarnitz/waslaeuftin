@@ -1,3 +1,4 @@
+import { Cities } from "@waslaeuftin/helpers/cities";
 import {
   type CinemaSlugs,
   Cinemas,
@@ -15,11 +16,12 @@ export const MoviesByCinemaList = ({
   moviesByCinema: Record<CinemaSlugs, Movie[]>;
   showFilterByToday?: boolean;
   showRemoveFilter?: boolean;
-  city?: string;
+  city: string;
 }) => {
   return Object.keys(moviesByCinema).map((cinemaSlug) => {
     const moviesInCinema = moviesByCinema[cinemaSlug as CinemaSlugs];
     const cinema = Cinemas[cinemaSlug as CinemaSlugs];
+    const cityObject = Cities[city ?? ""];
 
     if (!cinema) {
       return null;
@@ -27,8 +29,11 @@ export const MoviesByCinemaList = ({
 
     return (
       <div key={cinema.slug} className="space-y-4 p-4">
-        <div className="flex flex-row items-center justify-between">
-          <h1 className="text-2xl font-bold">{cinema.name}</h1>
+        <div className="flex flex-row items-center justify-between gap-x-2">
+          <h1 className="flex flex-1 text-2xl font-bold">
+            Diese Filme laufen {showRemoveFilter ? "heute" : "nächster Zeit"} in{" "}
+            {cityObject?.name}
+          </h1>
           {showFilterByToday && (
             <div>
               <Link
@@ -50,10 +55,13 @@ export const MoviesByCinemaList = ({
             </div>
           )}
         </div>
+
+        <h1 className="text-xl font-bold">{cinema.name}</h1>
+
         {moviesInCinema.map((movie) => (
           <div key={movie.name}>
             <h2 className="text-lg font-semibold">{movie.name}</h2>
-            <div className="grid grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
               {movie.showings.map((showing) => {
                 return (
                   <Link
