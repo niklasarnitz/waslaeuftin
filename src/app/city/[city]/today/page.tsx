@@ -2,7 +2,7 @@ import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
 import { Cities } from "@waslaeuftin/helpers/cities";
 import { type CinemaSlugs, type Movie } from "@waslaeuftin/types/Movie";
 
-export default async function MoviesInCity({
+export default async function WhatsShowingInCity({
   params,
 }: {
   params: { city?: string };
@@ -13,7 +13,7 @@ export default async function MoviesInCity({
     return <div>Not found</div>;
   }
 
-  const movies = await moviesObject.fetchMovies();
+  const movies = await moviesObject.fetchMoviesOfToday();
 
   const moviesByCinema = movies.reduce(
     (acc, movie) => {

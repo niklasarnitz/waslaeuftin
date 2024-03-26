@@ -23,10 +23,17 @@ export const kinoTicketsExpressRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const movies = await getKinoTicketsExpressMovies(input);
 
-      return movies.filter((movie) => {
-        return movie.showings.some((showing) => {
-          return moment().isSame(showing.dateTime, "day");
-        });
-      });
+      return movies
+        .filter((movie) => {
+          return movie.showings.some((showing) => {
+            return moment().isSame(showing.dateTime, "day");
+          });
+        })
+        .map((movie) => ({
+          ...movie,
+          showings: movie.showings.filter((showing) =>
+            moment().isSame(showing.dateTime, "day"),
+          ),
+        }));
     }),
 });

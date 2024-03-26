@@ -6,6 +6,7 @@ export const Cities: Record<
   {
     name: string;
     fetchMoviesOfToday: () => Promise<Movie[]>;
+    fetchMovies: () => Promise<Movie[]>;
   }
 > = {
   karlsruhe: {
@@ -15,6 +16,14 @@ export const Cities: Record<
         await Promise.all([
           api.kinoTicketsExpress.getMoviesOfToday("karlsruhe_kinemathek"),
           api.kinoTicketsExpress.getMoviesOfToday("karlsruhe_schauburg"),
+        ])
+      ).flat();
+    },
+    fetchMovies: async () => {
+      return (
+        await Promise.all([
+          api.kinoTicketsExpress.getMovies("karlsruhe_kinemathek"),
+          api.kinoTicketsExpress.getMovies("karlsruhe_schauburg"),
         ])
       ).flat();
     },
