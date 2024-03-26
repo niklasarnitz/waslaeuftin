@@ -8,8 +8,12 @@ import Link from "next/link";
 
 export const MoviesByCinemaList = ({
   moviesByCinema,
+  showFilterByToday,
+  city,
 }: {
   moviesByCinema: Record<CinemaSlugs, Movie[]>;
+  showFilterByToday?: boolean;
+  city?: string;
 }) => {
   return Object.keys(moviesByCinema).map((cinemaSlug) => {
     const moviesInCinema = moviesByCinema[cinemaSlug as CinemaSlugs];
@@ -21,7 +25,19 @@ export const MoviesByCinemaList = ({
 
     return (
       <div key={cinema.slug} className="space-y-4 p-4">
-        <h1 className="text-2xl font-bold">{cinema.name}</h1>
+        <div className="flex flex-row items-center justify-between">
+          <h1 className="text-2xl font-bold">{cinema.name}</h1>
+          {showFilterByToday && (
+            <div>
+              <Link
+                href={`/city/${city}/today`}
+                className="rounded-lg border px-4 py-2 underline shadow-sm"
+              >
+                Heute
+              </Link>
+            </div>
+          )}
+        </div>
         {moviesInCinema.map((movie) => (
           <div key={movie.name}>
             <h2 className="text-lg font-semibold">{movie.name}</h2>

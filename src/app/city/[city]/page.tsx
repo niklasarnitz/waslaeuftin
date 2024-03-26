@@ -24,5 +24,11 @@ export default async function MoviesInCity({
     {} as Record<CinemaSlugs, Movie[]>,
   );
 
-  return <MoviesByCinemaList moviesByCinema={moviesByCinema} />;
+  return (
+    <MoviesByCinemaList
+      moviesByCinema={moviesByCinema}
+      showFilterByToday
+      city={params.city}
+    />
+  );
 }
