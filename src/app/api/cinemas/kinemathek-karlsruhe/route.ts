@@ -1,5 +1,5 @@
-import { KinoTicketsExpressCinemas } from "@waslaeuftin/server/api/routers/kino-tickets-express-router";
 import { api } from "@waslaeuftin/trpc/server";
+import { KinoTicketsExpressCinemas } from "@waslaeuftin/types/Movie";
 import { NextResponse } from "next/server";
 
 export const GET = async () => {
