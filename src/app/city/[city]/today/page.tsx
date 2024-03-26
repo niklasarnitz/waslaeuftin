@@ -24,5 +24,11 @@ export default async function WhatsShowingInCity({
     {} as Record<CinemaSlugs, Movie[]>,
   );
 
-  return <MoviesByCinemaList moviesByCinema={moviesByCinema} />;
+  return (
+    <MoviesByCinemaList
+      moviesByCinema={moviesByCinema}
+      showRemoveFilter
+      city={params.city}
+    />
+  );
 }

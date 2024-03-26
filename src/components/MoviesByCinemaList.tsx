@@ -9,10 +9,12 @@ import Link from "next/link";
 export const MoviesByCinemaList = ({
   moviesByCinema,
   showFilterByToday,
+  showRemoveFilter,
   city,
 }: {
   moviesByCinema: Record<CinemaSlugs, Movie[]>;
   showFilterByToday?: boolean;
+  showRemoveFilter?: boolean;
   city?: string;
 }) => {
   return Object.keys(moviesByCinema).map((cinemaSlug) => {
@@ -34,6 +36,16 @@ export const MoviesByCinemaList = ({
                 className="rounded-lg border px-4 py-2 underline shadow-sm"
               >
                 Heute
+              </Link>
+            </div>
+          )}
+          {showRemoveFilter && (
+            <div>
+              <Link
+                href={`/city/${city}`}
+                className="rounded-lg border px-4 py-2 underline shadow-sm"
+              >
+                X Heute
               </Link>
             </div>
           )}
