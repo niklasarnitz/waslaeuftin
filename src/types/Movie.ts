@@ -5,7 +5,12 @@ export const KinoTicketsExpressCinemas = z.enum([
   "karlsruhe_schauburg",
 ]);
 
-export const CinemaSlugsSchema = KinoTicketsExpressCinemas;
+export const ComtradaCineOrderCinemas = z.enum(["zkm_karlsruhe"]);
+
+export const CinemaSlugsSchema = z.enum([
+  ...KinoTicketsExpressCinemas.options,
+  ...ComtradaCineOrderCinemas.options,
+]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
 export const CinemaSchema = z.object({
@@ -26,6 +31,11 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     name: "Schauburg Karlsruhe",
     url: "https://schauburg.de",
     slug: "karlsruhe_schauburg",
+  },
+  zkm_karlsruhe: {
+    name: "ZKM Karlsruhe",
+    url: "https://zkm-karlsruhe.de/",
+    slug: "zkm_karlsruhe",
   },
 };
 

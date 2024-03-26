@@ -4,7 +4,7 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getMovies";
+import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import moment from "moment";
 import { KinoTicketsExpressCinemas } from "@waslaeuftin/types/Movie";
 

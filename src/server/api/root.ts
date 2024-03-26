@@ -1,3 +1,4 @@
+import { comtradaCineOrderRouter } from "@waslaeuftin/server/api/routers/comtrada-cine-order-router";
 import { kinoTicketsExpressRouter } from "@waslaeuftin/server/api/routers/kino-tickets-express-router";
 import {
   createCallerFactory,
@@ -11,6 +12,7 @@ import {
  */
 export const appRouter = createTRPCRouter({
   kinoTicketsExpress: kinoTicketsExpressRouter,
+  comtradaCineOrder: comtradaCineOrderRouter,
 });
 
 // export type definition of API
