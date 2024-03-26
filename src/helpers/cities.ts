@@ -35,4 +35,51 @@ export const Cities: Record<
       ).flat();
     },
   },
+  "karlsruhe-rastatt": {
+    name: "Karlsruhe & Rastatt",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe, date }),
+          api.movies.getMovies({
+            cinema: Cinemas.karlsruhe_kinemathek,
+            date,
+          }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
+          api.movies.getMovies({ cinema: Cinemas.forum_rastatt, date }),
+        ])
+      ).flat();
+    },
+    fetchMovies: async () => {
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
+          api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
+        ])
+      ).flat();
+    },
+  },
+  rastatt: {
+    name: "Rastatt",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.forum_rastatt, date }),
+        ])
+      ).flat();
+    },
+    fetchMovies: async () => {
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
+        ])
+      ).flat();
+    },
+  },
 };

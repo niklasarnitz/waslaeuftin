@@ -1,4 +1,5 @@
 import { getComtradCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
+import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import { db } from "@waslaeuftin/server/db";
 import { Cinemas } from "@waslaeuftin/types/Movie";
@@ -11,6 +12,9 @@ export async function GET() {
       getComtradCineOrderMovies(Cinemas.zkm_karlsruhe),
       getKinoTicketsExpressMovies("karlsruhe_kinemathek"),
       getKinoTicketsExpressMovies("karlsruhe_schauburg"),
+      getComtradaForumCinemasMovies("forum_lahr"),
+      getComtradaForumCinemasMovies("forum_offenburg"),
+      getComtradaForumCinemasMovies("forum_rastatt"),
     ])
   ).flat();
 

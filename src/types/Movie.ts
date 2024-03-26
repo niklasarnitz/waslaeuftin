@@ -9,11 +9,20 @@ export type KinoTicketsExpressCinemasType = z.infer<
   typeof KinoTicketsExpressCinemas
 >;
 
+export const ComtradaForumCinemas = z.enum([
+  "forum_rastatt",
+  "forum_offenburg",
+  "forum_lahr",
+]);
+
+export type ComtradaForumCinemasType = z.infer<typeof ComtradaForumCinemas>;
+
 export const ComtradaCineOrderCinemas = z.enum(["zkm_karlsruhe"]);
 
 export const CinemaSlugsSchema = z.enum([
   ...KinoTicketsExpressCinemas.options,
   ...ComtradaCineOrderCinemas.options,
+  ...ComtradaForumCinemas.options,
 ]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
@@ -40,6 +49,21 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     name: "ZKM Karlsruhe",
     url: "https://zkm-karlsruhe.de/",
     slug: "zkm_karlsruhe",
+  },
+  forum_lahr: {
+    name: "Forum Lahr",
+    url: "https://www.forumcinemas.de/",
+    slug: "forum_lahr",
+  },
+  forum_offenburg: {
+    name: "Forum Offenberg",
+    url: "https://www.forumcinemas.de/",
+    slug: "forum_offenburg",
+  },
+  forum_rastatt: {
+    name: "Forum Rastatt",
+    url: "https://www.forumcinemas.de/",
+    slug: "forum_rastatt",
   },
 };
 

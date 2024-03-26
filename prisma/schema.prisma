@@ -14,6 +14,9 @@ enum CinemaSlug {
     karlsruhe_kinemathek
     karlsruhe_schauburg
     zkm_karlsruhe
+    forum_lahr
+    forum_offenburg
+    forum_rastatt
 }
 
 model Showing {

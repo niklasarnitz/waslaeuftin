@@ -19,8 +19,7 @@ export const moviesRouter = createTRPCRouter({
                 dateTime: {
                   lt:
                     moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt:
-                    moment(input.date).format("YYYY-MM-DD") + "T00:00:00.000Z",
+                  gt: input.date.toISOString(),
                 },
               },
             },
@@ -31,8 +30,7 @@ export const moviesRouter = createTRPCRouter({
                 dateTime: {
                   lt:
                     moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt:
-                    moment(input.date).format("YYYY-MM-DD") + "T00:00:00.000Z",
+                  gt: input.date.toISOString(),
                 },
               },
             },
