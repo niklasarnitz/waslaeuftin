@@ -6,15 +6,44 @@ generator client {
 }
 
 datasource db {
-    provider = "mysql"
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-model Post {
+enum CinemaSlug {
+    karlsruhe_kinemathek
+    karlsruhe_schauburg
+    zkm_karlsruhe
+}
+
+model Showing {
+    id        Int      @id @default(autoincrement())
+    dateTime  DateTime
+    bookingUrl String?
+
+    movie     Movie    @relation(fields: [movieId], references: [id])
+    movieId   Int
+
+    additionalData Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt @default(now())
+
+    @@index([movieId])
+}
+
+model Movie {
     id        Int      @id @default(autoincrement())
     name      String
+
+    showings  Showing[]
+
+    additionalData Json?
+
+    cinemaSlug    CinemaSlug
+
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @updatedAt @default(now())
 
     @@index([name])
 }

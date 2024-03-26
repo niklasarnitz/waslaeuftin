@@ -1,6 +1,7 @@
 import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
 import { Cities } from "@waslaeuftin/helpers/cities";
-import { type CinemaSlugs, type Movie } from "@waslaeuftin/types/Movie";
+import { type api } from "@waslaeuftin/trpc/server";
+import { type CinemaSlugs } from "@waslaeuftin/types/Movie";
 
 export default async function WhatsShowingInCity({
   params,
@@ -17,11 +18,11 @@ export default async function WhatsShowingInCity({
 
   const moviesByCinema = movies.reduce(
     (acc, movie) => {
-      acc[movie.cinema.slug] = acc[movie.cinema.slug] ?? [];
-      acc[movie.cinema.slug]?.push(movie);
+      acc[movie.cinemaSlug] = acc[movie.cinemaSlug] ?? [];
+      acc[movie.cinemaSlug]?.push(movie);
       return acc;
     },
-    {} as Record<CinemaSlugs, Movie[]>,
+    {} as Record<CinemaSlugs, Awaited<ReturnType<typeof api.movies.getMovies>>>,
   );
 
   return (

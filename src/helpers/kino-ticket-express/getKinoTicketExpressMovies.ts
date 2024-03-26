@@ -4,10 +4,10 @@ import {
   type Movie,
   isMovie,
   Cinemas,
+  type KinoTicketsExpressCinemasType,
 } from "@waslaeuftin/types/Movie";
 import axios from "axios";
 import { load } from "cheerio";
-import { type KinoTicketsExpressCinemasType } from "../../server/api/routers/kino-tickets-express-router";
 import moment from "moment";
 
 export const getKinoTicketsExpressMovies = async (

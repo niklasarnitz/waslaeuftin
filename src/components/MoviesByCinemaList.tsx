@@ -1,9 +1,6 @@
 import { Cities } from "@waslaeuftin/helpers/cities";
-import {
-  type CinemaSlugs,
-  Cinemas,
-  type Movie,
-} from "@waslaeuftin/types/Movie";
+import { type api } from "@waslaeuftin/trpc/server";
+import { type CinemaSlugs, Cinemas } from "@waslaeuftin/types/Movie";
 import moment from "moment";
 import Link from "next/link";
 
@@ -13,7 +10,10 @@ export const MoviesByCinemaList = ({
   showRemoveFilter,
   city,
 }: {
-  moviesByCinema: Record<CinemaSlugs, Movie[]>;
+  moviesByCinema: Record<
+    CinemaSlugs,
+    Awaited<ReturnType<typeof api.movies.getMovies>>
+  >;
   showFilterByToday?: boolean;
   showRemoveFilter?: boolean;
   city: string;

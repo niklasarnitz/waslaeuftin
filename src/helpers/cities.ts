@@ -1,31 +1,36 @@
 import { api } from "@waslaeuftin/trpc/server";
-import { Cinemas, type Movie } from "@waslaeuftin/types/Movie";
+import { Cinemas } from "@waslaeuftin/types/Movie";
 
 export const Cities: Record<
   string,
   {
     name: string;
-    fetchMoviesOfToday: () => Promise<Movie[]>;
-    fetchMovies: () => Promise<Movie[]>;
+    fetchMoviesOfToday: () => ReturnType<typeof api.movies.getMovies>;
+    fetchMovies: () => ReturnType<typeof api.movies.getMovies>;
   }
 > = {
   karlsruhe: {
     name: "Karlsruhe",
     fetchMoviesOfToday: async () => {
+      const date = new Date();
+
       return (
         await Promise.all([
-          api.kinoTicketsExpress.getMoviesOfToday("karlsruhe_kinemathek"),
-          api.kinoTicketsExpress.getMoviesOfToday("karlsruhe_schauburg"),
-          api.comtradaCineOrder.getMoviesOfToday(Cinemas.zkm_karlsruhe),
+          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe, date }),
+          api.movies.getMovies({
+            cinema: Cinemas.karlsruhe_kinemathek,
+            date,
+          }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
         ])
       ).flat();
     },
     fetchMovies: async () => {
       return (
         await Promise.all([
-          api.kinoTicketsExpress.getMovies("karlsruhe_kinemathek"),
-          api.kinoTicketsExpress.getMovies("karlsruhe_schauburg"),
-          api.comtradaCineOrder.getMovies(Cinemas.zkm_karlsruhe),
+          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
+          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
         ])
       ).flat();
     },

@@ -5,6 +5,10 @@ export const KinoTicketsExpressCinemas = z.enum([
   "karlsruhe_schauburg",
 ]);
 
+export type KinoTicketsExpressCinemasType = z.infer<
+  typeof KinoTicketsExpressCinemas
+>;
+
 export const ComtradaCineOrderCinemas = z.enum(["zkm_karlsruhe"]);
 
 export const CinemaSlugsSchema = z.enum([
