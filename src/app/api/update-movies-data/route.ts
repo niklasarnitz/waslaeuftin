@@ -1,10 +1,9 @@
 import { getComtradCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
-import { db } from "@waslaeuftin/server/db";
 import { Cinemas } from "@waslaeuftin/types/Movie";
-import moment from "moment";
 import { NextResponse } from "next/server";
+import { xior } from "xior";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -23,56 +22,9 @@ export async function GET() {
 
   await Promise.all(
     movies.map(async (movie) => {
-      const existingMovie = await db.movie.findFirst({
-        where: {
-          name: movie.name,
-          cinemaSlug: movie.cinema.slug,
-        },
-        include: {
-          showings: true,
-        },
-      });
+      const xiorInstance = xior.create();
 
-      if (existingMovie) {
-        await db.movie.update({
-          where: {
-            id: existingMovie.id,
-          },
-          data: {
-            showings: {
-              connectOrCreate: movie.showings.map((showing) => ({
-                where: {
-                  id:
-                    existingMovie.showings.find((s) =>
-                      moment(s.dateTime).isSame(showing.dateTime, "minute"),
-                    )?.id ?? -200,
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                },
-                create: {
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                },
-              })),
-            },
-          },
-        });
-      } else {
-        await db.movie.create({
-          data: {
-            name: movie.name,
-            cinemaSlug: movie.cinema.slug,
-            showings: {
-              createMany: {
-                data: movie.showings.map((showing) => ({
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                })),
-              },
-            },
-          },
-        });
-      }
+      await xiorInstance.post("https://waslaeuft.in/api/create-movie", movie);
     }),
   );
 
