@@ -33,9 +33,10 @@ export async function GET() {
 
   const moviesMappedByCinemaAndName = createdMovies.reduce(
     (acc, movie) => {
-      acc[movie.cinemaSlug] = acc[movie.cinemaSlug] ?? {};
+      acc[movie.cinemaSlug as CinemaSlugs] =
+        acc[movie.cinemaSlug as CinemaSlugs] ?? {};
 
-      acc[movie.cinemaSlug][movie.name] = movie;
+      acc[movie.cinemaSlug as CinemaSlugs][movie.name] = movie;
       return acc;
     },
     {} as Record<
