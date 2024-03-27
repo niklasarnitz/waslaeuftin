@@ -6,14 +6,15 @@ import {
   Cinemas,
   type KinoTicketsExpressCinemasType,
 } from "@waslaeuftin/types/Movie";
-import axios from "axios";
 import { load } from "cheerio";
 import moment from "moment";
+import { xior } from "xior";
 
 export const getKinoTicketsExpressMovies = async (
   cinema: KinoTicketsExpressCinemasType,
 ) => {
-  const { data } = await axios.get<string>(
+  const xiorInstance = xior.create();
+  const { data } = await xiorInstance.get<string>(
     `https://kinotickets.express/${cinema}/movies`,
   );
   const $ = load(data);

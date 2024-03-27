@@ -1,7 +1,7 @@
 import { type ComtradaCineOrderMovie } from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
 import { type Movie, type Cinema } from "@waslaeuftin/types/Movie";
-import axios from "axios";
 import moment from "moment";
+import { xior } from "xior";
 
 export const getComtradCineOrderMovies = async (
   cinema: Cinema,
@@ -14,7 +14,9 @@ export const getComtradCineOrderMovies = async (
     query = `?cinemadate.from=${dateString}&cinemadate.to=${dateString}&performancedate.from=${dateString}&performancedate.to=${dateString}`;
   }
 
-  const { data } = await axios.get<ComtradaCineOrderMovie[]>(
+  const xiorInstance = xior.create();
+
+  const { data } = await xiorInstance.get<ComtradaCineOrderMovie[]>(
     `https://cineorder.filmpalast.net/api/films${query}`,
     {
       headers: {

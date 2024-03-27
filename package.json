@@ -20,7 +20,6 @@
     "@trpc/next": "next",
     "@trpc/react-query": "next",
     "@trpc/server": "next",
-    "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
     "moment": "^2.30.1",
     "momentjs": "^2.0.0",
@@ -29,6 +28,7 @@
     "react-dom": "18.2.0",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
+    "xior": "^0.3.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {

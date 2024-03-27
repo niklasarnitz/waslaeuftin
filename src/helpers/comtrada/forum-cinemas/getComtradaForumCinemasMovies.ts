@@ -6,9 +6,9 @@ import {
   Cinemas,
   type ComtradaForumCinemasType,
 } from "@waslaeuftin/types/Movie";
-import axios from "axios";
 import { load } from "cheerio";
 import moment from "moment";
+import { xior } from "xior";
 
 export const getComtradaForumCinemasMovies = async (
   cinema: ComtradaForumCinemasType,
@@ -27,7 +27,9 @@ export const getComtradaForumCinemasMovies = async (
       break;
   }
 
-  const { data } = await axios.get<string>(
+  const xiorInstance = xior.create();
+
+  const { data } = await xiorInstance.get<string>(
     "https://www.forumcinemas.de/de/programm/kinoprogramm",
     {
       headers: {
