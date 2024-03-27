@@ -6,6 +6,8 @@ import { Cinemas } from "@waslaeuftin/types/Movie";
 import moment from "moment";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const movies = (
     await Promise.all([
