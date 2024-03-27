@@ -104,7 +104,7 @@ export const getComtradaForumCinemasMovies = async (
               date.getFullYear(),
               date.getMonth(),
               date.getDate(),
-              hours + 1,
+              hours,
               minutes,
             );
 
