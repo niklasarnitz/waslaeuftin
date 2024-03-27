@@ -1,6 +1,5 @@
 import { api } from "@waslaeuftin/trpc/server";
 import { Cinemas } from "@waslaeuftin/types/Movie";
-import moment from "moment";
 
 export const Cities: Record<
   string,
@@ -86,23 +85,12 @@ export const Cities: Record<
   leonberg: {
     name: "Leonberg",
     fetchMoviesOfToday: async () => {
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.traumpalast_leonberg }),
-        ])
-      )
-        .flat()
-        .filter((movie) =>
-          movie.showings.some((showing) =>
-            moment().isSame(showing.dateTime, "day"),
-          ),
-        )
-        .map((movie) => ({
-          ...movie,
-          showings: movie.showings.filter((showing) =>
-            moment().isSame(showing.dateTime, "day"),
-          ),
-        }));
+      const date = new Date();
+
+      return await api.movies.getMovies({
+        cinema: Cinemas.traumpalast_leonberg,
+        date,
+      });
     },
     fetchMovies: async () => {
       return (
@@ -110,6 +98,34 @@ export const Cities: Record<
           api.movies.getMovies({ cinema: Cinemas.traumpalast_leonberg }),
         ])
       ).flat();
+    },
+  },
+  offenburg: {
+    name: "Offenburg",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMovies({
+        cinema: Cinemas.forum_offenburg,
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMovies({ cinema: Cinemas.forum_offenburg });
+    },
+  },
+  lahr: {
+    name: "Lahr",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMovies({
+        cinema: Cinemas.forum_lahr,
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMovies({ cinema: Cinemas.forum_lahr });
     },
   },
 };

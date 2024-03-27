@@ -19,6 +19,10 @@ export const ComtradaForumCinemas = z.enum([
 
 export type ComtradaForumCinemasType = z.infer<typeof ComtradaForumCinemas>;
 
+export const KinopolisCinemas = z.enum(["kinopolis_karlsruhe"]);
+
+export type KinopolisCinemasType = z.infer<typeof KinopolisCinemas>;
+
 export const ComtradaCineOrderCinemas = z.enum(["zkm_karlsruhe"]);
 
 export const CinemaSlugsSchema = z.enum([
@@ -26,6 +30,7 @@ export const CinemaSlugsSchema = z.enum([
   ...ComtradaCineOrderCinemas.options,
   ...ComtradaForumCinemas.options,
   ...KinoheldCinemas.options,
+  ...KinopolisCinemas.options,
 ]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
@@ -67,6 +72,11 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     name: "Forum Rastatt",
     url: "https://www.forumcinemas.de/",
     slug: "forum_rastatt",
+  },
+  kinopolis_karlsruhe: {
+    name: "Kinopolis Karlsruhe",
+    url: "https://www.kinopolis.de/ka",
+    slug: "kinopolis_karlsruhe",
   },
   ...KinoHeldCinemas,
 };
