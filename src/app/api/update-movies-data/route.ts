@@ -2,8 +2,7 @@ import { getComtradCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineord
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import { db } from "@waslaeuftin/server/db";
-import { Cinemas } from "@waslaeuftin/types/Movie";
-import moment from "moment";
+import { type CinemaSlugs, Cinemas } from "@waslaeuftin/types/Movie";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -18,62 +17,45 @@ export async function GET() {
     ])
   ).flat();
 
-  await Promise.all(
-    movies.map(async (movie) => {
-      const existingMovie = await db.movie.findFirst({
-        where: {
-          name: movie.name,
-          cinemaSlug: movie.cinema.slug,
-        },
-        include: {
-          showings: true,
-        },
-      });
+  await db.showing.deleteMany({});
+  await db.movie.deleteMany({});
 
-      if (existingMovie) {
-        await db.movie.update({
-          where: {
-            id: existingMovie.id,
-          },
-          data: {
-            showings: {
-              connectOrCreate: movie.showings.map((showing) => ({
-                where: {
-                  id:
-                    existingMovie.showings.find((s) =>
-                      moment(s.dateTime).isSame(showing.dateTime, "minute"),
-                    )?.id ?? -200,
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                  showingAdditionalData: showing.showingAdditionalData,
-                },
-                create: {
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                  showingAdditionalData: showing.showingAdditionalData,
-                },
-              })),
-            },
-          },
-        });
-      } else {
-        await db.movie.create({
-          data: {
-            name: movie.name,
-            cinemaSlug: movie.cinema.slug,
-            showings: {
-              createMany: {
-                data: movie.showings.map((showing) => ({
-                  dateTime: showing.dateTime,
-                  bookingUrl: showing.bookingUrl,
-                })),
-              },
-            },
-          },
-        });
-      }
-    }),
+  await db.movie.createMany({
+    data: movies.map((movie) => ({
+      name: movie.name,
+      cinemaSlug: movie.cinema.slug,
+    })),
+  });
+
+  const createdMovies = await db.movie.findMany();
+
+  const moviesMappedByCinemaAndName = createdMovies.reduce(
+    (acc, movie) => {
+      acc[movie.cinemaSlug] = acc[movie.cinemaSlug] ?? {};
+
+      acc[movie.cinemaSlug][movie.name] = movie;
+      return acc;
+    },
+    {} as Record<
+      CinemaSlugs,
+      Record<string, Awaited<ReturnType<typeof db.movie.findMany>>[number]>
+    >,
   );
+
+  await db.showing.createMany({
+    data: movies
+      .map((movie) =>
+        movie.showings.map((showing) => ({
+          dateTime: showing.dateTime,
+          bookingUrl: showing.bookingUrl,
+          movieId:
+            moviesMappedByCinemaAndName[movie.cinema.slug][movie.name]?.id ??
+            -200,
+          showingAdditionalData: showing.showingAdditionalData,
+        })),
+      )
+      .flat(),
+  });
 
   return new NextResponse(
     JSON.stringify({ message: "Movies were successfully updated" }),
