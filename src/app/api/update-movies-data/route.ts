@@ -4,11 +4,14 @@ import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-ex
 import { db } from "@waslaeuftin/server/db";
 import { Cinemas } from "@waslaeuftin/types/Movie";
 import moment from "moment";
+import { type NextApiRequest, type NextApiResponse } from "next";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(_: NextApiRequest, res: NextApiResponse) {
+  res.send("Beginning to update movies");
+
   const movies = (
     await Promise.all([
       getComtradCineOrderMovies(Cinemas.zkm_karlsruhe),
