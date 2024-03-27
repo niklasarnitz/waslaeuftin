@@ -45,10 +45,12 @@ export async function GET() {
                     )?.id ?? -200,
                   dateTime: showing.dateTime,
                   bookingUrl: showing.bookingUrl,
+                  showingAdditionalData: showing.showingAdditionalData,
                 },
                 create: {
                   dateTime: showing.dateTime,
                   bookingUrl: showing.bookingUrl,
+                  showingAdditionalData: showing.showingAdditionalData,
                 },
               })),
             },

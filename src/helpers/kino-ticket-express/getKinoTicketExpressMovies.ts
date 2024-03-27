@@ -25,6 +25,15 @@ export const getKinoTicketsExpressMovies = async (
     movieContainers.map((_, container) => {
       const container$ = load(container);
 
+      const additionalShowingsDataRaw = container$(
+        "div.space-x-2 > div",
+      ).text();
+
+      const showingAdditionalData =
+        additionalShowingsDataRaw.length > 0
+          ? additionalShowingsDataRaw
+          : undefined;
+
       const dateContainer = container$("li > ul > li");
 
       const showings: unknown[] = [];
@@ -42,13 +51,14 @@ export const getKinoTicketsExpressMovies = async (
 
         showings.push({
           dateTime: moment(
-            `2024-${dateText[1]}-${dateText[0]}-${Number(timeText[0]) + 1}:${timeText[1]}`,
+            `2024-${dateText[1]}-${dateText[0]}-${timeText[0]}:${timeText[1]}`,
             "YYYY-MM-DD-HH:mm",
           ).toDate(),
           bookingUrl: dateContainerInner$("div.flex-wrap>a").attr("href")
             ? `https://kinotickets.express${dateContainerInner$("div.flex-wrap>a").attr("href")}`
             : undefined,
-        });
+          showingAdditionalData,
+        } satisfies Showing);
       });
 
       const filteredShowing = (

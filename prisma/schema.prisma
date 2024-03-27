@@ -27,6 +27,8 @@ model Showing {
     movie     Movie    @relation(fields: [movieId], references: [id])
     movieId   Int
 
+    showingAdditionalData String?
+
     additionalData Json?
 
     createdAt DateTime @default(now())

@@ -76,6 +76,11 @@ export const MoviesByCinemaList = ({
                           {moment(showing.dateTime).format(
                             "DD.MM.YYYY - HH:mm",
                           )}
+                          {showing.showingAdditionalData && (
+                            <div className="text-xs text-gray-500">
+                              {showing.showingAdditionalData}
+                            </div>
+                          )}
                         </Link>
                       );
                     })}

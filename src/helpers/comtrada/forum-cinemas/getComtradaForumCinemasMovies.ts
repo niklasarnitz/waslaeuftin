@@ -78,6 +78,7 @@ export const getComtradaForumCinemasMovies = async (
         }
 
         const showingTimes = row$("td.times > ul > li > a");
+
         showingTimes.map((_, time) => {
           if (
             time.children &&
@@ -90,6 +91,15 @@ export const getComtradaForumCinemasMovies = async (
             const hours = Number(timeData[0]);
             const minutes = Number(timeData[1]);
 
+            const additional$ = load(time);
+
+            const additionalTextRaw = additional$("em").text();
+
+            const additionalText =
+              additionalTextRaw.length > 0
+                ? additionalTextRaw.replaceAll("ATMOS", "Dolby Atmos")
+                : undefined;
+
             const newShowingDate = new Date(
               date.getFullYear(),
               date.getMonth(),
@@ -100,7 +110,10 @@ export const getComtradaForumCinemasMovies = async (
 
             const showing: Showing = {
               dateTime: newShowingDate,
-              bookingUrl: time.attribs.href,
+              bookingUrl: time.attribs.href
+                ? `https://www.forumcinemas.de/${time.attribs.href}`
+                : undefined,
+              showingAdditionalData: additionalText,
             };
 
             showings.push(showing);
