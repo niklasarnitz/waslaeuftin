@@ -18,8 +18,9 @@ export default async function WhatsShowingInCity({
 
   const moviesByCinema = movies.reduce(
     (acc, movie) => {
-      acc[movie.cinemaSlug] = acc[movie.cinemaSlug] ?? [];
-      acc[movie.cinemaSlug]?.push(movie);
+      acc[movie.cinemaSlug as CinemaSlugs] =
+        acc[movie.cinemaSlug as CinemaSlugs] ?? [];
+      acc[movie.cinemaSlug as CinemaSlugs]?.push(movie);
       return acc;
     },
     {} as Record<CinemaSlugs, Awaited<ReturnType<typeof api.movies.getMovies>>>,
