@@ -1,3 +1,5 @@
+import { KinoheldCinemas } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemaSlugs";
+import { KinoHeldCinemas } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemas";
 import { z } from "zod";
 
 export const KinoTicketsExpressCinemas = z.enum([
@@ -23,6 +25,7 @@ export const CinemaSlugsSchema = z.enum([
   ...KinoTicketsExpressCinemas.options,
   ...ComtradaCineOrderCinemas.options,
   ...ComtradaForumCinemas.options,
+  ...KinoheldCinemas.options,
 ]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
@@ -65,6 +68,7 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     url: "https://www.forumcinemas.de/",
     slug: "forum_rastatt",
   },
+  ...KinoHeldCinemas,
 };
 
 export const ShowingSchema = z.object({

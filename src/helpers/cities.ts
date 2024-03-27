@@ -1,5 +1,6 @@
 import { api } from "@waslaeuftin/trpc/server";
 import { Cinemas } from "@waslaeuftin/types/Movie";
+import moment from "moment";
 
 export const Cities: Record<
   string,
@@ -78,6 +79,35 @@ export const Cities: Record<
       return (
         await Promise.all([
           api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
+        ])
+      ).flat();
+    },
+  },
+  leonberg: {
+    name: "Leonberg",
+    fetchMoviesOfToday: async () => {
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.traumpalast_leonberg }),
+        ])
+      )
+        .flat()
+        .filter((movie) =>
+          movie.showings.some((showing) =>
+            moment().isSame(showing.dateTime, "day"),
+          ),
+        )
+        .map((movie) => ({
+          ...movie,
+          showings: movie.showings.filter((showing) =>
+            moment().isSame(showing.dateTime, "day"),
+          ),
+        }));
+    },
+    fetchMovies: async () => {
+      return (
+        await Promise.all([
+          api.movies.getMovies({ cinema: Cinemas.traumpalast_leonberg }),
         ])
       ).flat();
     },

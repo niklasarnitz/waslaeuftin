@@ -1,6 +1,7 @@
 import { getComtradCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
+import { getKinoHeldMovies } from "@waslaeuftin/helpers/kinoheld/getKinoHeldMovies";
 import { db } from "@waslaeuftin/server/db";
 import { type CinemaSlugs, Cinemas } from "@waslaeuftin/types/Movie";
 import { NextResponse } from "next/server";
@@ -14,6 +15,7 @@ export async function GET() {
       getComtradaForumCinemasMovies("forum_lahr"),
       getComtradaForumCinemasMovies("forum_offenburg"),
       getComtradaForumCinemasMovies("forum_rastatt"),
+      getKinoHeldMovies("traumpalast_leonberg"),
     ])
   ).flat();
 
