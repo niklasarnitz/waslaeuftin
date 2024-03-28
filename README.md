@@ -4,10 +4,11 @@ waslaeuft.in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für de
 
 ## Verwendete Technologien
 
-- Next.js (Frontend & Backend)
-- Prisma (Datenbank, PostgreSQL)
-- tRPC (Backend)
-- NextJS Cron (Zum nächtlichen Updaten der Filme)
+- T3 Stack (Next.js, Prisma, tRPC):
+  - Next.js (Frontend & Backend)
+  - Prisma (Datenbank, PostgreSQL)
+  - tRPC (Backend)
+  - NextJS Cron (Zum nächtlichen Updaten der Filme)
 
 ## Lokale Entwicklung
 
