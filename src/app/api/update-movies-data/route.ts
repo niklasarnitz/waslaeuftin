@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   if (env.CRON_SECRET !== req.headers.get("x-cron-secret")) {
     return new NextResponse(JSON.stringify({ message: "Invalid secret" }), {
       status: 403,
+      statusText: "Forbidden",
     });
   }
 
