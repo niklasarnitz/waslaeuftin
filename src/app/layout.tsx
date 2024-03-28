@@ -23,9 +23,15 @@ export default function RootLayout({
     <html lang="de">
       <body className={`font-sans ${inter.variable}`}>
         <TRPCReactProvider>{children}</TRPCReactProvider>
-        <footer className="flex flex-col items-center justify-center pb-4">
+        <footer className="flex flex-row items-center justify-center space-x-4 pb-4">
           <Link href="/legal" className="text-sm font-light">
             Rechtliches
+          </Link>
+          <Link
+            href="/https://github.com/niklasarnitz/waslaeuftin"
+            className="text-sm font-light"
+          >
+            GitHub
           </Link>
         </footer>
         <script
