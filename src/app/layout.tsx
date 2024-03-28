@@ -3,6 +3,7 @@ import "@waslaeuftin/styles/globals.css";
 import { Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
+import Link from "next/link";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,11 @@ export default function RootLayout({
     <html lang="de">
       <body className={`font-sans ${inter.variable}`}>
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        <footer className="flex flex-col items-center justify-center pb-4">
+          <Link href="/legal" className="text-sm font-light">
+            Rechtliches
+          </Link>
+        </footer>
         <script
           defer
           src="https://umami.app.niklas.services/script.js"
