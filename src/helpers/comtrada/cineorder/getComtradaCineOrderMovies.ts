@@ -2,14 +2,25 @@ import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import { type ComtradaCineOrderMovie } from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
 import {
   type Movie,
-  type Cinema,
   type Showing,
+  type ComtradaCineOrderCinemasType,
+  Cinemas,
 } from "@waslaeuftin/types/Movie";
 import moment from "moment";
 import { xior } from "xior";
 
+const CineOrderUrls: Record<ComtradaCineOrderCinemasType, string> = {
+  universum_karlsruhe: "https://ts.kinopolis.de",
+  zkm_karlsruhe: "https://cineorder.filmpalast.net",
+};
+
+const CenterIds: Record<ComtradaCineOrderCinemasType, string> = {
+  universum_karlsruhe: "19210000014PLXMQDD",
+  zkm_karlsruhe: "6F000000014BHGWDVI",
+};
+
 export const getComtradCineOrderMovies = async (
-  cinema: Cinema,
+  cinema: ComtradaCineOrderCinemasType,
   date?: Date,
 ) => {
   let query = "";
@@ -22,10 +33,10 @@ export const getComtradCineOrderMovies = async (
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<ComtradaCineOrderMovie[]>(
-    `https://cineorder.filmpalast.net/api/films${query}`,
+    `${CineOrderUrls[cinema]}/api/films${query}`,
     {
       headers: {
-        "Center-Oid": "6F000000014BHGWDVI",
+        "Center-Oid": CenterIds[cinema],
       },
     },
   );
@@ -53,7 +64,7 @@ export const getComtradCineOrderMovies = async (
             showingAdditionalData,
           } satisfies Showing;
         }),
-        cinema,
+        cinema: Cinemas[cinema],
       }) satisfies Movie,
   );
 };

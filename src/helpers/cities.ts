@@ -22,6 +22,7 @@ export const Cities: Record<
             date,
           }),
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
+          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe, date }),
         ])
       ).flat();
     },
@@ -31,6 +32,7 @@ export const Cities: Record<
           api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe }),
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
+          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe }),
         ])
       ).flat();
     },
@@ -49,6 +51,7 @@ export const Cities: Record<
           }),
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
           api.movies.getMovies({ cinema: Cinemas.forum_rastatt, date }),
+          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe, date }),
         ])
       ).flat();
     },
@@ -59,6 +62,7 @@ export const Cities: Record<
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
           api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
           api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
+          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe }),
         ])
       ).flat();
     },

@@ -19,18 +19,20 @@ export const ComtradaForumCinemas = z.enum([
 
 export type ComtradaForumCinemasType = z.infer<typeof ComtradaForumCinemas>;
 
-export const KinopolisCinemas = z.enum(["kinopolis_karlsruhe"]);
+export const ComtradaCineOrderCinemas = z.enum([
+  "zkm_karlsruhe",
+  "universum_karlsruhe",
+]);
 
-export type KinopolisCinemasType = z.infer<typeof KinopolisCinemas>;
-
-export const ComtradaCineOrderCinemas = z.enum(["zkm_karlsruhe"]);
+export type ComtradaCineOrderCinemasType = z.infer<
+  typeof ComtradaCineOrderCinemas
+>;
 
 export const CinemaSlugsSchema = z.enum([
   ...KinoTicketsExpressCinemas.options,
   ...ComtradaCineOrderCinemas.options,
   ...ComtradaForumCinemas.options,
   ...KinoheldCinemas.options,
-  ...KinopolisCinemas.options,
 ]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
@@ -73,10 +75,10 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     url: "https://www.forumcinemas.de/",
     slug: "forum_rastatt",
   },
-  kinopolis_karlsruhe: {
-    name: "Kinopolis Karlsruhe",
+  universum_karlsruhe: {
+    name: "Universum Karlsruhe",
     url: "https://www.kinopolis.de/ka",
-    slug: "kinopolis_karlsruhe",
+    slug: "universum_karlsruhe",
   },
   ...KinoHeldCinemas,
 };

@@ -3,13 +3,14 @@ import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/for
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/helpers/kinoheld/getKinoHeldMovies";
 import { db } from "@waslaeuftin/server/db";
-import { type CinemaSlugs, Cinemas } from "@waslaeuftin/types/Movie";
+import { type CinemaSlugs } from "@waslaeuftin/types/Movie";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const movies = (
     await Promise.all([
-      getComtradCineOrderMovies(Cinemas.zkm_karlsruhe),
+      getComtradCineOrderMovies("zkm_karlsruhe"),
+      getComtradCineOrderMovies("universum_karlsruhe"),
       getKinoTicketsExpressMovies("karlsruhe_kinemathek"),
       getKinoTicketsExpressMovies("karlsruhe_schauburg"),
       getComtradaForumCinemasMovies("forum_lahr"),
