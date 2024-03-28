@@ -8,9 +8,16 @@ import { KinoHeldCinemas } from "@waslaeuftin/types/KinoHeldCinemas";
 import { ComtradaCineOrderCinemas } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
 import { ComtradaForumCinemas } from "@waslaeuftin/types/ComtradaForumCinemas";
 import { KinoTicketsExpressCinemas } from "@waslaeuftin/types/KinoTicketsExpressCinemas";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { env } from "@waslaeuftin/env";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (env.CRON_SECRET !== req.headers.get("x-cron-secret")) {
+    return new NextResponse(JSON.stringify({ message: "Invalid secret" }), {
+      status: 403,
+    });
+  }
+
   const movies = (
     await Promise.all([
       ...ComtradaCineOrderCinemas.options.map((cinema) =>
