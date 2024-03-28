@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-export const KinoTicketsExpressCinemas = z.enum([
-  "karlsruhe_kinemathek",
-  "karlsruhe_schauburg",
-]);
+export const KinoTicketsExpressCinemas = z.enum(["karlsruhe_kinemathek"]);
 
 export type KinoTicketsExpressCinemasType = z.infer<
   typeof KinoTicketsExpressCinemas
@@ -38,7 +35,13 @@ export type ComtradaCineOrderCinemasType = z.infer<
   typeof ComtradaCineOrderCinemas
 >;
 
-export const KinoHeldCinemas = z.enum(["traumpalast_leonberg"]);
+export const KinoHeldCinemas = z.enum([
+  "traumpalast_leonberg",
+  "karlsruhe_schauburg",
+  "merkur_filmcenter_gaggenau",
+  "moviac_baden_baden",
+  "cineplex_baden_baden",
+]);
 
 export type KinoHeldCinemasType = z.infer<typeof KinoHeldCinemas>;
 
@@ -158,6 +161,21 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     name: "Kinopolis Bad Homburg",
     url: "https://cotest.kinopolis.de/bh",
     slug: "kinopolis_bad_homburg",
+  },
+  merkur_filmcenter_gaggenau: {
+    name: "Merkur Film Center Gaggenau",
+    url: "https://merkur-film-center.de/",
+    slug: "merkur_filmcenter_gaggenau",
+  },
+  moviac_baden_baden: {
+    name: "moviac - Kino im Kaiserhof",
+    url: "https://www.moviac.de/",
+    slug: "moviac_baden_baden",
+  },
+  cineplex_baden_baden: {
+    name: "Cineplex Baden-Baden",
+    url: "https://www.cineplex.de/baden-baden/",
+    slug: "cineplex_baden_baden",
   },
 };
 

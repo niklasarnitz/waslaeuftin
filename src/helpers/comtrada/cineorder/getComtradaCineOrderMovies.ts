@@ -1,5 +1,8 @@
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
-import { type ComtradaCineOrderMovie } from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
+import {
+  type ComtradaCineOrderMoviePerformance,
+  type ComtradaCineOrderMovie,
+} from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
 import {
   type Movie,
   type Showing,
@@ -43,6 +46,36 @@ const CenterIds: Record<ComtradaCineOrderCinemasType, string> = {
   kinopolis_bad_homburg: "5F830000014PLXMQDD",
 };
 
+const CenterShorties: Record<ComtradaCineOrderCinemasType, string> = {
+  universum_karlsruhe: "ka",
+  zkm_karlsruhe: "zkm",
+  kinopolis_rosenheim: "ro",
+  mathaeser_filmpalast: "mm",
+  kinopolis_koblenz: "ko",
+  kinopolis_bad_godesberg: "bn",
+  kinopolis_landshut: "ls",
+  citydome_darmstadt: "cd",
+  kinopolis_darmstadt: "kp",
+  kinopolis_freiberg: "fr",
+  gloria_palast_münchen: "gp",
+  kinopolis_hanau: "hu",
+  kinopolis_gießen: "kg",
+  kinopolis_bad_homburg: "bh",
+};
+
+const getTicketUrl = (
+  cinema: ComtradaCineOrderCinemasType,
+  movie: ComtradaCineOrderMovie,
+  performance: ComtradaCineOrderMoviePerformance,
+) => {
+  switch (cinema) {
+    case "zkm_karlsruhe":
+      return `https://cineorder.filmpalast.net/zkm/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
+    default:
+      return `https://ts.kinopolis.de/${CenterShorties[cinema]}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
+  }
+};
+
 export const getComtradaCineOrderMovies = async (
   cinema: ComtradaCineOrderCinemasType,
   date?: Date,
@@ -82,10 +115,7 @@ export const getComtradaCineOrderMovies = async (
 
           return {
             dateTime: new Date(performance.performanceDateTime),
-            // TODO: fix bookingUrl
-            bookingUrl: performance.ticketTitle
-              ? `https://cineorder.filmpalast.net/zkm/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`
-              : undefined,
+            bookingUrl: getTicketUrl(cinema, movie, performance),
             showingAdditionalData,
           } satisfies Showing;
         }),

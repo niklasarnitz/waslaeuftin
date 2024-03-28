@@ -47,6 +47,7 @@ export const Cities: Record<
           Cinemas.karlsruhe_schauburg,
           Cinemas.forum_rastatt,
           Cinemas.universum_karlsruhe,
+          Cinemas.merkur_filmcenter_gaggenau,
         ],
         date,
       });
@@ -59,6 +60,7 @@ export const Cities: Record<
           Cinemas.karlsruhe_schauburg,
           Cinemas.forum_rastatt,
           Cinemas.universum_karlsruhe,
+          Cinemas.merkur_filmcenter_gaggenau,
         ],
       });
     },
@@ -256,7 +258,7 @@ export const Cities: Record<
       });
     },
   },
-  gießen: {
+  giessen: {
     name: "Gießen",
     fetchMoviesOfToday: async () => {
       const date = new Date();
@@ -285,6 +287,38 @@ export const Cities: Record<
     fetchMovies: async () => {
       return await api.movies.getMoviesForManyCinemas({
         cinemas: [Cinemas.kinopolis_bad_homburg],
+      });
+    },
+  },
+  gaggenau: {
+    name: "Gaggenau",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.merkur_filmcenter_gaggenau],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.merkur_filmcenter_gaggenau],
+      });
+    },
+  },
+  baden_baden: {
+    name: "Baden-Baden",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.moviac_baden_baden, Cinemas.cineplex_baden_baden],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.moviac_baden_baden, Cinemas.cineplex_baden_baden],
       });
     },
   },

@@ -292,10 +292,38 @@ interface FetchShowGroupsResponse {
 
 const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
   traumpalast_leonberg: "1865",
+  karlsruhe_schauburg: "1139",
+  merkur_filmcenter_gaggenau: "964",
+  moviac_baden_baden: "983",
+  cineplex_baden_baden: "322",
 };
 
 const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
   traumpalast_leonberg: "traumpalast-leonberg",
+  karlsruhe_schauburg: "karlsruhe-schauburg",
+  merkur_filmcenter_gaggenau: "merkur-filmcenter-gaggenau",
+  moviac_baden_baden: "moviac-kino-im-kaiserhof",
+  cineplex_baden_baden: "cineplex-baden-baden",
+};
+
+const getBookingUrl = (
+  cinema: KinoHeldCinemasType,
+  movie: ShowGroup,
+  showing: ShowGroup["shows"]["data"][number],
+) => {
+  switch (cinema) {
+    case "traumpalast_leonberg":
+      return `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
+    case "karlsruhe_schauburg":
+      return "https://kinotickets.express/karlsruhe_schauburg/movies";
+    case "merkur_filmcenter_gaggenau":
+    case "moviac_baden_baden":
+      return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
+    case "cineplex_baden_baden":
+      return showing?.deeplink ?? undefined;
+    default:
+      return undefined;
+  }
 };
 
 async function getKinoHeldMoviesInner(
@@ -341,7 +369,7 @@ export async function getKinoHeldMovies(cinema: KinoHeldCinemasType) {
 
       return {
         dateTime: moment(showing?.beginning ?? moment()).toDate(),
-        bookingUrl: `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`,
+        bookingUrl: getBookingUrl(cinema, movie, showing),
         showingAdditionalData,
       } satisfies Showing;
     });
