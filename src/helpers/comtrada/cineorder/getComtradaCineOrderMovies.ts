@@ -3,12 +3,10 @@ import {
   type ComtradaCineOrderMoviePerformance,
   type ComtradaCineOrderMovie,
 } from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
-import {
-  type Movie,
-  type Showing,
-  type ComtradaCineOrderCinemasType,
-  Cinemas,
-} from "@waslaeuftin/types/Movie";
+import { type Movie } from "@waslaeuftin/types/Movie";
+import { type Showing } from "@waslaeuftin/types/Showing";
+import { Cinemas } from "@waslaeuftin/types/Cinemas";
+import { type ComtradaCineOrderCinemasType } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
 import moment from "moment";
 import { xior } from "xior";
 

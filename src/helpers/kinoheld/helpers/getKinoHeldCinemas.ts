@@ -4,7 +4,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
-import { type CinemaSlugs, type Cinema } from "@waslaeuftin/types/Movie";
+import { type Cinema } from "@waslaeuftin/types/Cinema";
+import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
 import { writeFile } from "fs/promises";
 
 const httpLink = new HttpLink({

@@ -3,13 +3,11 @@ import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/for
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/helpers/kinoheld/getKinoHeldMovies";
 import { db } from "@waslaeuftin/server/db";
-import {
-  ComtradaCineOrderCinemas,
-  type CinemaSlugs,
-  ComtradaForumCinemas,
-  KinoTicketsExpressCinemas,
-  KinoHeldCinemas,
-} from "@waslaeuftin/types/Movie";
+import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
+import { KinoHeldCinemas } from "@waslaeuftin/types/KinoHeldCinemas";
+import { ComtradaCineOrderCinemas } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
+import { ComtradaForumCinemas } from "@waslaeuftin/types/ComtradaForumCinemas";
+import { KinoTicketsExpressCinemas } from "@waslaeuftin/types/KinoTicketsExpressCinemas";
 import { NextResponse } from "next/server";
 
 export async function GET() {

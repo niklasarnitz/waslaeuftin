@@ -1,7 +1,7 @@
 import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
 import { Cities } from "@waslaeuftin/helpers/cities";
 import { type api } from "@waslaeuftin/trpc/server";
-import { type CinemaSlugs } from "@waslaeuftin/types/Movie";
+import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
 
 export default async function MoviesInCity({
   params,

@@ -1,5 +1,5 @@
 import { api } from "@waslaeuftin/trpc/server";
-import { Cinemas } from "@waslaeuftin/types/Movie";
+import { Cinemas } from "@waslaeuftin/types/Cinemas";
 
 export const Cities: Record<
   string,

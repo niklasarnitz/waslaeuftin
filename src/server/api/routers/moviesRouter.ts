@@ -2,7 +2,7 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import { CinemaSchema } from "@waslaeuftin/types/Movie";
+import { CinemaSchema } from "@waslaeuftin/types/Cinema";
 import moment from "moment";
 import { z } from "zod";
 

@@ -1,11 +1,9 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { gql } from "@apollo/client";
-import {
-  type Movie,
-  type Showing,
-  Cinemas,
-  type KinoHeldCinemasType,
-} from "@waslaeuftin/types/Movie";
+import { type Movie } from "@waslaeuftin/types/Movie";
+import { type Showing } from "@waslaeuftin/types/Showing";
+import { Cinemas } from "@waslaeuftin/types/Cinemas";
+import { type KinoHeldCinemasType } from "@waslaeuftin/types/KinoHeldCinemas";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment";
 

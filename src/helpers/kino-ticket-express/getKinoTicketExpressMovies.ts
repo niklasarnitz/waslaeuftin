@@ -1,11 +1,9 @@
-import {
-  isShowing,
-  type Showing,
-  type Movie,
-  isMovie,
-  Cinemas,
-  type KinoTicketsExpressCinemasType,
-} from "@waslaeuftin/types/Movie";
+import { type Movie } from "@waslaeuftin/types/Movie";
+import { isMovie } from "@waslaeuftin/types/guards/isMovie";
+import { isShowing } from "@waslaeuftin/types/guards/isShowing";
+import { type Showing } from "@waslaeuftin/types/Showing";
+import { Cinemas } from "@waslaeuftin/types/Cinemas";
+import { type KinoTicketsExpressCinemasType } from "@waslaeuftin/types/KinoTicketsExpressCinemas";
 import { load } from "cheerio";
 import moment from "moment";
 import { xior } from "xior";

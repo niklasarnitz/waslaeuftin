@@ -1,6 +1,7 @@
 import { Cities } from "@waslaeuftin/helpers/cities";
 import { type api } from "@waslaeuftin/trpc/server";
-import { type CinemaSlugs, Cinemas } from "@waslaeuftin/types/Movie";
+import { Cinemas } from "@waslaeuftin/types/Cinemas";
+import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
 import moment from "moment";
 import Link from "next/link";
 
