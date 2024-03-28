@@ -48,49 +48,51 @@ export const MoviesByCinemaList = ({
           </div>
         )}
       </div>
-      {Object.keys(moviesByCinema).map((cinemaSlug) => {
-        const moviesInCinema = (
-          moviesByCinema[cinemaSlug as CinemaSlugs] ?? []
-        ).sort((a, b) => a.name.localeCompare(b.name));
-        const cinema = Cinemas[cinemaSlug as CinemaSlugs];
+      {Object.keys(moviesByCinema)
+        .sort((a, b) => a.localeCompare(b))
+        .map((cinemaSlug) => {
+          const moviesInCinema = (
+            moviesByCinema[cinemaSlug as CinemaSlugs] ?? []
+          ).sort((a, b) => a.name.localeCompare(b.name));
+          const cinema = Cinemas[cinemaSlug as CinemaSlugs];
 
-        if (!cinema) {
-          return null;
-        }
+          if (!cinema) {
+            return null;
+          }
 
-        return (
-          <div key={cinema.slug} className="p-4">
-            <h1 className="text-xl font-bold">{cinema.name}</h1>
-            <div className="flex flex-col gap-y-4">
-              {moviesInCinema.map((movie) => (
-                <div key={movie.name}>
-                  <h2 className="text-lg font-semibold">{movie.name}</h2>
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
-                    {movie.showings.map((showing) => {
-                      return (
-                        <Link
-                          href={showing.bookingUrl ?? "#"}
-                          key={`${cinema.slug}-${showing.dateTime.toISOString()}-${movie.name}`}
-                          className="flex flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-md hover:border-gray-300"
-                        >
-                          {moment(showing.dateTime).format(
-                            "DD.MM.YYYY - HH:mm",
-                          )}
-                          {showing.showingAdditionalData && (
-                            <div className="text-xs text-gray-500">
-                              {showing.showingAdditionalData}
-                            </div>
-                          )}
-                        </Link>
-                      );
-                    })}
+          return (
+            <div key={cinema.slug} className="p-4">
+              <h1 className="text-xl font-bold">{cinema.name}</h1>
+              <div className="flex flex-col gap-y-4">
+                {moviesInCinema.map((movie) => (
+                  <div key={movie.name}>
+                    <h2 className="text-lg font-semibold">{movie.name}</h2>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
+                      {movie.showings.map((showing) => {
+                        return (
+                          <Link
+                            href={showing.bookingUrl ?? "#"}
+                            key={`${cinema.slug}-${showing.dateTime.toISOString()}-${movie.name}`}
+                            className="flex flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-md hover:border-gray-300"
+                          >
+                            {moment(showing.dateTime).format(
+                              "DD.MM.YYYY - HH:mm",
+                            )}
+                            {showing.showingAdditionalData && (
+                              <div className="text-xs text-gray-500">
+                                {showing.showingAdditionalData}
+                              </div>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
     </>
   );
 };

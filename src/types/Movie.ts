@@ -1,5 +1,3 @@
-import { KinoheldCinemas } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemaSlugs";
-import { KinoHeldCinemas } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemas";
 import { z } from "zod";
 
 export const KinoTicketsExpressCinemas = z.enum([
@@ -22,17 +20,33 @@ export type ComtradaForumCinemasType = z.infer<typeof ComtradaForumCinemas>;
 export const ComtradaCineOrderCinemas = z.enum([
   "zkm_karlsruhe",
   "universum_karlsruhe",
+  "kinopolis_rosenheim",
+  "mathaeser_filmpalast",
+  "kinopolis_koblenz",
+  "kinopolis_bad_godesberg",
+  "kinopolis_landshut",
+  "citydome_darmstadt",
+  "kinopolis_darmstadt",
+  "kinopolis_freiberg",
+  "gloria_palast_münchen",
+  "kinopolis_hanau",
+  "kinopolis_gießen",
+  "kinopolis_bad_homburg",
 ]);
 
 export type ComtradaCineOrderCinemasType = z.infer<
   typeof ComtradaCineOrderCinemas
 >;
 
+export const KinoHeldCinemas = z.enum(["traumpalast_leonberg"]);
+
+export type KinoHeldCinemasType = z.infer<typeof KinoHeldCinemas>;
+
 export const CinemaSlugsSchema = z.enum([
   ...KinoTicketsExpressCinemas.options,
   ...ComtradaCineOrderCinemas.options,
   ...ComtradaForumCinemas.options,
-  ...KinoheldCinemas.options,
+  ...KinoHeldCinemas.options,
 ]);
 export type CinemaSlugs = z.infer<typeof CinemaSlugsSchema>;
 
@@ -80,7 +94,71 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     url: "https://www.kinopolis.de/ka",
     slug: "universum_karlsruhe",
   },
-  ...KinoHeldCinemas,
+  kinopolis_rosenheim: {
+    name: "Kinopolis Rosenheim",
+    url: "https://www.kinopolis.de/ro",
+    slug: "kinopolis_rosenheim",
+  },
+  mathaeser_filmpalast: {
+    name: "Mathaeser Filmpalast München",
+    url: "https://www.mathaeser.de/mm",
+    slug: "mathaeser_filmpalast",
+  },
+  traumpalast_leonberg: {
+    name: "Traumpalast Leonberg",
+    url: "https://www.kinoheld.de/kino/leonberg-wuerttemberg/traumpalast-leonberg/vorstellungen",
+    slug: "traumpalast_leonberg",
+  },
+  kinopolis_koblenz: {
+    name: "Kinopolis Koblenz",
+    url: "https://www.kinopolis.de/ko",
+    slug: "kinopolis_koblenz",
+  },
+  kinopolis_bad_godesberg: {
+    name: "Kinopolis Bad Godesberg",
+    url: "https://cotest.kinopolis.de/bn",
+    slug: "kinopolis_bad_godesberg",
+  },
+  kinopolis_landshut: {
+    name: "Kinopolis Landshut",
+    url: "https://cotest.kinopolis.de/ls",
+    slug: "kinopolis_landshut",
+  },
+  citydome_darmstadt: {
+    name: "Citydome Darmstadt",
+    url: "https://cotest.kinopolis.de/cd",
+    slug: "citydome_darmstadt",
+  },
+  kinopolis_darmstadt: {
+    name: "Kinopolis Darmstadt",
+    url: "https://cotest.kinopolis.de/kp",
+    slug: "kinopolis_darmstadt",
+  },
+  kinopolis_freiberg: {
+    name: "Kinopolis Freiberg",
+    url: "https://cotest.kinopolis.de/fr",
+    slug: "kinopolis_freiberg",
+  },
+  gloria_palast_münchen: {
+    name: "Gloria Palast München",
+    url: "https://www.gloria-palast.de/gp",
+    slug: "gloria_palast_münchen",
+  },
+  kinopolis_hanau: {
+    name: "Kinopolis Hanau",
+    url: "https://kinopolis.de/hu",
+    slug: "kinopolis_hanau",
+  },
+  kinopolis_gießen: {
+    name: "Kinopolis Gießen",
+    url: "https://www.kinopolis.de/kg",
+    slug: "kinopolis_gießen",
+  },
+  kinopolis_bad_homburg: {
+    name: "Kinopolis Bad Homburg",
+    url: "https://cotest.kinopolis.de/bh",
+    slug: "kinopolis_bad_homburg",
+  },
 };
 
 export const ShowingSchema = z.object({

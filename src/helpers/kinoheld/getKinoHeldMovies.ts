@@ -1,11 +1,13 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { type Movie, type Showing, Cinemas } from "@waslaeuftin/types/Movie";
+import {
+  type Movie,
+  type Showing,
+  Cinemas,
+  type KinoHeldCinemasType,
+} from "@waslaeuftin/types/Movie";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment";
-import { type KinoheldCinemasType } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemaSlugs";
-import { KinoheldCinemaIds } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCinemaIds";
-import { CorrectedCinemas } from "@waslaeuftin/helpers/kinoheld/helpers/kinoHeldCorrectedCinemas";
 
 const httpLink = new HttpLink({
   uri: "https://next-live.kinoheld.de/graphql",
@@ -288,15 +290,23 @@ interface FetchShowGroupsResponse {
   };
 }
 
+const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
+  traumpalast_leonberg: "1865",
+};
+
+const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
+  traumpalast_leonberg: "traumpalast-leonberg",
+};
+
 async function getKinoHeldMoviesInner(
-  cinema: KinoheldCinemasType,
+  cinema: KinoHeldCinemasType,
   page = 1,
   allData: ShowGroup[] = [],
 ): Promise<ShowGroup[]> {
   const { data } = await client.query<FetchShowGroupsResponse>({
     query: FETCH_SHOW_GROUPS_FOR_CINEMA,
     variables: {
-      cinemaId: KinoheldCinemaIds[cinema],
+      cinemaId: KinoHeldCinemaIds[cinema],
       first: 100,
       page,
       playing: {},
@@ -311,7 +321,7 @@ async function getKinoHeldMoviesInner(
   }
 }
 
-export async function getKinoHeldMovies(cinema: KinoheldCinemasType) {
+export async function getKinoHeldMovies(cinema: KinoHeldCinemasType) {
   const movies = await getKinoHeldMoviesInner(cinema);
 
   return movies.map((movie) => {
@@ -331,7 +341,7 @@ export async function getKinoHeldMovies(cinema: KinoheldCinemasType) {
 
       return {
         dateTime: moment(showing?.beginning ?? moment()).toDate(),
-        bookingUrl: `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${CorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`,
+        bookingUrl: `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`,
         showingAdditionalData,
       } satisfies Showing;
     });

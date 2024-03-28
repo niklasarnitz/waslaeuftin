@@ -1,22 +1,30 @@
-import { getComtradCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
+import { getComtradaCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/helpers/kinoheld/getKinoHeldMovies";
 import { db } from "@waslaeuftin/server/db";
-import { type CinemaSlugs } from "@waslaeuftin/types/Movie";
+import {
+  ComtradaCineOrderCinemas,
+  type CinemaSlugs,
+  ComtradaForumCinemas,
+  KinoTicketsExpressCinemas,
+  KinoHeldCinemas,
+} from "@waslaeuftin/types/Movie";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const movies = (
     await Promise.all([
-      getComtradCineOrderMovies("zkm_karlsruhe"),
-      getComtradCineOrderMovies("universum_karlsruhe"),
-      getKinoTicketsExpressMovies("karlsruhe_kinemathek"),
-      getKinoTicketsExpressMovies("karlsruhe_schauburg"),
-      getComtradaForumCinemasMovies("forum_lahr"),
-      getComtradaForumCinemasMovies("forum_offenburg"),
-      getComtradaForumCinemasMovies("forum_rastatt"),
-      getKinoHeldMovies("traumpalast_leonberg"),
+      ...ComtradaCineOrderCinemas.options.map((cinema) =>
+        getComtradaCineOrderMovies(cinema),
+      ),
+      ...ComtradaForumCinemas.options.map((cinema) =>
+        getComtradaForumCinemasMovies(cinema),
+      ),
+      ...KinoTicketsExpressCinemas.options.map((cinema) =>
+        getKinoTicketsExpressMovies(cinema),
+      ),
+      ...KinoHeldCinemas.options.map((cinema) => getKinoHeldMovies(cinema)),
     ])
   ).flat();
 

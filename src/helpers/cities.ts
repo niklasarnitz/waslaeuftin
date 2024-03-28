@@ -14,27 +14,25 @@ export const Cities: Record<
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe, date }),
-          api.movies.getMovies({
-            cinema: Cinemas.karlsruhe_kinemathek,
-            date,
-          }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
-          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe, date }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [
+          Cinemas.zkm_karlsruhe,
+          Cinemas.karlsruhe_kinemathek,
+          Cinemas.karlsruhe_schauburg,
+          Cinemas.universum_karlsruhe,
+        ],
+        date,
+      });
     },
     fetchMovies: async () => {
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
-          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [
+          Cinemas.zkm_karlsruhe,
+          Cinemas.karlsruhe_kinemathek,
+          Cinemas.karlsruhe_schauburg,
+          Cinemas.universum_karlsruhe,
+        ],
+      });
     },
   },
   "karlsruhe-rastatt": {
@@ -42,29 +40,27 @@ export const Cities: Record<
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe, date }),
-          api.movies.getMovies({
-            cinema: Cinemas.karlsruhe_kinemathek,
-            date,
-          }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg, date }),
-          api.movies.getMovies({ cinema: Cinemas.forum_rastatt, date }),
-          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe, date }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [
+          Cinemas.zkm_karlsruhe,
+          Cinemas.karlsruhe_kinemathek,
+          Cinemas.karlsruhe_schauburg,
+          Cinemas.forum_rastatt,
+          Cinemas.universum_karlsruhe,
+        ],
+        date,
+      });
     },
     fetchMovies: async () => {
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.zkm_karlsruhe }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_kinemathek }),
-          api.movies.getMovies({ cinema: Cinemas.karlsruhe_schauburg }),
-          api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
-          api.movies.getMovies({ cinema: Cinemas.universum_karlsruhe }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [
+          Cinemas.zkm_karlsruhe,
+          Cinemas.karlsruhe_kinemathek,
+          Cinemas.karlsruhe_schauburg,
+          Cinemas.forum_rastatt,
+          Cinemas.universum_karlsruhe,
+        ],
+      });
     },
   },
   rastatt: {
@@ -72,18 +68,15 @@ export const Cities: Record<
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.forum_rastatt, date }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_rastatt],
+        date,
+      });
     },
     fetchMovies: async () => {
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.forum_rastatt }),
-        ])
-      ).flat();
+      return api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_rastatt],
+      });
     },
   },
   leonberg: {
@@ -91,17 +84,15 @@ export const Cities: Record<
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return await api.movies.getMovies({
-        cinema: Cinemas.traumpalast_leonberg,
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.traumpalast_leonberg],
         date,
       });
     },
     fetchMovies: async () => {
-      return (
-        await Promise.all([
-          api.movies.getMovies({ cinema: Cinemas.traumpalast_leonberg }),
-        ])
-      ).flat();
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.traumpalast_leonberg],
+      });
     },
   },
   offenburg: {
@@ -109,27 +100,192 @@ export const Cities: Record<
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return await api.movies.getMovies({
-        cinema: Cinemas.forum_offenburg,
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_offenburg],
         date,
       });
     },
     fetchMovies: async () => {
-      return await api.movies.getMovies({ cinema: Cinemas.forum_offenburg });
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_offenburg],
+      });
     },
   },
+
   lahr: {
     name: "Lahr",
     fetchMoviesOfToday: async () => {
       const date = new Date();
 
-      return await api.movies.getMovies({
-        cinema: Cinemas.forum_lahr,
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_lahr],
         date,
       });
     },
     fetchMovies: async () => {
-      return await api.movies.getMovies({ cinema: Cinemas.forum_lahr });
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.forum_lahr],
+      });
+    },
+  },
+  rosenheim: {
+    name: "Rosenheim",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_rosenheim],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_rosenheim],
+      });
+    },
+  },
+  muenchen: {
+    name: "München",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.mathaeser_filmpalast, Cinemas.gloria_palast_münchen],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.mathaeser_filmpalast, Cinemas.gloria_palast_münchen],
+      });
+    },
+  },
+  koblenz: {
+    name: "Koblenz",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_koblenz],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_koblenz],
+      });
+    },
+  },
+  bonn: {
+    name: "Bonn",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_bad_godesberg],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_bad_godesberg],
+      });
+    },
+  },
+  landshut: {
+    name: "Landshut",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_landshut],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_landshut],
+      });
+    },
+  },
+  darmstadt: {
+    name: "Darmstadt",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.citydome_darmstadt, Cinemas.kinopolis_darmstadt],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.citydome_darmstadt, Cinemas.kinopolis_darmstadt],
+      });
+    },
+  },
+  freiberg: {
+    name: "Freiberg",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_freiberg],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_freiberg],
+      });
+    },
+  },
+  hanau: {
+    name: "Hanau",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_hanau],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_hanau],
+      });
+    },
+  },
+  gießen: {
+    name: "Gießen",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_gießen],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_gießen],
+      });
+    },
+  },
+  badHomburg: {
+    name: "Bad Homburg",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_bad_homburg],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.kinopolis_bad_homburg],
+      });
     },
   },
 };
