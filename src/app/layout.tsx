@@ -26,8 +26,6 @@ export default function RootLayout({
           defer
           src="https://umami.app.niklas.services/script.js"
           data-website-id="7538dcdd-2bff-4310-8b80-73c666f2d90a"
-          data-do-not-track="true"
-          data-domains="waslaeuft.in"
         />
       </body>
     </html>
