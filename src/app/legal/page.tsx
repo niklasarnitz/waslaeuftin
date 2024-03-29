@@ -48,9 +48,9 @@ export default function Legal() {
         <br />
         Niklas Arnitz
         <br />
-        Friedenstraße 30
+        Postfach 1173
         <br />
-        76477 Elchesheim-Illingen
+        76448 Durmersheim
         <br />
         <br />
         E-Mail-Adresse: niklas(EMAIL-SYMBOL)arnitz(DOT)email
@@ -453,9 +453,9 @@ export default function Legal() {
         <p>
           Niklas Arnitz
           <br />
-          Friedenstraße 30
+          Postfach 1173
           <br />
-          76477 Elchesheim-Illingen
+          76448 Durmersheim
           <br />
           E-Mail-Adresse: niklas(EMAIL-SYMBOL)arnitz(DOT)email
         </p>
