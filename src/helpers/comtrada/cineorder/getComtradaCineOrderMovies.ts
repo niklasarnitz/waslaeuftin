@@ -112,7 +112,7 @@ export const getComtradaCineOrderMovies = async (
           ].join(UIConstants.bullet);
 
           return {
-            dateTime: new Date(performance.performanceDateTime),
+            dateTime: moment(performance.performanceDateTime).toDate(),
             bookingUrl: getTicketUrl(cinema, movie, performance),
             showingAdditionalData,
           } satisfies Showing;
