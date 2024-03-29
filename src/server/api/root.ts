@@ -1,3 +1,4 @@
+import { citiesRouter } from "@waslaeuftin/server/api/routers/citiesRouter";
 import { githubRouter } from "@waslaeuftin/server/api/routers/githubRouter";
 import { moviesRouter } from "@waslaeuftin/server/api/routers/moviesRouter";
 import {
@@ -12,6 +13,7 @@ import {
  */
 export const appRouter = createTRPCRouter({
   movies: moviesRouter,
+  cities: citiesRouter,
   github: githubRouter,
 });
 

@@ -1,24 +1,26 @@
-import { Cities } from "@waslaeuftin/helpers/cities";
+import { db } from "@waslaeuftin/server/db";
 import Link from "next/link";
 
 export default async function Home() {
+  const cities = await db.city.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
+
   return (
     <main>
       <div className="flex flex-col items-center justify-center space-y-4">
         <h1 className="pt-4 text-4xl font-bold">wasläuft.in</h1>
-        {Object.keys(Cities)
-          .sort(
-            (a, b) => Cities[a]?.name.localeCompare(Cities[b]?.name ?? "") ?? 0,
-          )
-          .map((city) => (
-            <Link
-              key={city}
-              href={`/city/${city}/today`}
-              className="rounded-lg border px-4 py-2 underline shadow-sm"
-            >
-              {Cities[city]?.name}
-            </Link>
-          ))}
+        {cities.map((city) => (
+          <Link
+            key={city.slug}
+            href={`/city/${city.slug}/today`}
+            className="rounded-lg border px-4 py-2 underline shadow-sm"
+          >
+            {city.name}
+          </Link>
+        ))}
         <Link href="/request-cinema" className="text-center text-sm underline">
           Dein Kino oder deine Stadt ist noch nicht aufgeführt?
           <br />
