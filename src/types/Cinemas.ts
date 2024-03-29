@@ -13,8 +13,8 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     slug: "karlsruhe_schauburg",
   },
   zkm_karlsruhe: {
-    name: "ZKM Karlsruhe",
-    url: "https://zkm-karlsruhe.de/",
+    name: "Filmpalast am ZKM Karlsruhe",
+    url: "https://www.filmpalast.net/",
     slug: "zkm_karlsruhe",
   },
   forum_lahr: {
