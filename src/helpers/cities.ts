@@ -338,4 +338,20 @@ export const Cities: Record<
       });
     },
   },
+  walldorf: {
+    name: "Walldorf",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.luxor_walldorf],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.luxor_walldorf],
+      });
+    },
+  },
 };

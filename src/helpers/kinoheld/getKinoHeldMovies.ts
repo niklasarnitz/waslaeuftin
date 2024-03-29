@@ -294,6 +294,7 @@ const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
   moviac_baden_baden: "983",
   cineplex_baden_baden: "322",
   cineplex_bruchsal: "280",
+  luxor_walldorf: "945",
 };
 
 const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
@@ -302,6 +303,7 @@ const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
   moviac_baden_baden: "moviac-kino-im-kaiserhof",
   cineplex_baden_baden: "cineplex-baden-baden",
   cineplex_bruchsal: "cineplex-bruchsal",
+  luxor_walldorf: "luxor-walldorf",
 };
 
 const getBookingUrl = (
@@ -317,6 +319,7 @@ const getBookingUrl = (
       return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
     case "cineplex_baden_baden":
     case "cineplex_bruchsal":
+    case "luxor_walldorf":
       return showing?.deeplink ?? undefined;
     default:
       return undefined;
