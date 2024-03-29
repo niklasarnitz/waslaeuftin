@@ -32,7 +32,7 @@ export default function RootLayout({
             Rechtliches
           </Link>
           <Link
-            href="/https://github.com/niklasarnitz/waslaeuftin"
+            href="https://github.com/niklasarnitz/waslaeuftin"
             className="text-sm font-light"
           >
             GitHub
