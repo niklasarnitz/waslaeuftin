@@ -13,7 +13,7 @@ export default async function MoviesInCity({
 
   const city = await api.cities.getCityMoviesAndShowingsBySlug({
     slug: params.city,
-    date: moment().add(1, "hour").toDate(),
+    date: moment().toDate(),
   });
 
   if (!city) {
