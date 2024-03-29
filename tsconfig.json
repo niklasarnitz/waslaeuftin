@@ -44,8 +44,6 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts",
-    "src/app/api/cinemas/schauburg-karlsruhe",
-    "src/app/api/cinemas/kinemathek-karlsruhe"
   ],
   "exclude": [
     "node_modules"
