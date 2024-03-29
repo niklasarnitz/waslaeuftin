@@ -13,6 +13,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ainias42/js-helper": "https://github.com/Ainias/js-helper",
     "@apollo/client": "^3.9.9",
     "@hookform/resolvers": "^3.3.4",
     "@prisma/client": "^5.10.2",

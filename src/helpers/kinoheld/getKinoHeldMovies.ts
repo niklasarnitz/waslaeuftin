@@ -1,11 +1,11 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { type Movie } from "@waslaeuftin/types/Movie";
 import { type Showing } from "@waslaeuftin/types/Showing";
-import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type KinoHeldCinemasType } from "@waslaeuftin/types/KinoHeldCinemas";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
+import { type Prisma, type KinoHeldCinemasMetadata } from "@prisma/client";
+import { type db } from "@waslaeuftin/server/db";
 
 const httpLink = new HttpLink({
   uri: "https://next-live.kinoheld.de/graphql",
@@ -288,7 +288,7 @@ interface FetchShowGroupsResponse {
   };
 }
 
-const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
+export const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
   traumpalast_leonberg: "1865",
   merkur_filmcenter_gaggenau: "964",
   moviac_baden_baden: "983",
@@ -297,7 +297,7 @@ const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
   luxor_walldorf: "945",
 };
 
-const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
+export const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
   traumpalast_leonberg: "traumpalast-leonberg",
   merkur_filmcenter_gaggenau: "merkur-filmcenter-gaggenau",
   moviac_baden_baden: "moviac-kino-im-kaiserhof",
@@ -307,16 +307,16 @@ const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
 };
 
 const getBookingUrl = (
-  cinema: KinoHeldCinemasType,
+  metadata: KinoHeldCinemasMetadata,
   movie: ShowGroup,
   showing: ShowGroup["shows"]["data"][number],
 ) => {
-  switch (cinema) {
+  switch (metadata.centerShorty) {
     case "traumpalast_leonberg":
-      return `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
+      return `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${metadata.centerShorty}/vorstellung/${showing?.urlSlug ?? ""}`;
     case "merkur_filmcenter_gaggenau":
     case "moviac_baden_baden":
-      return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
+      return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${metadata.centerShorty}/vorstellung/${showing?.urlSlug ?? ""}`;
     case "cineplex_baden_baden":
     case "cineplex_bruchsal":
     case "luxor_walldorf":
@@ -327,14 +327,14 @@ const getBookingUrl = (
 };
 
 async function getKinoHeldMoviesInner(
-  cinema: KinoHeldCinemasType,
+  metadata: KinoHeldCinemasMetadata,
   page = 1,
   allData: ShowGroup[] = [],
 ): Promise<ShowGroup[]> {
   const { data } = await client.query<FetchShowGroupsResponse>({
     query: FETCH_SHOW_GROUPS_FOR_CINEMA,
     variables: {
-      cinemaId: KinoHeldCinemaIds[cinema],
+      cinemaId: metadata.centerId,
       first: 100,
       page,
       playing: {},
@@ -343,14 +343,17 @@ async function getKinoHeldMoviesInner(
 
   const newData = allData.concat(data.showGroups.data);
   if (data.showGroups.paginatorInfo.hasMorePages) {
-    return getKinoHeldMoviesInner(cinema, page + 1, newData);
+    return getKinoHeldMoviesInner(metadata, page + 1, newData);
   } else {
     return newData;
   }
 }
 
-export async function getKinoHeldMovies(cinema: KinoHeldCinemasType) {
-  const movies = await getKinoHeldMoviesInner(cinema);
+export async function getKinoHeldMovies(
+  cinemaId: number,
+  metadata: KinoHeldCinemasMetadata,
+) {
+  const movies = await getKinoHeldMoviesInner(metadata);
 
   return movies.map((movie) => {
     const showings = movie.shows.data.map((showing) => {
@@ -369,15 +372,23 @@ export async function getKinoHeldMovies(cinema: KinoHeldCinemasType) {
 
       return {
         dateTime: moment(showing?.beginning ?? moment()).toDate(),
-        bookingUrl: getBookingUrl(cinema, movie, showing),
+        bookingUrl: getBookingUrl(metadata, movie, showing),
         showingAdditionalData,
       } satisfies Showing;
     });
 
     return {
       name: movie.name,
-      cinema: Cinemas[cinema],
-      showings,
-    } satisfies Movie;
+      cinema: {
+        connect: {
+          id: cinemaId,
+        },
+      },
+      showings: {
+        createMany: {
+          data: showings,
+        },
+      },
+    } satisfies Prisma.Args<typeof db.movie, "create">["data"];
   });
 }

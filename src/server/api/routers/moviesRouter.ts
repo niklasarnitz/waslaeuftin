@@ -1,125 +1,94 @@
+import { env } from "@waslaeuftin/env";
 import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import { CinemaSchema } from "@waslaeuftin/types/Cinema";
-import moment from "moment-timezone";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { db } from "@waslaeuftin/server/db";
+import { getComtradaCineOrderMovies } from "@waslaeuftin/helpers/comtrada/cineorder/getComtradaCineOrderMovies";
+import { getComtradaForumCinemasMovies } from "@waslaeuftin/helpers/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
+import { getKinoHeldMovies } from "@waslaeuftin/helpers/kinoheld/getKinoHeldMovies";
+import { getKinoTicketsExpressMovies } from "@waslaeuftin/helpers/kino-ticket-express/getKinoTicketExpressMovies";
 
 export const moviesRouter = createTRPCRouter({
-  getMovies: publicProcedure
-    .input(z.object({ cinema: CinemaSchema, date: z.date().optional() }))
-    .query(async ({ input, ctx }) => {
-      if (input.date) {
-        return ctx.db.movie.findMany({
-          where: {
-            cinemaSlug: input.cinema.slug,
-            showings: {
-              some: {
-                dateTime: {
-                  lt:
-                    moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt: input.date.toISOString(),
-                },
-              },
-            },
-          },
-          include: {
-            showings: {
-              where: {
-                dateTime: {
-                  lt:
-                    moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt: input.date.toISOString(),
-                },
-              },
-              orderBy: {
-                dateTime: "asc",
-              },
-            },
-          },
-          orderBy: {
-            name: "asc",
-          },
-        });
-      } else {
-        return ctx.db.movie.findMany({
-          where: {
-            cinemaSlug: input.cinema.slug,
-          },
-          include: {
-            showings: {
-              orderBy: {
-                dateTime: "asc",
-              },
-            },
-          },
-          orderBy: {
-            name: "asc",
-          },
+  updateMovies: publicProcedure
+    .input(z.object({ cronSecret: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      if (env.CRON_SECRET !== input.cronSecret) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid secret",
         });
       }
-    }),
-  getMoviesForManyCinemas: publicProcedure
-    .input(
-      z.object({
-        cinemas: z.array(CinemaSchema),
-        date: z.date().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      if (input.date) {
-        return ctx.db.movie.findMany({
-          where: {
-            cinemaSlug: {
-              in: input.cinemas.map((cinema) => cinema.slug),
-            },
-            showings: {
-              some: {
-                dateTime: {
-                  lt:
-                    moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt: input.date.toISOString(),
-                },
-              },
-            },
+
+      const comtradaCineOrderCinemas = await ctx.db.cinema.findMany({
+        where: {
+          comtradaCineOrderMetadata: {
+            isNot: null,
           },
-          include: {
-            showings: {
-              where: {
-                dateTime: {
-                  lt:
-                    moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-                  gt: input.date.toISOString(),
-                },
-              },
-              orderBy: {
-                dateTime: "asc",
-              },
-            },
+        },
+        include: {
+          comtradaCineOrderMetadata: true,
+        },
+      });
+
+      const comtradaForumCinemas = await ctx.db.cinema.findMany({
+        where: {
+          forumCinemasMetadata: {
+            isNot: null,
           },
-          orderBy: {
-            name: "asc",
+        },
+        include: {
+          forumCinemasMetadata: true,
+        },
+      });
+
+      const kinoHeldCinemas = await ctx.db.cinema.findMany({
+        where: {
+          kinoHeldCinemasMetadata: {
+            isNot: null,
           },
-        });
-      } else {
-        return ctx.db.movie.findMany({
-          where: {
-            cinemaSlug: {
-              in: input.cinemas.map((cinema) => cinema.slug),
-            },
-          },
-          include: {
-            showings: {
-              orderBy: {
-                dateTime: "asc",
-              },
-            },
-          },
-          orderBy: {
-            name: "asc",
-          },
-        });
-      }
+        },
+        include: {
+          kinoHeldCinemasMetadata: true,
+        },
+      });
+
+      const kinoTicketsExpressCinemas = await ctx.db.cinema.findMany({
+        where: {
+          isKinoTicketsExpress: true,
+        },
+      });
+
+      const moviesToCreate = (
+        await Promise.all([
+          ...comtradaCineOrderCinemas.map((cinema) =>
+            getComtradaCineOrderMovies(
+              cinema.id,
+              cinema.comtradaCineOrderMetadata!,
+            ),
+          ),
+          ...comtradaForumCinemas.map((cinema) =>
+            getComtradaForumCinemasMovies(
+              cinema.id,
+              cinema.forumCinemasMetadata!,
+            ),
+          ),
+          ...kinoHeldCinemas.map((cinema) =>
+            getKinoHeldMovies(cinema.id, cinema.kinoHeldCinemasMetadata!),
+          ),
+          ...kinoTicketsExpressCinemas.map((cinema) =>
+            getKinoTicketsExpressMovies(cinema.id, cinema.slug),
+          ),
+        ])
+      ).flat();
+
+      await db.showing.deleteMany({});
+      await db.movie.deleteMany({});
+
+      await Promise.all(
+        moviesToCreate.map((movie) => db.movie.create({ data: movie })),
+      );
     }),
 });
