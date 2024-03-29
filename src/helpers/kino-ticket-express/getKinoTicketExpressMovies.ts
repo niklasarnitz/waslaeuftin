@@ -5,7 +5,7 @@ import { type Showing } from "@waslaeuftin/types/Showing";
 import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type KinoTicketsExpressCinemasType } from "@waslaeuftin/types/KinoTicketsExpressCinemas";
 import { load } from "cheerio";
-import moment from "moment";
+import moment from "moment-timezone";
 import { xior } from "xior";
 
 export const getKinoTicketsExpressMovies = async (
@@ -59,9 +59,9 @@ export const getKinoTicketsExpressMovies = async (
         } satisfies Showing);
       });
 
-      const filteredShowing = (
-        showings.filter((showing) => isShowing(showing)) as Showing[]
-      ).sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+      const filteredShowing = showings.filter((showing) =>
+        isShowing(showing),
+      ) as Showing[];
 
       return {
         name: container$("div.mb-2").text(),

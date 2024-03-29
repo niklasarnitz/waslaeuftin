@@ -7,7 +7,7 @@ import { type Movie } from "@waslaeuftin/types/Movie";
 import { type Showing } from "@waslaeuftin/types/Showing";
 import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type ComtradaCineOrderCinemasType } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
-import moment from "moment";
+import moment from "moment-timezone";
 import { xior } from "xior";
 
 const CineOrderUrls: Record<ComtradaCineOrderCinemasType, string> = {

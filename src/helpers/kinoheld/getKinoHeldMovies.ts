@@ -5,7 +5,7 @@ import { type Showing } from "@waslaeuftin/types/Showing";
 import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type KinoHeldCinemasType } from "@waslaeuftin/types/KinoHeldCinemas";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
-import moment from "moment";
+import moment from "moment-timezone";
 
 const httpLink = new HttpLink({
   uri: "https://next-live.kinoheld.de/graphql",

@@ -2,7 +2,7 @@ import { Cities } from "@waslaeuftin/helpers/cities";
 import { type api } from "@waslaeuftin/trpc/server";
 import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
-import moment from "moment";
+import moment from "moment-timezone";
 import Link from "next/link";
 
 export const MoviesByCinemaList = ({
@@ -52,9 +52,8 @@ export const MoviesByCinemaList = ({
       {Object.keys(moviesByCinema)
         .sort((a, b) => a.localeCompare(b))
         .map((cinemaSlug) => {
-          const moviesInCinema = (
-            moviesByCinema[cinemaSlug as CinemaSlugs] ?? []
-          ).sort((a, b) => a.name.localeCompare(b.name));
+          const moviesInCinema =
+            moviesByCinema[cinemaSlug as CinemaSlugs] ?? [];
           const cinema = Cinemas[cinemaSlug as CinemaSlugs];
 
           if (!cinema) {
