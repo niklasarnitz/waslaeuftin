@@ -19,6 +19,11 @@ export default async function Home() {
               {Cities[city]?.name}
             </Link>
           ))}
+        <Link href="/request-cinema" className="text-center text-sm underline">
+          Dein Kino oder deine Stadt ist noch nicht aufgeführt?
+          <br />
+          Wünsche es dir über diesen Link!
+        </Link>
       </div>
     </main>
   );

@@ -1,3 +1,4 @@
+import { githubRouter } from "@waslaeuftin/server/api/routers/githubRouter";
 import { moviesRouter } from "@waslaeuftin/server/api/routers/moviesRouter";
 import {
   createCallerFactory,
@@ -11,6 +12,7 @@ import {
  */
 export const appRouter = createTRPCRouter({
   movies: moviesRouter,
+  github: githubRouter,
 });
 
 // export type definition of API
