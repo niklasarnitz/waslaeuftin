@@ -1,27 +1,36 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputFormField } from "@waslaeuftin/components/input-form-field";
 import { Button } from "@waslaeuftin/components/ui/button";
 import { Form } from "@waslaeuftin/components/ui/form";
-
-const RequestCinemaSchema = z.object({
-  cinemaName: z.string().min(1, "Die Eingabe darf nicht leer sein."),
-  city: z.string().min(1, "Die Eingabe darf nicht leer sein."),
-  cinemaHomepageUrl: z.string().url("Die Eingabe muss eine gültige URL sein."),
-});
-
-type RequestCinemaFormData = z.infer<typeof RequestCinemaSchema>;
+import {
+  type RequestCinemaFormData,
+  RequestCinemaSchema,
+} from "@waslaeuftin/types/RequestCinemaFormData";
+import { api } from "@waslaeuftin/trpc/react";
+import { useRouter } from "next/navigation";
 
 export default function RequestCinemaPage() {
   const form = useForm<RequestCinemaFormData>({
     resolver: zodResolver(RequestCinemaSchema),
   });
 
+  const { mutateAsync: createMovieRequest } =
+    api.github.requestMovie.useMutation();
+
+  const router = useRouter();
+
   const onValidData = async (data: RequestCinemaFormData) => {
     try {
+      const issue = await createMovieRequest(data);
+
+      if (issue) {
+        router.push(
+          `/request-cinema/success?issue-number=${issue.data.number}`,
+        );
+      }
     } catch (error) {
       console.error(error);
     }
