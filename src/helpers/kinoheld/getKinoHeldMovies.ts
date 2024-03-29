@@ -311,15 +311,15 @@ const getBookingUrl = (
   movie: ShowGroup,
   showing: ShowGroup["shows"]["data"][number],
 ) => {
-  switch (cinema) {
-    case "traumpalast_leonberg":
-      return `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
-    case "merkur_filmcenter_gaggenau":
-    case "moviac_baden_baden":
-      return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
-    case "cineplex_baden_baden":
-    case "cineplex_bruchsal":
-    case "luxor_walldorf":
+  switch (metadata.centerShorty) {
+    case "traumpalast-leonberg":
+      return `https://tickets.traumpalast.de/kino/${movie.cinema.city.urlSlug}/${metadata.centerShorty}/vorstellung/${showing?.urlSlug ?? ""}`;
+    case "merkur-filmcenter-gaggenau":
+    case "moviac-baden-baden":
+      return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${metadata.centerShorty}/vorstellung/${showing?.urlSlug ?? ""}`;
+    case "cineplex-baden_baden":
+    case "cineplex-bruchsal":
+    case "luxor-walldorf":
       return showing?.deeplink ?? undefined;
     default:
       return undefined;
