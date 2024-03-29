@@ -5,7 +5,7 @@ import { type Showing } from "@waslaeuftin/types/Showing";
 import { Cinemas } from "@waslaeuftin/types/Cinemas";
 import { type ComtradaForumCinemasType } from "@waslaeuftin/types/ComtradaForumCinemas";
 import { load } from "cheerio";
-import moment from "moment";
+import moment from "moment-timezone";
 import { xior } from "xior";
 
 export const getComtradaForumCinemasMovies = async (
@@ -121,9 +121,7 @@ export const getComtradaForumCinemasMovies = async (
 
       return {
         name: container$("div.c.c-2 > h2 > span > strong").text(),
-        showings: (
-          showings.filter((showing) => isShowing(showing)) as Showing[]
-        ).sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime()),
+        showings: showings.filter((showing) => isShowing(showing)) as Showing[],
         cinema: Cinemas[cinema],
       } satisfies Movie;
     }),

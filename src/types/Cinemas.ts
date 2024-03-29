@@ -122,4 +122,9 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     url: "https://www.cineplex.de/bruchsal/",
     slug: "cineplex_bruchsal",
   },
+  luxor_walldorf: {
+    name: "Luxor Walldorf",
+    url: "https://www.luxor-kino.de/walldorf/",
+    slug: "luxor_walldorf",
+  },
 };

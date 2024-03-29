@@ -3,7 +3,7 @@ import {
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
 import { CinemaSchema } from "@waslaeuftin/types/Cinema";
-import moment from "moment";
+import moment from "moment-timezone";
 import { z } from "zod";
 
 export const moviesRouter = createTRPCRouter({
@@ -33,7 +33,13 @@ export const moviesRouter = createTRPCRouter({
                   gt: input.date.toISOString(),
                 },
               },
+              orderBy: {
+                dateTime: "asc",
+              },
             },
+          },
+          orderBy: {
+            name: "asc",
           },
         });
       } else {
@@ -42,7 +48,14 @@ export const moviesRouter = createTRPCRouter({
             cinemaSlug: input.cinema.slug,
           },
           include: {
-            showings: true,
+            showings: {
+              orderBy: {
+                dateTime: "asc",
+              },
+            },
+          },
+          orderBy: {
+            name: "asc",
           },
         });
       }
@@ -80,7 +93,13 @@ export const moviesRouter = createTRPCRouter({
                   gt: input.date.toISOString(),
                 },
               },
+              orderBy: {
+                dateTime: "asc",
+              },
             },
+          },
+          orderBy: {
+            name: "asc",
           },
         });
       } else {
@@ -91,7 +110,14 @@ export const moviesRouter = createTRPCRouter({
             },
           },
           include: {
-            showings: true,
+            showings: {
+              orderBy: {
+                dateTime: "asc",
+              },
+            },
+          },
+          orderBy: {
+            name: "asc",
           },
         });
       }

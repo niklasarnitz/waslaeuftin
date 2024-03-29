@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 import Link from "next/link";
+import moment from "moment-timezone";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,6 +14,9 @@ const inter = Inter({
 export const metadata = {
   title: "wasläuft.in",
 };
+
+moment().tz("Europe/Berlin");
+moment.tz.setDefault("Europe/Berlin");
 
 export default function RootLayout({
   children,

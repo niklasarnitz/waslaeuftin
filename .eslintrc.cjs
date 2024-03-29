@@ -36,7 +36,11 @@ const config = {
           "attributes": false
         }
       }
-    ]
+    ],
+    "no-restricted-imports": ["error", {
+      "name": "moment",
+      "message": "moment-timezone is used to ensure timezone support."
+    }]
   }
 }
 module.exports = config;
