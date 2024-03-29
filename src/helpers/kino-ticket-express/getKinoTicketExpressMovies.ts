@@ -1,19 +1,19 @@
-import { type Movie } from "@waslaeuftin/types/Movie";
 import { isMovie } from "@waslaeuftin/types/guards/isMovie";
 import { isShowing } from "@waslaeuftin/types/guards/isShowing";
 import { type Showing } from "@waslaeuftin/types/Showing";
-import { Cinemas } from "@waslaeuftin/types/Cinemas";
-import { type KinoTicketsExpressCinemasType } from "@waslaeuftin/types/KinoTicketsExpressCinemas";
 import { load } from "cheerio";
 import moment from "moment-timezone";
 import { xior } from "xior";
+import { type Prisma } from "@prisma/client";
+import { type db } from "@waslaeuftin/server/db";
 
 export const getKinoTicketsExpressMovies = async (
-  cinema: KinoTicketsExpressCinemasType,
+  cinemaId: number,
+  slug: string,
 ) => {
   const xiorInstance = xior.create();
   const { data } = await xiorInstance.get<string>(
-    `https://kinotickets.express/${cinema}/movies`,
+    `https://kinotickets.express/${slug}/movies`,
   );
   const $ = load(data);
 
@@ -59,16 +59,23 @@ export const getKinoTicketsExpressMovies = async (
         } satisfies Showing);
       });
 
-      const filteredShowing = showings.filter((showing) =>
+      const filteredShowings = showings.filter((showing) =>
         isShowing(showing),
       ) as Showing[];
 
       return {
         name: container$("div.mb-2").text(),
-        format: container$("div.order-4>div").text(),
-        showings: filteredShowing,
-        cinema: Cinemas[cinema],
-      } as Movie;
+        showings: {
+          createMany: {
+            data: filteredShowings,
+          },
+        },
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
+      } satisfies Prisma.Args<typeof db.movie, "create">["data"];
     }),
   ).filter((movie) => isMovie(movie));
 };

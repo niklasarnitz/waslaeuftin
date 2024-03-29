@@ -4,7 +4,6 @@ import { ShowingSchema } from "./Showing";
 
 export const MovieSchema = z.object({
   name: z.string().min(1),
-  format: z.string().optional(),
   showings: z.array(ShowingSchema),
   cinema: CinemaSchema,
 });
