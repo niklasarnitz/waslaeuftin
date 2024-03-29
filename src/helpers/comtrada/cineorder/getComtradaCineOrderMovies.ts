@@ -3,14 +3,13 @@ import {
   type ComtradaCineOrderMoviePerformance,
   type ComtradaCineOrderMovie,
 } from "@waslaeuftin/helpers/comtrada/cineorder/types/ComtradaCineOrderMovie";
-import { type Movie } from "@waslaeuftin/types/Movie";
 import { type Showing } from "@waslaeuftin/types/Showing";
-import { Cinemas } from "@waslaeuftin/types/Cinemas";
-import { type ComtradaCineOrderCinemasType } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
 import moment from "moment-timezone";
 import { xior } from "xior";
-
-const CineOrderUrls: Record<ComtradaCineOrderCinemasType, string> = {
+import { type ComtradaCineOrderMetadata, type Prisma } from "@prisma/client";
+import { type db } from "@waslaeuftin/server/db";
+import { type ComtradaCineOrderCinemasType } from "@waslaeuftin/types/ComtradaCineOrderCinemas";
+export const CineOrderUrls: Record<ComtradaCineOrderCinemasType, string> = {
   universum_karlsruhe: "https://ts.kinopolis.de",
   zkm_karlsruhe: "https://cineorder.filmpalast.net",
   kinopolis_rosenheim: "https://ts.kinopolis.de",
@@ -26,8 +25,7 @@ const CineOrderUrls: Record<ComtradaCineOrderCinemasType, string> = {
   kinopolis_gießen: "https://ts.kinopolis.de",
   kinopolis_bad_homburg: "https://ts.kinopolis.de",
 };
-
-const CenterIds: Record<ComtradaCineOrderCinemasType, string> = {
+export const CenterIds: Record<ComtradaCineOrderCinemasType, string> = {
   universum_karlsruhe: "19210000014PLXMQDD",
   zkm_karlsruhe: "6F000000014BHGWDVI",
   kinopolis_rosenheim: "10000000014VEGOZTB",
@@ -44,7 +42,7 @@ const CenterIds: Record<ComtradaCineOrderCinemasType, string> = {
   kinopolis_bad_homburg: "5F830000014PLXMQDD",
 };
 
-const CenterShorties: Record<ComtradaCineOrderCinemasType, string> = {
+export const CenterShorties: Record<ComtradaCineOrderCinemasType, string> = {
   universum_karlsruhe: "ka",
   zkm_karlsruhe: "zkm",
   kinopolis_rosenheim: "ro",
@@ -62,36 +60,28 @@ const CenterShorties: Record<ComtradaCineOrderCinemasType, string> = {
 };
 
 const getTicketUrl = (
-  cinema: ComtradaCineOrderCinemasType,
+  metadata: ComtradaCineOrderMetadata,
   movie: ComtradaCineOrderMovie,
   performance: ComtradaCineOrderMoviePerformance,
 ) => {
-  switch (cinema) {
-    case "zkm_karlsruhe":
-      return `https://cineorder.filmpalast.net/zkm/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
-    default:
-      return `https://ts.kinopolis.de/${CenterShorties[cinema]}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
+  if (metadata.backendUrl.includes("filmpalast.net")) {
+    return `https://cineorder.filmpalast.net/zkm/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
   }
+
+  return `https://ts.kinopolis.de/${metadata.centerShorty}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
 };
 
 export const getComtradaCineOrderMovies = async (
-  cinema: ComtradaCineOrderCinemasType,
-  date?: Date,
+  cinemaId: number,
+  metadata: ComtradaCineOrderMetadata,
 ) => {
-  let query = "";
-
-  if (date) {
-    const dateString = moment(date).format("YYYY-MM-DD");
-    query = `?cinemadate.from=${dateString}&cinemadate.to=${dateString}&performancedate.from=${dateString}&performancedate.to=${dateString}`;
-  }
-
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<ComtradaCineOrderMovie[]>(
-    `${CineOrderUrls[cinema]}/api/films${query}`,
+    `${metadata.backendUrl}/api/films`,
     {
       headers: {
-        "Center-Oid": CenterIds[cinema],
+        "Center-Oid": metadata.centerId,
       },
     },
   );
@@ -100,24 +90,29 @@ export const getComtradaCineOrderMovies = async (
     (movie) =>
       ({
         name: movie.title,
-        format: movie.performances.some((performance) => performance.is3D)
-          ? "3D"
-          : "2D",
-        showings: movie.performances.map((performance) => {
-          const showingAdditionalData = [
-            performance.is3D ? "3D" : "2D",
-            performance.auditoriumName,
-            performance.releaseTypeName,
-            performance.soundSystem,
-          ].join(UIConstants.bullet);
+        showings: {
+          createMany: {
+            data: movie.performances.map((performance) => {
+              const showingAdditionalData = [
+                performance.is3D ? "3D" : "2D",
+                performance.auditoriumName,
+                performance.releaseTypeName,
+                performance.soundSystem,
+              ].join(UIConstants.bullet);
 
-          return {
-            dateTime: moment(performance.performanceDateTime).toDate(),
-            bookingUrl: getTicketUrl(cinema, movie, performance),
-            showingAdditionalData,
-          } satisfies Showing;
-        }),
-        cinema: Cinemas[cinema],
-      }) satisfies Movie,
+              return {
+                dateTime: moment(performance.performanceDateTime).toDate(),
+                bookingUrl: getTicketUrl(metadata, movie, performance),
+                showingAdditionalData,
+              } satisfies Showing;
+            }),
+          },
+        },
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
+      }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
   );
 };

@@ -1,36 +1,24 @@
 import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
-import { Cities } from "@waslaeuftin/helpers/cities";
-import { type api } from "@waslaeuftin/trpc/server";
-import { type CinemaSlugs } from "@waslaeuftin/types/CinemaSlugsSchema";
+import { api } from "@waslaeuftin/trpc/server";
+import moment from "moment-timezone";
 
-export default async function WhatsShowingInCity({
+export default async function MoviesInCity({
   params,
 }: {
   params: { city?: string };
 }) {
-  const moviesObject = Cities[params.city ?? ""];
-
-  if (!moviesObject || !params.city) {
+  if (!params.city) {
     return <div>Not found</div>;
   }
 
-  const movies = await moviesObject.fetchMoviesOfToday();
+  const city = await api.cities.getCityMoviesAndShowingsBySlug({
+    slug: params.city,
+    date: moment().toDate(),
+  });
 
-  const moviesByCinema = movies.reduce(
-    (acc, movie) => {
-      acc[movie.cinemaSlug as CinemaSlugs] =
-        acc[movie.cinemaSlug as CinemaSlugs] ?? [];
-      acc[movie.cinemaSlug as CinemaSlugs]?.push(movie);
-      return acc;
-    },
-    {} as Record<CinemaSlugs, Awaited<ReturnType<typeof api.movies.getMovies>>>,
-  );
+  if (!city) {
+    return <div>Not found</div>;
+  }
 
-  return (
-    <MoviesByCinemaList
-      moviesByCinema={moviesByCinema}
-      showRemoveFilter
-      city={params.city}
-    />
-  );
+  return <MoviesByCinemaList city={city} showRemoveFilter />;
 }

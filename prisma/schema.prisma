@@ -2,44 +2,119 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Showing {
-    id        Int      @id @default(autoincrement())
-    dateTime  DateTime
-    bookingUrl String?
+  id         Int      @id @default(autoincrement())
+  dateTime   DateTime
+  bookingUrl String?
 
-    movie     Movie    @relation(fields: [movieId], references: [id])
-    movieId   Int
+  movie   Movie @relation(fields: [movieId], references: [id])
+  movieId Int
 
-    showingAdditionalData String?
+  showingAdditionalData String?
 
-    additionalData Json?
+  additionalData Json?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    @@index([movieId])
+  @@index([movieId])
 }
 
 model Movie {
-    id        Int      @id @default(autoincrement())
-    name      String
+  id   Int    @id @default(autoincrement())
+  name String
 
-    showings  Showing[]
+  showings Showing[]
 
-    additionalData Json?
+  additionalData Json?
 
-    cinemaSlug    String
+  cinema   Cinema @relation(fields: [cinemaId], references: [id])
+  cinemaId Int
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    @@index([name])
+  @@index([name])
+}
+
+model ComtradaCineOrderMetadata {
+  id           Int    @id @default(autoincrement())
+  backendUrl   String
+  centerId     String
+  centerShorty String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  Cinema    Cinema[]
+}
+
+model ComtradaForumCinemasMetadata {
+  id Int @id @default(autoincrement())
+
+  centerShorty String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  Cinema    Cinema[]
+}
+
+model KinoHeldCinemasMetadata {
+  id Int @id @default(autoincrement())
+
+  centerId     String
+  centerShorty String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  Cinema    Cinema[]
+}
+
+model Cinema {
+  id   Int    @id @default(autoincrement())
+  name String
+  websiteUrl  String
+  slug String
+
+  comtradaCineOrderMetadata   ComtradaCineOrderMetadata? @relation(fields: [comtradaCineOrderMetadataId], references: [id])
+  comtradaCineOrderMetadataId Int?
+
+  forumCinemasMetadata   ComtradaForumCinemasMetadata? @relation(fields: [forumCinemasMetadataId], references: [id])
+  forumCinemasMetadataId Int?
+
+  isKinoTicketsExpress Boolean?
+
+  kinoHeldCinemasMetadata   KinoHeldCinemasMetadata? @relation(fields: [kinoHeldCinemasMetadataId], references: [id])
+  kinoHeldCinemasMetadataId Int?
+
+  city   City @relation(fields: [cityId], references: [id])
+  cityId Int
+
+  movies Movie[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([name])
+}
+
+model City {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  slug String @unique
+
+  cinemas Cinema[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([name])
 }

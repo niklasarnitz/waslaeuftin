@@ -1,37 +1,23 @@
-import { type Movie } from "@waslaeuftin/types/Movie";
 import { isMovie } from "@waslaeuftin/types/guards/isMovie";
 import { isShowing } from "@waslaeuftin/types/guards/isShowing";
 import { type Showing } from "@waslaeuftin/types/Showing";
-import { Cinemas } from "@waslaeuftin/types/Cinemas";
-import { type ComtradaForumCinemasType } from "@waslaeuftin/types/ComtradaForumCinemas";
 import { load } from "cheerio";
 import moment from "moment-timezone";
 import { xior } from "xior";
+import { type Prisma, type ComtradaForumCinemasMetadata } from "@prisma/client";
+import { type db } from "@waslaeuftin/server/db";
 
 export const getComtradaForumCinemasMovies = async (
-  cinema: ComtradaForumCinemasType,
+  cinemaId: number,
+  metadata: ComtradaForumCinemasMetadata,
 ) => {
-  let forumCenter = "";
-
-  switch (cinema) {
-    case "forum_lahr":
-      forumCenter = "lahr";
-      break;
-    case "forum_offenburg":
-      forumCenter = "og";
-      break;
-    case "forum_rastatt":
-      forumCenter = "rastatt";
-      break;
-  }
-
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<string>(
     "https://www.forumcinemas.de/de/programm/kinoprogramm",
     {
       headers: {
-        Cookie: `forum_center=${forumCenter}`,
+        Cookie: `forum_center=${metadata.centerShorty}`,
       },
     },
   );
@@ -121,9 +107,17 @@ export const getComtradaForumCinemasMovies = async (
 
       return {
         name: container$("div.c.c-2 > h2 > span > strong").text(),
-        showings: showings.filter((showing) => isShowing(showing)) as Showing[],
-        cinema: Cinemas[cinema],
-      } satisfies Movie;
+        showings: {
+          createMany: {
+            data: showings.filter((showing) => isShowing(showing)) as Showing[],
+          },
+        },
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
+      } satisfies Prisma.Args<typeof db.movie, "create">["data"];
     }),
   ).filter((movie) => isMovie(movie));
 };
