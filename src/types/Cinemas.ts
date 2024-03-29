@@ -117,4 +117,9 @@ export const Cinemas: Record<CinemaSlugs, Cinema> = {
     url: "https://www.cineplex.de/baden-baden/",
     slug: "cineplex_baden_baden",
   },
+  cineplex_bruchsal: {
+    name: "Cineplex Bruchsal",
+    url: "https://www.cineplex.de/bruchsal/",
+    slug: "cineplex_bruchsal",
+  },
 };

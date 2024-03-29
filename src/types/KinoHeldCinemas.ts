@@ -5,6 +5,7 @@ export const KinoHeldCinemas = z.enum([
   "merkur_filmcenter_gaggenau",
   "moviac_baden_baden",
   "cineplex_baden_baden",
+  "cineplex_bruchsal",
 ]);
 
 export type KinoHeldCinemasType = z.infer<typeof KinoHeldCinemas>;

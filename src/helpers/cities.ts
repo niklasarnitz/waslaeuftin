@@ -322,4 +322,20 @@ export const Cities: Record<
       });
     },
   },
+  bruchsal: {
+    name: "Bruchsal",
+    fetchMoviesOfToday: async () => {
+      const date = new Date();
+
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.cineplex_bruchsal],
+        date,
+      });
+    },
+    fetchMovies: async () => {
+      return await api.movies.getMoviesForManyCinemas({
+        cinemas: [Cinemas.cineplex_bruchsal],
+      });
+    },
+  },
 };

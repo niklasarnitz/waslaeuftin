@@ -293,6 +293,7 @@ const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
   merkur_filmcenter_gaggenau: "964",
   moviac_baden_baden: "983",
   cineplex_baden_baden: "322",
+  cineplex_bruchsal: "280",
 };
 
 const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
@@ -300,6 +301,7 @@ const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
   merkur_filmcenter_gaggenau: "merkur-filmcenter-gaggenau",
   moviac_baden_baden: "moviac-kino-im-kaiserhof",
   cineplex_baden_baden: "cineplex-baden-baden",
+  cineplex_bruchsal: "cineplex-bruchsal",
 };
 
 const getBookingUrl = (
@@ -314,6 +316,7 @@ const getBookingUrl = (
     case "moviac_baden_baden":
       return `https://www.kinoheld.de/kino/${movie.cinema.city.urlSlug}/${KinoHeldCorrectedCinemas[cinema]}/vorstellung/${showing?.urlSlug ?? ""}`;
     case "cineplex_baden_baden":
+    case "cineplex_bruchsal":
       return showing?.deeplink ?? undefined;
     default:
       return undefined;
