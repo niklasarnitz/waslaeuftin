@@ -14,6 +14,7 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     CRON_SECRET: z.string(),
+    GITHUB_TOKEN: z.string().optional()
   },
   client: {
   },
@@ -21,6 +22,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     CRON_SECRET: process.env.CRON_SECRET,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,
