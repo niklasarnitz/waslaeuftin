@@ -1,4 +1,5 @@
 import { db } from "@waslaeuftin/server/db";
+import moment from "moment-timezone";
 import Link from "next/link";
 
 export default async function Home() {
@@ -15,7 +16,7 @@ export default async function Home() {
         {cities.map((city) => (
           <Link
             key={city.slug}
-            href={`/city/${city.slug}/today`}
+            href={`/city/${city.slug}?date=${encodeURI(moment().format("YYYY-MM-DD"))}`}
             className="rounded-lg border px-4 py-2 underline shadow-sm"
           >
             {city.name}

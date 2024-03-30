@@ -1,22 +1,28 @@
 import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
 import { api } from "@waslaeuftin/trpc/server";
+import moment from "moment-timezone";
 
 export default async function CinemaPage({
-  params,
+  params: { cinemaSlug },
+  searchParams: { date },
 }: {
   params: { cinemaSlug?: string };
+  searchParams: { date?: string };
 }) {
-  if (!params.cinemaSlug) {
+  if (!cinemaSlug) {
     return <div>Not found</div>;
   }
 
   const cinema = await api.cinemas.getCinemaBySlug({
-    cinemaSlug: params.cinemaSlug,
+    cinemaSlug: cinemaSlug,
+    date: date ? moment(date).toDate() : undefined,
   });
 
   if (!cinema) {
     return <div>Not found</div>;
   }
+
+  console.log(date);
 
   return (
     <div className="px-4">

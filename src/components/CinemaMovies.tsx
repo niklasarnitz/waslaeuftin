@@ -10,7 +10,7 @@ export type CinemaMoviesProps = {
 
 export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
   return (
-    <>
+    <div className="flex flex-col gap-y-4">
       {cinema.movies.map((movie) => (
         <div key={`${cinema.slug}-${movie.name}`}>
           <h2 className="text-lg font-semibold">{movie.name}</h2>
@@ -34,6 +34,6 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 };
