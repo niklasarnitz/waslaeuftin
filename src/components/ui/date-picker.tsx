@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import {
   Popover,
@@ -11,6 +10,7 @@ import {
 import { Button } from "@waslaeuftin/components/ui/button";
 import { cn } from "@waslaeuftin/app/lib/utils";
 import { Calendar } from "@waslaeuftin/components/ui/calendar";
+import moment from "moment-timezone";
 
 export type DatePickerProps = {
   value?: Date;
@@ -34,7 +34,11 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, "PPP") : <span>Datum auswählen</span>}
+          {value ? (
+            moment(value).format("DD.MM.YYYY")
+          ) : (
+            <span>Datum auswählen</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">

@@ -44,7 +44,7 @@ export default async function MoviesInCity({
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between gap-x-2 px-4 pt-4">
+      <div className="flex flex-row items-start justify-between gap-x-2 px-4 pt-4">
         <h1 className="flex flex-1 text-2xl font-bold">
           Diese Filme laufen {getDateString(date)} in {city.name}
         </h1>
