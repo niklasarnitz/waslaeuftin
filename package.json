@@ -10,7 +10,9 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit --incremental",
+    "typecheck:watch": "bun run typecheck --watch"
   },
   "dependencies": {
     "@ainias42/js-helper": "https://github.com/Ainias/js-helper",
