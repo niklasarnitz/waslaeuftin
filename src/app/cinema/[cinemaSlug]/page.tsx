@@ -22,8 +22,6 @@ export default async function CinemaPage({
     return <div>Not found</div>;
   }
 
-  console.log(date);
-
   return (
     <div className="px-4">
       <div className="flex flex-row items-center justify-between gap-x-2 pt-4">
