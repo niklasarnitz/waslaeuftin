@@ -1,7 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { type Showing } from "@waslaeuftin/types/Showing";
-import { type KinoHeldCinemasType } from "@waslaeuftin/types/KinoHeldCinemas";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
 import { type Prisma, type KinoHeldCinemasMetadata } from "@prisma/client";
@@ -287,25 +286,6 @@ interface FetchShowGroupsResponse {
     data: ShowGroup[];
   };
 }
-
-export const KinoHeldCinemaIds: Record<KinoHeldCinemasType, string> = {
-  traumpalast_leonberg: "1865",
-  merkur_filmcenter_gaggenau: "964",
-  moviac_baden_baden: "983",
-  cineplex_baden_baden: "322",
-  cineplex_bruchsal: "280",
-  luxor_walldorf: "945",
-};
-
-export const KinoHeldCorrectedCinemas: Record<KinoHeldCinemasType, string> = {
-  traumpalast_leonberg: "traumpalast-leonberg",
-  merkur_filmcenter_gaggenau: "merkur-filmcenter-gaggenau",
-  moviac_baden_baden: "moviac-kino-im-kaiserhof",
-  cineplex_baden_baden: "cineplex-baden-baden",
-  cineplex_bruchsal: "cineplex-bruchsal",
-  luxor_walldorf: "luxor-walldorf",
-};
-
 const getBookingUrl = (
   metadata: KinoHeldCinemasMetadata,
   movie: ShowGroup,
