@@ -1,3 +1,4 @@
+import { cinemaRouter } from "@waslaeuftin/server/api/routers/cinemaRouter";
 import { citiesRouter } from "@waslaeuftin/server/api/routers/citiesRouter";
 import { githubRouter } from "@waslaeuftin/server/api/routers/githubRouter";
 import { moviesRouter } from "@waslaeuftin/server/api/routers/moviesRouter";
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   movies: moviesRouter,
   cities: citiesRouter,
   github: githubRouter,
+  cinemas: cinemaRouter,
 });
 
 // export type definition of API
