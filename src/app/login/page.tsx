@@ -58,14 +58,14 @@ export default function SignIn() {
                   name="email"
                   label="E-Mail"
                   placeholder="maxmustermann@beispiel.de"
-                  autoComplete="username"
+                  autoComplete="email"
                 />
                 <InputFormField
                   name="password"
                   label="Passwort"
                   type="password"
                   placeholder="•••••••••••"
-                  autoComplete="current-password"
+                  autoComplete="password"
                 />
                 <Button type="submit" className="w-full">
                   Einloggen

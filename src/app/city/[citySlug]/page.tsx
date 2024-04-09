@@ -1,7 +1,9 @@
+import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
 import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
 import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
+import { Suspense } from "react";
 
 const getDateString = (date?: string) => {
   if (!date) {
@@ -50,7 +52,9 @@ export default async function MoviesInCity({
         </h1>
         <UrlDatePicker />
       </div>
-      <MoviesByCinemaList city={city} />
+      <Suspense fallback={<LoadingSpinner />}>
+        <MoviesByCinemaList city={city} />
+      </Suspense>
     </>
   );
 }

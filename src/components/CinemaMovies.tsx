@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader } from "@waslaeuftin/components/ui/card";
 import { type api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import Link from "next/link";
@@ -14,20 +15,27 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
       {cinema.movies.map((movie) => (
         <div key={`${cinema.slug}-${movie.name}`}>
           <h2 className="text-lg font-semibold">{movie.name}</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 pt-2 md:grid-cols-6">
             {movie.showings.map((showing) => {
               return (
                 <Link
                   href={showing.bookingUrl ?? "#"}
                   key={`${cinema.slug}-${showing.dateTime.toISOString()}-${movie.name}`}
-                  className="flex flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-md hover:border-gray-300"
                 >
-                  {moment(showing.dateTime).format("DD.MM.YYYY - HH:mm")}
-                  {showing.showingAdditionalData && (
-                    <div className="text-xs text-gray-500">
-                      {showing.showingAdditionalData}
-                    </div>
-                  )}
+                  <Card className="dark:hover:border-foreground/60 dark:border-background-muted hover:border-gray-300">
+                    <CardHeader>
+                      <div className="dark:text-foreground text-gray-500">
+                        {moment(showing.dateTime).format("DD.MM.YYYY - HH:mm")}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {showing.showingAdditionalData && (
+                        <div className="dark:text-foreground text-gray-500 text-xs">
+                          {showing.showingAdditionalData}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </Link>
               );
             })}
