@@ -1,10 +1,11 @@
 import moment from "moment-timezone";
-import { redirect } from "next/navigation";
+import City from "../page";
 
-export default function Page({
-  params: { citySlug },
-}: {
-  params: { citySlug?: string };
-}) {
-  redirect(`/city/${citySlug}/?date=${moment().format("YYYY-MM-DD")}`);
+export default function Page({ params }: { params: { citySlug?: string } }) {
+  return (
+    <City
+      params={params}
+      searchParams={{ date: moment().format("YYYY-MM-DD") }}
+    />
+  );
 }

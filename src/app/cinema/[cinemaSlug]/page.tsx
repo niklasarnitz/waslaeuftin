@@ -26,7 +26,7 @@ export default async function CinemaPage({
     <div className="px-4">
       <div className="flex flex-row items-center justify-between gap-x-2 pt-4">
         <h1 className="flex flex-1 text-2xl font-bold">
-          Diese Filme laufen heute im {cinema?.name}
+          Was läuft heute im {cinema?.name}
         </h1>
       </div>
       <CinemaMovies cinema={cinema} />
