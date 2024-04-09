@@ -16,6 +16,8 @@ const inter = Inter({
 
 export const metadata = {
   title: "wasläuft.in",
+  description:
+    "wasläuft.in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
 };
 
 moment().tz("Europe/Berlin");

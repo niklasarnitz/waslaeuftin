@@ -22,15 +22,15 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
                   href={showing.bookingUrl ?? "#"}
                   key={`${cinema.slug}-${showing.dateTime.toISOString()}-${movie.name}`}
                 >
-                  <Card className="dark:hover:border-foreground/60 dark:border-background-muted hover:border-gray-300">
+                  <Card className="dark:border-background-muted hover:border-gray-300 dark:hover:border-foreground/60">
                     <CardHeader>
-                      <div className="dark:text-foreground text-gray-500 font-medium">
+                      <div className="text-gray-500 font-medium dark:text-foreground">
                         {moment(showing.dateTime).format("DD.MM.YYYY - HH:mm")}
                       </div>
                     </CardHeader>
                     {showing.showingAdditionalData && (
                       <CardContent>
-                        <div className="dark:text-foreground text-gray-500 text-xs">
+                        <div className="text-gray-500 text-xs dark:text-foreground">
                           {showing.showingAdditionalData}
                         </div>
                       </CardContent>
