@@ -48,9 +48,9 @@ export default async function MoviesInCity({
     <>
       <div className="flex flex-row items-start justify-between gap-x-2 px-4 pt-4">
         <h1 className="flex flex-1 text-2xl font-bold">
-          Diese Filme laufen {getDateString(date)} in {city.name}
+          Was läuft {getDateString(date)} in {city.name}
         </h1>
-        <UrlDatePicker />
+        <UrlDatePicker citySlug={citySlug} />
       </div>
       <Suspense fallback={<LoadingSpinner />}>
         <MoviesByCinemaList city={city} />

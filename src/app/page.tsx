@@ -1,6 +1,5 @@
 import { Button } from "@waslaeuftin/components/ui/button";
 import { db } from "@waslaeuftin/server/db";
-import moment from "moment-timezone";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +18,8 @@ export default async function Home() {
         {cities.map((city) => (
           <Link
             key={city.slug}
-            href={`/city/${city.slug}?date=${moment().format("YYYY-MM-DD")}`}
-            className="dark:hover:border-foreground/60 dark:border-background-muted rounded-lg border shadow-sm"
+            href={`/city/${city.slug}/today`}
+            className="dark:border-background-muted rounded-lg border shadow-sm dark:hover:border-foreground/60"
           >
             <Button variant="link" className="dark:text-foreground">
               {city.name}
