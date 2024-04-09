@@ -5,6 +5,9 @@ import { Inter } from "next/font/google";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 import Link from "next/link";
 import moment from "moment-timezone";
+import nightwind from "nightwind/helper";
+import { ThemeProvider } from "next-themes";
+import { ColorThemeToggleButton } from "@waslaeuftin/components/ColorThemeToggleButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,19 +28,31 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: nightwind.init() }} />
+      </head>
       <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-        <footer className="flex flex-row items-center justify-center space-x-4 py-4">
-          <Link href="/legal" className="text-sm font-light">
-            Rechtliches
-          </Link>
-          <Link
-            href="https://github.com/niklasarnitz/waslaeuftin"
-            className="text-sm font-light"
-          >
-            GitHub
-          </Link>
-        </footer>
+        <ThemeProvider
+          attribute="class"
+          storageKey="nightwind-mode"
+          defaultTheme="dark"
+        >
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <footer className="flex flex-col items-center justify-center space-y-2 py-2">
+            <div className="flex flex-row items-center justify-center space-x-4">
+              <Link href="/legal" className="text-sm font-light">
+                Rechtliches
+              </Link>
+              <Link
+                href="https://github.com/niklasarnitz/waslaeuftin"
+                className="text-sm font-light"
+              >
+                GitHub
+              </Link>
+            </div>
+            <ColorThemeToggleButton />
+          </footer>
+        </ThemeProvider>
         <script
           defer
           src="https://umami.app.niklas.services/script.js"
