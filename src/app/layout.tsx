@@ -35,7 +35,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           storageKey="nightwind-mode"
-          defaultTheme="dark"
+          defaultTheme="light"
         >
           <TRPCReactProvider>{children}</TRPCReactProvider>
           <footer className="flex flex-col items-center justify-center space-y-2 py-2">
