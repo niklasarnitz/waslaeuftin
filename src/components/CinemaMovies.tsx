@@ -24,17 +24,17 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
                 >
                   <Card className="dark:hover:border-foreground/60 dark:border-background-muted hover:border-gray-300">
                     <CardHeader>
-                      <div className="dark:text-foreground text-gray-500">
+                      <div className="dark:text-foreground text-gray-500 font-medium">
                         {moment(showing.dateTime).format("DD.MM.YYYY - HH:mm")}
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      {showing.showingAdditionalData && (
+                    {showing.showingAdditionalData && (
+                      <CardContent>
                         <div className="dark:text-foreground text-gray-500 text-xs">
                           {showing.showingAdditionalData}
                         </div>
-                      )}
-                    </CardContent>
+                      </CardContent>
+                    )}
                   </Card>
                 </Link>
               );

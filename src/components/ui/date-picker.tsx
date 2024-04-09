@@ -24,32 +24,34 @@ export function DatePicker({
   isAllowedToSelectPast,
 }: DatePickerProps) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-[280px] justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? (
-            moment(value).format("DD.MM.YYYY")
-          ) : (
-            <span>Datum auswählen</span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={value}
-          onSelect={onChange}
-          initialFocus
-          isAllowedToSelectPast={isAllowedToSelectPast}
-        />
-      </PopoverContent>
-    </Popover>
+    <div suppressHydrationWarning>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-[280px] justify-start text-left font-normal",
+              !value && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? (
+              moment(value).format("DD.MM.YYYY")
+            ) : (
+              <span>Datum auswählen</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={onChange}
+            initialFocus
+            isAllowedToSelectPast={isAllowedToSelectPast}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
