@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@waslaeuftin/components/ui/popover";
 import { Button } from "@waslaeuftin/components/ui/button";
-import { cn } from "@waslaeuftin/app/lib/utils";
+import { cn } from "@waslaeuftin/lib/utils";
 import { Calendar } from "@waslaeuftin/components/ui/calendar";
 import moment from "moment-timezone";
 

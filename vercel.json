@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/update-movies-data",
-      "schedule": "55 23 * * *"
-    }
-  ]
-}

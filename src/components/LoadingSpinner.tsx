@@ -1,4 +1,4 @@
-import { cn } from "@waslaeuftin/app/lib/utils";
+import { cn } from "@waslaeuftin/lib/utils";
 
 export const LoadingSpinner = ({ className }: { className?: string }) => {
   return (
