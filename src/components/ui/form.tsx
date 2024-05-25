@@ -10,7 +10,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 
-import { cn } from "@waslaeuftin/app/lib/utils";
+import { cn } from "@waslaeuftin/lib/utils";
 import { Label } from "@waslaeuftin/components/ui/label";
 
 const Form = FormProvider;
@@ -135,7 +135,7 @@ const FormDescription = React.forwardRef<
       ref={ref}
       id={formDescriptionId}
       className={cn(
-        "text-[0.8rem] text-slate-500 dark:text-slate-400",
+        "text-slate-500 text-[0.8rem] dark:text-slate-400",
         className,
       )}
       {...props}
@@ -160,7 +160,7 @@ const FormMessage = React.forwardRef<
       ref={ref}
       id={formMessageId}
       className={cn(
-        "text-[0.8rem] font-medium text-red-500 dark:text-red-900",
+        "text-red-500 text-[0.8rem] font-medium dark:text-red-900",
         className,
       )}
       {...props}

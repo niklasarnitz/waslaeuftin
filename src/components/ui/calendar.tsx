@@ -10,7 +10,7 @@ import {
   Row,
 } from "react-day-picker";
 
-import { cn } from "@waslaeuftin/app/lib/utils";
+import { cn } from "@waslaeuftin/lib/utils";
 import { buttonVariants } from "@waslaeuftin/components/ui/button";
 import { differenceInCalendarDays } from "date-fns";
 

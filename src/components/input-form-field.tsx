@@ -13,7 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@waslaeuftin/components/ui/form";
-import { cn } from "@waslaeuftin/app/lib/utils";
+import { cn } from "@waslaeuftin/lib/utils";
 import { Input } from "@waslaeuftin/components/ui/input";
 import { RequiredAsterisk } from "@waslaeuftin/components/required-asterisk";
 
