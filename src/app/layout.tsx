@@ -8,6 +8,7 @@ import moment from "moment-timezone";
 import nightwind from "nightwind/helper";
 import { ThemeProvider } from "next-themes";
 import { ColorThemeToggleButton } from "@waslaeuftin/components/ColorThemeToggleButton";
+import { isDev } from "@waslaeuftin/helpers/isDev";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,11 +56,11 @@ export default function RootLayout({
             <ColorThemeToggleButton />
           </footer>
         </ThemeProvider>
-        <script
+        {!isDev && <script
           defer
           src="https://umami.app.niklas.services/script.js"
           data-website-id="7538dcdd-2bff-4310-8b80-73c666f2d90a"
-        />
+        />}
       </body>
     </html>
   );
