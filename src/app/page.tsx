@@ -17,7 +17,7 @@ export default function Home({ searchParams }: HomeProps) {
   return (
     <main className="container">
       <div className="flex flex-col items-center justify-center space-y-4">
-        <h1 className="pt-4 text-4xl font-bold">was läuft in</h1>
+        <h1 className="pt-standard text-4xl font-bold">was läuft in</h1>
         <SearchTextField />
         <Suspense fallback={<LoadingSpinner />}>
           <Cities searchParams={searchParams} />

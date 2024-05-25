@@ -19,6 +19,9 @@ const config = {
       },
     },
     extend: {
+      spacing: {
+        standard: "16px",
+      },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
