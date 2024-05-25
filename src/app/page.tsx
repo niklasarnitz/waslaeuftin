@@ -14,7 +14,7 @@ export default async function Home() {
   return (
     <main>
       <div className="flex flex-col items-center justify-center space-y-4">
-        <h1 className="pt-4 text-4xl font-bold">wasläuft.in</h1>
+        <h1 className="pt-4 text-4xl font-bold">was läuft in</h1>
         {cities.map((city) => (
           <Link
             key={city.slug}
