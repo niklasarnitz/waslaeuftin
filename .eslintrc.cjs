@@ -5,7 +5,8 @@ const config = {
     "project": true
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    'eslint-plugin-react-compiler'
   ],
   "extends": [
     "next/core-web-vitals",
@@ -40,7 +41,8 @@ const config = {
     "no-restricted-imports": ["error", {
       "name": "moment",
       "message": "moment-timezone is used to ensure timezone support."
-    }]
+    }],
+    'react-compiler/react-compiler': "error",
   }
 }
 module.exports = config;
