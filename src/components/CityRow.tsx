@@ -24,7 +24,7 @@ export const CityRow = ({
         </div>
         <Link
           href={`/city/${city.slug}/today`}
-          className="text-primary hover:underline hover:underline-offset-2"
+          className="pl-3 text-primary hover:underline hover:underline-offset-2"
         >
           Alle
         </Link>
