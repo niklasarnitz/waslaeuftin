@@ -18,18 +18,17 @@ export default function Home({ searchParams }: HomeProps) {
   return (
     <main>
       <section className="bg-gray-100 py-12 dark:bg-gray-950 md:py-16 lg:py-20">
-        <div className="container px-4 md:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Entdecke, was heute in deiner Stadt läuft
-            </h1>
-            <p className="mt-4 text-gray-500 dark:text-gray-400">
-              Finde sofort die besten Kinos und Filme, die heute in deiner Stadt
-              laufen.
-            </p>
-            <div className="mt-standard w-full flex-1 flex-row items-center justify-center">
-              <SearchTextField />
+        <div className="container w-full px-4 md:px-6">
+          <div className="flex flex-col items-center justify-between gap-x-2 pt-4 lg:flex-row">
+            <div className="max-w-2xl flex-1 flex-col justify-start">
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+                waslaeuft․in
+              </h1>
+              <p className="mt-4 text-gray-500 dark:text-gray-400">
+                Entdecke, welche Filme heute noch in deiner Stadt laufen.
+              </p>
             </div>
+            <SearchTextField />
           </div>
         </div>
       </section>
