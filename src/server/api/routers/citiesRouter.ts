@@ -88,4 +88,67 @@ export const citiesRouter = createTRPCRouter({
         });
       }
     }),
+  getStartPageCities: publicProcedure
+    .input(z.object({ searchQuery: z.string().optional() }))
+    .query(({ input, ctx }) => {
+      const endOfDay = moment().endOf("day").toISOString();
+      const currentDate = moment().toISOString();
+
+      const showingsFilter = {
+        dateTime: {
+          gte: currentDate,
+          lte: endOfDay,
+        },
+      };
+
+      return ctx.db.city.findMany({
+        orderBy: {
+          name: "asc",
+        },
+        where:
+          input?.searchQuery && input.searchQuery !== ""
+            ? { name: { contains: input.searchQuery, mode: "insensitive" } }
+            : undefined,
+        include: {
+          cinemas: {
+            orderBy: {
+              name: "asc",
+            },
+            include: {
+              movies: {
+                orderBy: {
+                  name: "asc",
+                },
+                include: {
+                  showings: {
+                    orderBy: {
+                      dateTime: "asc",
+                    },
+                    where: showingsFilter,
+                  },
+                },
+                where: {
+                  showings: {
+                    some: showingsFilter,
+                  },
+                },
+              },
+            },
+            where: {
+              name:
+                input?.searchQuery && input.searchQuery !== ""
+                  ? { contains: input.searchQuery, mode: "insensitive" }
+                  : undefined,
+              movies: {
+                some: {
+                  showings: {
+                    some: showingsFilter,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }),
 });
