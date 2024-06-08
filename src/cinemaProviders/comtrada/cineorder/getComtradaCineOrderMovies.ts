@@ -14,11 +14,7 @@ const getTicketUrl = (
   movie: ComtradaCineOrderMovie,
   performance: ComtradaCineOrderMoviePerformance,
 ) => {
-  if (metadata.backendUrl.includes("filmpalast.net")) {
-    return `https://cineorder.filmpalast.net/zkm/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
-  }
-
-  return `https://ts.kinopolis.de/${metadata.centerShorty}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
+  return `${metadata.backendUrl}/${metadata.centerShorty}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
 };
 
 export const getComtradaCineOrderMovies = async (

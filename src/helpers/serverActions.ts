@@ -1,5 +1,6 @@
 "use server";
 
+import { api } from "@waslaeuftin/trpc/server";
 import { cookies } from "next/headers";
 
 export async function toggleFavorite(citySlug?: string) {
@@ -22,4 +23,10 @@ export async function toggleFavorite(citySlug?: string) {
         .join(",")
         .concat(isFavorite ? "" : `,${citySlug}`) ?? "",
   });
+}
+
+export async function createCity(name?: string) {
+  if (name && name.length > 0) {
+    return await api.cities.createCity(name.toString());
+  }
 }
