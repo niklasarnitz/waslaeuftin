@@ -9,7 +9,10 @@ import { Search } from "lucide-react";
 export const SearchTextField = () => {
   const router = useRouter();
 
-  const [searchQuery, setSearchQuery] = useQueryState("searchQuery");
+  const [searchQuery, setSearchQuery] = useQueryState("searchQuery", {
+    clearOnDefault: true,
+    defaultValue: "",
+  });
 
   return (
     <div className="flex flex-1 flex-row items-center gap-x-2">

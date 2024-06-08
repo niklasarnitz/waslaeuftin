@@ -1,10 +1,10 @@
-import { db } from "@waslaeuftin/server/db";
 import Link from "next/link";
 import { SearchTextField } from "@waslaeuftin/components/SearchTextField";
 import { Suspense } from "react";
 import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
-import { Card, CardContent } from "@waslaeuftin/components/ui/card";
-import moment from "moment-timezone";
+import { cookies } from "next/headers";
+import { api } from "@waslaeuftin/trpc/server";
+import { CityRow } from "@waslaeuftin/components/CityRow";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default function Home({ searchParams }: HomeProps) {
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
               Entdecke, was heute in deiner Stadt läuft
             </h1>
-            <p className="text-gray-500 mt-4 dark:text-gray-400">
+            <p className="mt-4 text-gray-500 dark:text-gray-400">
               Finde sofort die besten Kinos und Filme, die heute in deiner Stadt
               laufen.
             </p>
@@ -54,138 +54,40 @@ export default function Home({ searchParams }: HomeProps) {
 }
 
 const Cities = async ({ searchParams }: HomeProps) => {
-  const endOfDay = moment().endOf("day").toISOString();
-  const currentDate = moment().toISOString();
-
-  const showingsFilter = {
-    dateTime: {
-      gte: currentDate,
-      lte: endOfDay,
-    },
-  };
-
-  const cities = await db.city.findMany({
-    orderBy: {
-      name: "asc",
-    },
-    where: searchParams?.searchQuery
-      ? { name: { contains: searchParams.searchQuery, mode: "insensitive" } }
-      : undefined,
-    include: {
-      cinemas: {
-        orderBy: {
-          name: "asc",
-        },
-        include: {
-          movies: {
-            orderBy: {
-              name: "asc",
-            },
-            include: {
-              showings: {
-                orderBy: {
-                  dateTime: "asc",
-                },
-                where: showingsFilter,
-              },
-            },
-            where: {
-              showings: {
-                some: showingsFilter,
-              },
-            },
-          },
-        },
-        where: searchParams?.searchQuery
-          ? {
-              name: { contains: searchParams.searchQuery, mode: "insensitive" },
-            }
-          : undefined,
-      },
-    },
+  const cities = await api.cities.getStartPageCities({
+    searchQuery: searchParams?.searchQuery,
   });
+
+  const favoriteCitiesSlugsSet = new Set(
+    cookies().get("waslaeuftin-favorite-cities")?.value.split(",") ?? [],
+  );
+
+  const favoriteCities = cities.filter((city) =>
+    favoriteCitiesSlugsSet.has(city.slug),
+  );
+
+  const nonFavoriteCities = cities.filter(
+    (city) => !favoriteCitiesSlugsSet.has(city.slug),
+  );
 
   return (
     <>
-      {cities.map((city) => (
-        <div key={city.slug}>
-          <div className="grid gap-4">
-            <Link
-              className="flex items-center justify-between"
-              href={`/city/${city.slug}/today`}
-            >
-              <h2 className="text-2xl font-bold">
-                Was läuft heute in {city.name}
-              </h2>
-              <div className="text-primary hover:underline hover:underline-offset-2">
-                Alle
-              </div>
-            </Link>
-            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {city.cinemas.slice(0, 3).map((cinema) => (
-                <Card key={cinema.slug}>
-                  <CardContent className="flex flex-col gap-4 p-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="flex-1 text-lg font-semibold">
-                        {cinema.name}
-                      </h3>
-                    </div>
-                    <div className="grid gap-2">
-                      {cinema.movies.slice(0, 4).map((movie) => (
-                        <div
-                          className="flex items-start justify-between gap-x-2"
-                          key={`${cinema.slug}-${movie.name}`}
-                        >
-                          <div className="text-gray-500 flex-1 flex-wrap dark:text-gray-400">
-                            {movie.name}
-                          </div>
-                          <div className="flex flex-row flex-wrap justify-end">
-                            {movie.showings.map((showing, index) => (
-                              <>
-                                <Link
-                                  className="text-primary hover:underline hover:underline-offset-2"
-                                  href={showing.bookingUrl ?? cinema.websiteUrl}
-                                  key={`${cinema.slug}-${movie.name}-${showing.dateTime.toISOString()}`}
-                                >
-                                  {moment(showing.dateTime).format("HH:mm")}
-                                </Link>
-                                {index !== movie.showings.length - 1 && (
-                                  <span className="mx-2">|</span>
-                                )}
-                              </>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      {cinema.movies.length > 4 && (
-                        <div className="flex items-center justify-between">
-                          <Link
-                            className="text-gray-500 dark:text-gray-400 hover:underline hover:underline-offset-2"
-                            href={`/cinema/${cinema.slug}?date=${moment().format("YYYY-MM-DD")}`}
-                          >
-                            + {cinema.movies.length - 4} Filme
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {city.cinemas.length > 3 && (
-              <div className="flex items-center justify-end">
-                <Link
-                  className="text-primary hover:underline hover:underline-offset-2"
-                  href={`/city/${city.slug}/today`}
-                >
-                  + {city.cinemas.length - 3}{" "}
-                  {city.cinemas.length - 3 === 1 ? "Kino" : "Kinos"}
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
+      {favoriteCities.length > 0 && (
+        <>
+          <h2 className="text-3xl font-semibold">Favoriten</h2>
+          {favoriteCities.map((city) => (
+            <CityRow key={city.slug} city={city} isFavorite={true} />
+          ))}
+          <div className="my-4 border-b border-slate-300" />
+        </>
+      )}
+      {nonFavoriteCities.length > 0 && (
+        <>
+          {nonFavoriteCities.map((city) => (
+            <CityRow key={city.slug} city={city} isFavorite={false} />
+          ))}
+        </>
+      )}
       {cities.length === 0 && (
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="text-lg font-light">Keine Suchergebnisse.</div>
