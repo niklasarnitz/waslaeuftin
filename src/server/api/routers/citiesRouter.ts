@@ -105,10 +105,12 @@ export const citiesRouter = createTRPCRouter({
         orderBy: {
           name: "asc",
         },
-        where:
-          input?.searchQuery && input.searchQuery !== ""
-            ? { name: { contains: input.searchQuery, mode: "insensitive" } }
-            : undefined,
+        where: {
+          name:
+            input?.searchQuery && input.searchQuery !== ""
+              ? { contains: input.searchQuery, mode: "insensitive" }
+              : undefined,
+        },
         include: {
           cinemas: {
             orderBy: {
@@ -128,19 +130,6 @@ export const citiesRouter = createTRPCRouter({
                   },
                 },
                 where: {
-                  showings: {
-                    some: showingsFilter,
-                  },
-                },
-              },
-            },
-            where: {
-              name:
-                input?.searchQuery && input.searchQuery !== ""
-                  ? { contains: input.searchQuery, mode: "insensitive" }
-                  : undefined,
-              movies: {
-                some: {
                   showings: {
                     some: showingsFilter,
                   },
