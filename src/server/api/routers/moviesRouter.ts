@@ -5,7 +5,6 @@ import {
 } from "@waslaeuftin/server/api/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { db } from "@waslaeuftin/server/db";
 import { getComtradaCineOrderMovies } from "@waslaeuftin/cinemaProviders/comtrada/cineorder/getComtradaCineOrderMovies";
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/cinemaProviders/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKinoHeldMovies";
@@ -84,11 +83,11 @@ export const moviesRouter = createTRPCRouter({
         ])
       ).flat();
 
-      await db.showing.deleteMany({});
-      await db.movie.deleteMany({});
+      await ctx.db.showing.deleteMany({});
+      await ctx.db.movie.deleteMany({});
 
       await Promise.all(
-        moviesToCreate.map((movie) => db.movie.create({ data: movie })),
+        moviesToCreate.map((movie) => ctx.db.movie.create({ data: movie })),
       );
     }),
 });

@@ -1,5 +1,6 @@
 import {
   createTRPCRouter,
+  protectedProcedure,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
 import moment from "moment-timezone";
@@ -137,6 +138,16 @@ export const citiesRouter = createTRPCRouter({
               },
             },
           },
+        },
+      });
+    }),
+  createCity: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ input, ctx }) => {
+      return ctx.db.city.create({
+        data: {
+          name: input,
+          slug: input.toLowerCase().replace(/\s/g, "_"),
         },
       });
     }),
