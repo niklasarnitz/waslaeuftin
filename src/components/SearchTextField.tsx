@@ -15,7 +15,7 @@ export const SearchTextField = () => {
   });
 
   return (
-    <div className="flex flex-1 flex-row items-center gap-x-2">
+    <div className="flex w-full flex-1 flex-row items-center gap-x-2">
       <Search className="h-4 w-4" />
       <Input
         value={searchQuery ?? undefined}

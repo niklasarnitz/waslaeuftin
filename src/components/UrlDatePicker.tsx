@@ -7,7 +7,12 @@ import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useCallback } from "react";
 
-export const UrlDatePicker = ({ citySlug }: { citySlug: string }) => {
+export const UrlDatePicker = (
+  props: { citySlug: string } | { cinemaSlug: string },
+) => {
+  const citySlug = "citySlug" in props ? props.citySlug : undefined;
+  const cinemaSlug = "cinemaSlug" in props ? props.cinemaSlug : undefined;
+
   const [date, setDate] = useQueryState("date", {
     parse: (query) => moment(query).toDate(),
     serialize: (date) => moment(date).format("YYYY-MM-DD"),
@@ -20,16 +25,18 @@ export const UrlDatePicker = ({ citySlug }: { citySlug: string }) => {
   const updateDate = useCallback(
     async (date: Date | undefined) => {
       if (moment(date).isSame(moment(), "day")) {
-        router.push(`/city/${citySlug}/today`);
+        router.push(
+          `/${citySlug ? "city" : "cinema"}/${citySlug ?? cinemaSlug}/${citySlug ? "today" : ""}`,
+        );
       } else if (pathName.includes("/today")) {
         router.push(
-          `/city/${citySlug}?date=${moment(date).format("YYYY-MM-DD")}`,
+          `/${citySlug ? "city" : "cinema"}/${citySlug ? citySlug : cinemaSlug}?date=${moment(date).format("YYYY-MM-DD")}`,
         );
       } else {
         await setDate(date ?? null);
       }
     },
-    [citySlug, pathName, router, setDate],
+    [cinemaSlug, citySlug, pathName, router, setDate],
   );
 
   return (

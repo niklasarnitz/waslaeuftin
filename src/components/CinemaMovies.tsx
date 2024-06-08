@@ -13,9 +13,9 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
   return (
     <div className="flex flex-col gap-y-4">
       {cinema.movies.map((movie) => (
-        <div key={`${cinema.slug}-${movie.name}`}>
-          <h2 className="text-lg font-semibold">{movie.name}</h2>
-          <div className="grid grid-cols-2 gap-4 pt-2 md:grid-cols-6">
+        <div key={`${cinema.slug}-${movie.name}`} className="gap-4">
+          <h2 className="pb-3 text-2xl font-semibold">{movie.name}</h2>
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-6">
             {movie.showings.map((showing) => {
               return (
                 <Link
@@ -24,13 +24,13 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
                 >
                   <Card className="dark:border-background-muted hover:border-gray-300 dark:hover:border-foreground/60">
                     <CardHeader>
-                      <div className="text-gray-500 font-medium dark:text-foreground">
+                      <div className="font-medium text-gray-500 dark:text-foreground">
                         {moment(showing.dateTime).format("DD.MM.YYYY - HH:mm")}
                       </div>
                     </CardHeader>
                     {showing.showingAdditionalData && (
                       <CardContent>
-                        <div className="text-gray-500 text-xs dark:text-foreground">
+                        <div className="text-xs text-gray-500 dark:text-foreground">
                           {showing.showingAdditionalData}
                         </div>
                       </CardContent>
