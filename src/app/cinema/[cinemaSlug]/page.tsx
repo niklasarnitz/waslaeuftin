@@ -30,7 +30,7 @@ export default async function CinemaPage({
     <main>
       <section className="bg-gray-100 py-12 dark:bg-gray-950 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-row items-start justify-between gap-x-2 pt-4">
+          <div className="flex flex-col items-start justify-between gap-x-2 gap-y-4 pt-4 md:flex-row">
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
               Was läuft {getDateString(date)} im {cinema?.name}
             </h1>
