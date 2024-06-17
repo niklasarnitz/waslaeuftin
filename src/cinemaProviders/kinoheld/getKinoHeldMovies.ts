@@ -45,42 +45,47 @@ export async function getKinoHeldMovies(
   cinemaId: number,
   metadata: KinoHeldCinemasMetadata,
 ) {
-  const movies = await getKinoHeldMoviesInner(metadata);
+  try {
+    const movies = await getKinoHeldMoviesInner(metadata);
 
-  return movies.map((movie) => {
-    const showings = movie.shows.data.map((showing) => {
-      const showingAdditionalData = Array.from(
-        new Set([
-          ...movie.movie.genres.map((genre) => genre?.name ?? ""),
-          movie.movie.contentRating?.name
-            ? `FSK-${movie.movie.contentRating?.name ?? ""}`
-            : "",
-          ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
-          showing?.auditorium?.name ?? "",
-        ]),
-      )
-        .filter((item) => item !== "")
-        .join(UIConstants.bullet);
+    return movies.map((movie) => {
+      const showings = movie.shows.data.map((showing) => {
+        const showingAdditionalData = Array.from(
+          new Set([
+            ...movie.movie.genres.map((genre) => genre?.name ?? ""),
+            movie.movie.contentRating?.name
+              ? `FSK-${movie.movie.contentRating?.name ?? ""}`
+              : "",
+            ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
+            showing?.auditorium?.name ?? "",
+          ]),
+        )
+          .filter((item) => item !== "")
+          .join(UIConstants.bullet);
+
+        return {
+          dateTime: moment(showing?.beginning).toDate(),
+          bookingUrl: getKinoHeldBookingUrl(metadata, movie, showing),
+          showingAdditionalData,
+        } satisfies Showing;
+      });
 
       return {
-        dateTime: moment(showing?.beginning).toDate(),
-        bookingUrl: getKinoHeldBookingUrl(metadata, movie, showing),
-        showingAdditionalData,
-      } satisfies Showing;
+        name: movie.name,
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
+        showings: {
+          createMany: {
+            data: showings,
+          },
+        },
+      } satisfies Prisma.Args<typeof db.movie, "create">["data"];
     });
-
-    return {
-      name: movie.name,
-      cinema: {
-        connect: {
-          id: cinemaId,
-        },
-      },
-      showings: {
-        createMany: {
-          data: showings,
-        },
-      },
-    } satisfies Prisma.Args<typeof db.movie, "create">["data"];
-  });
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
