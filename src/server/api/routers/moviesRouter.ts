@@ -60,34 +60,76 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
-      const moviesToCreate = (
-        await Promise.all([
-          ...comtradaCineOrderCinemas.map((cinema) =>
+      const comtradaCineOrderMovies = (
+        await Promise.all(
+          comtradaCineOrderCinemas.map((cinema) =>
             getComtradaCineOrderMovies(
               cinema.id,
               cinema.comtradaCineOrderMetadata!,
             ),
           ),
-          ...comtradaForumCinemas.map((cinema) =>
+        )
+      ).flat();
+
+      const comtradaForumCinemasMovies = (
+        await Promise.all(
+          comtradaForumCinemas.map((cinema) =>
             getComtradaForumCinemasMovies(
               cinema.id,
               cinema.forumCinemasMetadata!,
             ),
           ),
-          ...kinoHeldCinemas.map((cinema) =>
+        )
+      ).flat();
+
+      const kinoHeldCinemasMovies = (
+        await Promise.all(
+          kinoHeldCinemas.map((cinema) =>
             getKinoHeldMovies(cinema.id, cinema.kinoHeldCinemasMetadata!),
           ),
-          ...kinoTicketsExpressCinemas.map((cinema) =>
+        )
+      ).flat();
+
+      const kinoTicketsExpressCinemasMovies = (
+        await Promise.all(
+          kinoTicketsExpressCinemas.map((cinema) =>
             getKinoTicketsExpressMovies(cinema.id, cinema.slug),
           ),
-        ])
+        )
       ).flat();
 
       await ctx.db.showing.deleteMany({});
       await ctx.db.movie.deleteMany({});
 
-      await Promise.all(
-        moviesToCreate.map((movie) => ctx.db.movie.create({ data: movie })),
+      const createdComtradaCineOrderMovies = await Promise.all(
+        comtradaCineOrderMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
       );
+
+      const createdComtradaForumCinemasMovies = await Promise.all(
+        comtradaForumCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
+      );
+
+      const createdKinoHeldCinemasMovies = await Promise.all(
+        kinoHeldCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
+      );
+
+      const createdKinoTicketsExpressCinemasMovies = await Promise.all(
+        kinoTicketsExpressCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
+      );
+
+      return {
+        comtradaCineOrderMovies: createdComtradaCineOrderMovies,
+        comtradaForumCinemasMovies: createdComtradaForumCinemasMovies,
+        kinoHeldCinemasMovies: createdKinoHeldCinemasMovies,
+        kinoTicketsExpressCinemasMovies: createdKinoTicketsExpressCinemasMovies,
+      };
     }),
 });
