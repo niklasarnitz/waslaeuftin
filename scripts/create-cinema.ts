@@ -41,41 +41,64 @@ const cinemaName = await readLine("Cinema Name: ");
 const foundCinema = await db.cinema.findFirst({
   where: {
     name: cinemaName,
+    city: {
+      name: cityName,
+    },
   },
 });
 
 if (!foundCinema) {
-  const websiteUrl = await readLine("Website URL: ");
-
   const cinemaType = await readLine(
-    "Cinema Type (kino-ticket-express, kinoheld, comtrada): ",
+    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada): ",
   );
 
-  if (cinemaType !== "kinoheld") {
-    console.error("Anything besides kinoheld is not supported yet");
-    process.exit(1);
-  } else {
-    const centerId = await readLine("Center ID: ");
-    const centerShorty = await readLine("Center Shorty: ");
+  switch (cinemaType) {
+    case "1":
+      const slug = (await readLine("Center Slug: ")).replaceAll(
+        "https://kinotickets.express/",
+        "",
+      );
 
-    await db.cinema.create({
-      data: {
-        name: cinemaName,
-        slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
-        websiteUrl,
-        city: {
-          connect: {
-            id: foundCity?.id,
+      await db.cinema.create({
+        data: {
+          name: cinemaName,
+          slug,
+          city: {
+            connect: {
+              id: foundCity?.id,
+            },
+          },
+          isKinoTicketsExpress: true,
+        },
+      });
+
+      break;
+    case "2":
+      const centerId = await readLine("Center ID: ");
+      const centerShorty = await readLine("Center Shorty: ");
+
+      await db.cinema.create({
+        data: {
+          name: cinemaName,
+          slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          city: {
+            connect: {
+              id: foundCity?.id,
+            },
+          },
+          kinoHeldCinemasMetadata: {
+            create: {
+              centerId,
+              centerShorty,
+            },
           },
         },
-        kinoHeldCinemasMetadata: {
-          create: {
-            centerId,
-            centerShorty,
-          },
-        },
-      },
-    });
+      });
+      break;
+    default:
+      console.error("Anything besides kinoheld is not supported yet");
+      process.exit(1);
+      break;
   }
 
   console.log(`Cinema with name ${cinemaName} created`);
