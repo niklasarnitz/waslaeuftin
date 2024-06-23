@@ -80,7 +80,6 @@ model KinoHeldCinemasMetadata {
 model Cinema {
   id   Int    @id @default(autoincrement())
   name String
-  websiteUrl  String
   slug String
 
   comtradaCineOrderMetadata   ComtradaCineOrderMetadata? @relation(fields: [comtradaCineOrderMetadataId], references: [id])
@@ -105,11 +104,28 @@ model Cinema {
   @@index([name])
 }
 
+model Country {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  slug String @unique
+
+  cities City[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([name])
+}
+
 model City {
   id   Int    @id @default(autoincrement())
   name String
 
   slug String @unique
+
+  country   Country? @relation(fields: [countryId], references: [id])
+  countryId Int?
 
   cinemas Cinema[]
 
