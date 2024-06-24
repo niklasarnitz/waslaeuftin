@@ -56,7 +56,7 @@ export const CityRow = ({
                           <>
                             <Link
                               className="text-primary hover:underline hover:underline-offset-2"
-                              href={showing.bookingUrl ?? cinema.websiteUrl}
+                              href={showing.bookingUrl ?? "#"}
                               key={`${cinema.slug}-${movie.name}-${showing.dateTime.toISOString()}`}
                             >
                               {moment(showing.dateTime).format("HH:mm")}
