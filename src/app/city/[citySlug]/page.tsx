@@ -5,6 +5,7 @@ import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import { Suspense } from "react";
 import { getDateString } from "../../../helpers/getDateString";
+import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 
 export default async function MoviesInCity({
   params: { citySlug },
@@ -18,7 +19,7 @@ export default async function MoviesInCity({
   }
 
   const city = await api.cities.getCityMoviesAndShowingsBySlug({
-    slug: citySlug,
+    slug: umlautsFixer(citySlug),
     date: date ? moment(date).toDate() : undefined,
   });
 
@@ -41,7 +42,7 @@ export default async function MoviesInCity({
       <section className="py-12 dark:bg-gray-950 md:py-16 lg:py-20">
         <div className="container">
           <Suspense fallback={<LoadingSpinner />}>
-            <MoviesByCinemaList city={city} />
+            <MoviesByCinemaList city={city} date={date} />
           </Suspense>
         </div>
       </section>

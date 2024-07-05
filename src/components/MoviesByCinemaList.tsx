@@ -13,8 +13,10 @@ import Link from "next/link";
 
 export const MoviesByCinemaList = ({
   city,
+  date,
 }: {
   city: Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>;
+  date?: string;
 }) => {
   const [expandedCinemas, setExpandedCinemas] = useQueryState(
     "expandedCinemas",
@@ -39,7 +41,9 @@ export const MoviesByCinemaList = ({
         return (
           <AccordionItem key={cinema.slug} value={cinema.slug}>
             <AccordionTrigger>
-              <Link href={`/cinema/${cinema.slug}`}>
+              <Link
+                href={`/cinema/${cinema.slug}${date ? `?date=${date}` : ""}`}
+              >
                 <h1 className="text-3xl font-bold">{cinema.name}</h1>
               </Link>
             </AccordionTrigger>

@@ -13,14 +13,14 @@ export const UrlDatePicker = (
   const citySlug = "citySlug" in props ? props.citySlug : undefined;
   const cinemaSlug = "cinemaSlug" in props ? props.cinemaSlug : undefined;
 
+  const pathName = usePathname();
+  const router = useRouter();
+
   const [date, setDate] = useQueryState("date", {
     parse: (query) => moment(query).toDate(),
     serialize: (date) => moment(date).format("YYYY-MM-DD"),
     shallow: false,
   });
-
-  const pathName = usePathname();
-  const router = useRouter();
 
   const updateDate = useCallback(
     async (date: Date | undefined) => {
@@ -42,7 +42,9 @@ export const UrlDatePicker = (
   return (
     <>
       <DatePicker
-        value={date ?? undefined}
+        value={
+          date ?? pathName.endsWith("/today") ? moment().toDate() : undefined
+        }
         onChange={updateDate}
         isAllowedToSelectPast={false}
       />
