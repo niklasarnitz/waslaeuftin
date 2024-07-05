@@ -54,7 +54,7 @@ export const getCineplexMovies = async (
           createMany: {
             data: movie.screenings.map((screening) => ({
               dateTime: moment(screening.datetime).toDate(),
-              bookingUrl: `https://buchung.cineplex.de/checkout/${screening.onlineTicketingId}/init`,
+              bookingUrl: `https://buchung.cineplex.de/checkout/${screening.onlineTicketingId}init`,
               showingAdditionalData: [screening.auditoriumName].join(
                 UIConstants.bullet,
               ),

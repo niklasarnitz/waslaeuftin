@@ -54,11 +54,7 @@ export const getComtradaCineOrderMovies = async (
             }),
           },
         },
-        cinema: {
-          connect: {
-            id: cinemaId,
-          },
-        },
+        cinemaId,
       }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
   );
 };
