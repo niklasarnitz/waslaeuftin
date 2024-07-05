@@ -70,7 +70,11 @@ export const getKinoTicketsExpressMovies = async (
             data: filteredShowings,
           },
         },
-        cinemaId,
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
       } satisfies Prisma.Args<typeof db.movie, "create">["data"];
     }),
   ).filter((movie) => isMovie(movie));
