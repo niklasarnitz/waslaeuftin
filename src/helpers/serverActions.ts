@@ -1,6 +1,7 @@
 "use server";
 
 import { api } from "@waslaeuftin/trpc/server";
+import moment from "moment-timezone";
 import { cookies } from "next/headers";
 
 export async function toggleFavorite(citySlug?: string) {
@@ -13,6 +14,8 @@ export async function toggleFavorite(citySlug?: string) {
     ?.value.split(",")
     .includes(citySlug);
 
+  const cookieExpiration = moment().add(2, "years");
+
   cookies().set({
     name: "waslaeuftin-favorite-cities",
     value:
@@ -22,6 +25,8 @@ export async function toggleFavorite(citySlug?: string) {
         .filter((item) => item !== citySlug)
         .join(",")
         .concat(isFavorite ? "" : `,${citySlug}`) ?? "",
+    maxAge: cookieExpiration.diff(moment()),
+    expires: cookieExpiration.toDate(),
   });
 }
 

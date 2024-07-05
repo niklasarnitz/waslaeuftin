@@ -41,13 +41,6 @@ export default function Home({ searchParams }: HomeProps) {
           </div>
         </div>
       </section>
-      <div className="flex flex-col items-center justify-center space-y-4">
-        <Link href="/request-cinema" className="text-center text-sm underline">
-          Dein Kino oder deine Stadt ist noch nicht aufgeführt?
-          <br />
-          Wünsche es dir über diesen Link!
-        </Link>
-      </div>
     </main>
   );
 }
@@ -89,7 +82,14 @@ const Cities = async ({ searchParams }: HomeProps) => {
       )}
       {cities.length === 0 && (
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="text-lg font-light">Keine Suchergebnisse.</div>
+          <div className="text-center text-lg">
+            Keine Suchergebnisse.
+            <br />
+            <Link href="/request-cinema" className="text-sm underline">
+              Dein Kino oder deine Stadt ist noch nicht aufgeführt? Wünsche es
+              dir über diesen Link!
+            </Link>
+          </div>
         </div>
       )}
     </>

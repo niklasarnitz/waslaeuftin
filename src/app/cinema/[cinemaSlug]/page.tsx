@@ -2,6 +2,7 @@ import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
 import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
 import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
 import { getDateString } from "@waslaeuftin/helpers/getDateString";
+import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import { Suspense } from "react";
@@ -18,7 +19,7 @@ export default async function CinemaPage({
   }
 
   const cinema = await api.cinemas.getCinemaBySlug({
-    cinemaSlug: cinemaSlug,
+    cinemaSlug: umlautsFixer(cinemaSlug),
     date: date ? moment(date).toDate() : undefined,
   });
 
