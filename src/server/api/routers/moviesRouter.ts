@@ -67,6 +67,9 @@ export const moviesRouter = createTRPCRouter({
             isNot: null,
           },
         },
+        include: {
+          cinemaxxVueCinemasMetadata: true,
+        },
       });
 
       const comtradaCineOrderMovies = (
@@ -109,7 +112,10 @@ export const moviesRouter = createTRPCRouter({
 
       const cinemaxxVueCinemasMovies = (
         await Promise.all(
-          cinemaxxVueCinemas.map((cinema) => getCinemaxxVueMovies(cinema.id)),
+          cinemaxxVueCinemas.map((cinema) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+            getCinemaxxVueMovies(cinema.cinemaxxVueCinemasMetadata!.cinemaId),
+          ),
         )
       ).flat();
 
