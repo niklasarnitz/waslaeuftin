@@ -41,7 +41,7 @@ export const getCineStarMovies = async (
         showings: {
           createMany: {
             data: movie.showtimes.map((showtime) => ({
-              dateTime: moment(showtime.datetime).toDate(),
+              dateTime: moment(showtime.datetime).subtract(2, "hours").toDate(),
               bookingUrl: "https://www.cinestar.de/",
               showingAdditionalData: ArrayHelper.noUndefined(
                 showtime.attributes.map((attribute) => attributes[attribute]),
