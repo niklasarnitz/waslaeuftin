@@ -106,6 +106,8 @@ model Cinema {
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id])
   cinemaxxVueCinemasMetadataId Int?
 
+  premiumKinoSubdomain String?
+
   city   City @relation(fields: [cityId], references: [id])
   cityId Int
 
