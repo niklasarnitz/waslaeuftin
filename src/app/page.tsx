@@ -17,7 +17,7 @@ type HomeProps = {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "wasläuft.in",
+    title: "waslaeuft․in",
     description:
       "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen.",
   };
