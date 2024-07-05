@@ -72,11 +72,7 @@ export async function getKinoHeldMovies(
 
       return {
         name: movie.name,
-        cinema: {
-          connect: {
-            id: cinemaId,
-          },
-        },
+        cinemaId,
         showings: {
           createMany: {
             data: showings,
