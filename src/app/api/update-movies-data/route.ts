@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     cinemaxxVueCinemasMovies,
     premiumKinoCinemasMovies,
     createdCineStarCinemasMovies,
+    createdCineplexCinemasMovies,
   } = await api.movies.updateMovies({
     cronSecret: req.headers.get("x-cron-secret") ?? "",
   });
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
       cinemaxxVueCinemasMoviesCount: cinemaxxVueCinemasMovies.length,
       premiumKinoCinemasMoviesCount: premiumKinoCinemasMovies.length,
       cineStarCinemasMoviesCount: createdCineStarCinemasMovies.length,
+      createdCineplexCinemasMoviesCount: createdCineplexCinemasMovies.length,
     }),
   );
 }

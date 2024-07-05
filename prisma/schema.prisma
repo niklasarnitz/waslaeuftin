@@ -110,6 +110,8 @@ model Cinema {
 
   cineStarCinemaId Int?
 
+  cineplexCinemaId String?
+
   city   City @relation(fields: [cityId], references: [id])
   cityId Int
 
