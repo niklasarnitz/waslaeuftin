@@ -48,10 +48,10 @@ export const CityRow = ({
                       className="flex items-start justify-between gap-x-2"
                       key={`${cinema.slug}-${movie.name}`}
                     >
-                      <div className="flex-1 flex-wrap text-gray-500 dark:text-gray-400">
+                      <div className="min-w-fit flex-1 flex-wrap break-words text-gray-500 dark:text-gray-400">
                         {movie.name}
                       </div>
-                      <div className="flex flex-row flex-wrap justify-end">
+                      <div className="max-w-1/2 flex min-w-0 flex-row flex-wrap justify-end break-words">
                         {movie.showings.map((showing, index) => (
                           <>
                             <Link
