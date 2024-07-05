@@ -82,7 +82,9 @@ export const CityRow = ({
                 </div>
                 {cinema.movies.length === 0 && (
                   <p className="text-gray-500 dark:text-gray-400">
-                    Heute keine Vorstellungen mehr.
+                    {!!cinema.cineplexCinemaId
+                      ? "Zur Zeit liegt ein Problem mit der Cineplexx Anbindung vor."
+                      : "Heute keine Vorstellungen mehr."}
                   </p>
                 )}
               </CardContent>
