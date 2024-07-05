@@ -134,10 +134,8 @@ export const moviesRouter = createTRPCRouter({
       const premiumKinoCinemasMovies = (
         await Promise.all(
           premiumKinoCinemas.map((cinema) =>
-            getPremiumKinoMovies(
-              cinema.id,
-              cinema.premiumKinoSubdomain as string,
-            ),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
+            getPremiumKinoMovies(cinema.id, cinema.premiumKinoSubdomain!),
           ),
         )
       ).flat();
