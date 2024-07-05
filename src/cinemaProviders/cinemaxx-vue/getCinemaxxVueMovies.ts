@@ -5,18 +5,21 @@ import { type Prisma } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 
-export const getCinemaxxVueMovies = async (cinemaId: number) => {
+export const getCinemaxxVueMovies = async (
+  cinemaxxCinemaId: number,
+  cinemaId: number,
+) => {
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<CinemaxxVueWhatsOnResponse>(
-    `https://www.cinemaxx.de/api/sitecore/WhatsOn/WhatsOnV2ByTopfilms?cinemaId=${cinemaId}&Datum=${moment().format("DD-MM-YYYY")},${moment().add(7, "days").format("DD-MM-YYYY")}&type=jetzt-im-kino`,
+    `https://www.cinemaxx.de/api/sitecore/WhatsOn/WhatsOnV2ByTopfilms?cinemaId=${cinemaxxCinemaId}&Datum=${moment().format("DD-MM-YYYY")},${moment().add(7, "days").format("DD-MM-YYYY")}&type=jetzt-im-kino`,
   );
 
   return data.WhatsOnAlphabeticFilms.map(
     (movie) =>
       ({
         name: movie.Title,
-        cinemaId: cinemaId,
+        cinemaId,
         showings: {
           createMany: {
             data: movie.WhatsOnAlphabeticCinemas.map((day) =>
