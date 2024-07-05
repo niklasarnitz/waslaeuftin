@@ -112,7 +112,11 @@ export const getComtradaForumCinemasMovies = async (
             data: showings.filter((showing) => isShowing(showing)) as Showing[],
           },
         },
-        cinemaId,
+        cinema: {
+          connect: {
+            id: cinemaId,
+          },
+        },
       } satisfies Prisma.Args<typeof db.movie, "create">["data"];
     }),
   ).filter((movie) => isMovie(movie));
