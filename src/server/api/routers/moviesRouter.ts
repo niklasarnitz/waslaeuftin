@@ -12,6 +12,7 @@ import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-t
 import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/getCinemaxxVueMovies";
 import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/getPremiumKinoMovies";
 import { getCineplexMovies } from "@waslaeuftin/cinemaProviders/cineplex/getCinePlexMovies";
+import { getCineStarMovies } from "@waslaeuftin/cinemaProviders/cinestar/getCineStarMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateMovies: publicProcedure
@@ -90,6 +91,14 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
+      const cinestarCinemas = await ctx.db.cinema.findMany({
+        where: {
+          cineStarCinemaId: {
+            not: null,
+          },
+        },
+      });
+
       const comtradaCineOrderMovies = (
         await Promise.all(
           comtradaCineOrderCinemas.map((cinema) =>
@@ -158,79 +167,47 @@ export const moviesRouter = createTRPCRouter({
         )
       ).flat();
 
+      const cinestarMovies = (
+        await Promise.all(
+          cinestarCinemas.map((cinema) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
+            getCineStarMovies(cinema.id, cinema.cineStarCinemaId!),
+          ),
+        )
+      ).flat();
+
       await ctx.db.showing.deleteMany({});
       await ctx.db.movie.deleteMany({});
 
-      const createdComtradaCineOrderMovies = await Promise.all(
-        comtradaCineOrderMovies.map((movie) =>
+      await Promise.all([
+        ...comtradaCineOrderMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-      );
-
-      const createdComtradaForumCinemasMovies = await Promise.all(
-        comtradaForumCinemasMovies.map((movie) =>
+        ...comtradaForumCinemasMovies.map((movie) =>
           ctx.db.movie.create({
-            data: {
-              name: movie.name,
-              cinemaId: movie.cinema.connect.id,
-              showings: {
-                createMany: {
-                  data: movie.showings.createMany.data,
-                },
-              },
-            },
+            data: movie,
           }),
         ),
-      );
-
-      const createdKinoHeldCinemasMovies = await Promise.all(
-        kinoHeldCinemasMovies.map((movie) =>
+        ...kinoHeldCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-      );
-
-      const createdKinoTicketsExpressCinemasMovies = await Promise.all(
-        kinoTicketsExpressCinemasMovies.map((movie) =>
+        ...kinoTicketsExpressCinemasMovies.map((movie) =>
           ctx.db.movie.create({
-            data: {
-              name: movie.name,
-              cinemaId: movie.cinema.connect.id,
-              showings: {
-                createMany: {
-                  data: movie.showings.createMany.data,
-                },
-              },
-            },
+            data: movie,
           }),
         ),
-      );
-
-      const createdCinemaxxVueCinemasMovies = await Promise.all(
-        cinemaxxVueCinemasMovies.map((movie) =>
+        ...cinemaxxVueCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-      );
-
-      const createdPremiumKinoCinemasMovies = await Promise.all(
-        premiumKinoCinemasMovies.map((movie) =>
+        ...premiumKinoCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-      );
-
-      const createdCineplexCinemasMovies = await Promise.all(
-        cineplexCinemasMovies.map((movie) =>
+        ...cineplexCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-      );
+        ...cinestarMovies.map((movie) => ctx.db.movie.create({ data: movie })),
+      ]);
 
-      return {
-        comtradaCineOrderMovies: createdComtradaCineOrderMovies,
-        comtradaForumCinemasMovies: createdComtradaForumCinemasMovies,
-        kinoHeldCinemasMovies: createdKinoHeldCinemasMovies,
-        kinoTicketsExpressCinemasMovies: createdKinoTicketsExpressCinemasMovies,
-        cinemaxxVueCinemasMovies: createdCinemaxxVueCinemasMovies,
-        premiumKinoCinemasMovies: createdPremiumKinoCinemasMovies,
-        createdCineplexCinemasMovies: createdCineplexCinemasMovies,
-      };
+      return await ctx.db.movie.count();
     }),
 });
