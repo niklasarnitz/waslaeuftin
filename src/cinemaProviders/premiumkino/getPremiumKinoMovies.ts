@@ -12,7 +12,7 @@ export const getPremiumKinoMovies = async (
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<PremiumKinoMovie[]>(
-    `https://${subdomain}.premiumkino.to/api/v1/de/movies`,
+    `https://${subdomain}.premiumkino.de/api/v1/de/movies`,
   );
 
   return data.map(
