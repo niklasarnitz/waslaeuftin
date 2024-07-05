@@ -44,7 +44,13 @@ export default function Home({ searchParams }: HomeProps) {
       <section className="py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
           <div className="grid gap-8">
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense
+              fallback={
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <LoadingSpinner />
+                </div>
+              }
+            >
               <Cities searchParams={searchParams} />
             </Suspense>
           </div>
