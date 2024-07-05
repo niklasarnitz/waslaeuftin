@@ -5,6 +5,7 @@ import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
 import { cookies } from "next/headers";
 import { api } from "@waslaeuftin/trpc/server";
 import { CityRow } from "@waslaeuftin/components/CityRow";
+import { type Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,14 @@ type HomeProps = {
     searchQuery?: string;
   };
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "wasläuft.in",
+    description:
+      "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen.",
+  };
+}
 
 export default function Home({ searchParams }: HomeProps) {
   return (

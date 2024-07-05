@@ -6,14 +6,46 @@ import moment from "moment-timezone";
 import { Suspense } from "react";
 import { getDateString } from "../../../helpers/getDateString";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
+import { type Metadata } from "next";
+
+type MoviesInCityProps = {
+  params: { citySlug?: string };
+  searchParams: { date?: string };
+};
+
+export async function generateMetadata({
+  params: { citySlug },
+  searchParams: { date },
+}: MoviesInCityProps): Promise<Metadata> {
+  if (!citySlug) {
+    return {
+      title: "wasläuft.in - 404",
+      description: "Diese Seite konnte nicht gefunden werden.",
+    };
+  }
+
+  const city = await api.cities.getCityMoviesAndShowingsBySlug({
+    slug: umlautsFixer(citySlug),
+    date: date ? moment(date).toDate() : undefined,
+  });
+
+  if (!city) {
+    return {
+      title: "wasläuft.in - 404",
+      description: "Diese Seite konnte nicht gefunden werden.",
+    };
+  }
+
+  return {
+    title: `Welche Filme laufen in demnächst in ${city.name}`,
+    description: `Finde jetzt heraus, welche Filme demnächst in ${city.name} laufen.`,
+  };
+}
 
 export default async function MoviesInCity({
   params: { citySlug },
   searchParams: { date },
-}: {
-  params: { citySlug?: string };
-  searchParams: { date?: string };
-}) {
+}: MoviesInCityProps) {
   if (!citySlug) {
     return <div>Not found</div>;
   }
