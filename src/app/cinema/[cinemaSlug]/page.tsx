@@ -19,7 +19,7 @@ export async function generateMetadata({
 }: CinemaPageProps): Promise<Metadata> {
   if (!cinemaSlug) {
     return {
-      title: "wasläuft.in - 404",
+      title: "wasäuft․in - 404",
       description: "Diese Seite konnte nicht gefunden werden.",
     };
   }
@@ -31,7 +31,7 @@ export async function generateMetadata({
 
   if (!cinema) {
     return {
-      title: "wasläuft.in - 404",
+      title: "wasäuft․in - 404",
       description: "Diese Seite konnte nicht gefunden werden.",
     };
   }
