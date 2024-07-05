@@ -10,6 +10,7 @@ import { getComtradaForumCinemasMovies } from "@waslaeuftin/cinemaProviders/comt
 import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKinoHeldMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-ticket-express/getKinoTicketExpressMovies";
 import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/getCinemaxxVueMovies";
+import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/getPremiumKinoMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateMovies: publicProcedure
@@ -72,6 +73,14 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
+      const premiumKinoCinemas = await ctx.db.cinema.findMany({
+        where: {
+          premiumKinoSubdomain: {
+            not: null,
+          },
+        },
+      });
+
       const comtradaCineOrderMovies = (
         await Promise.all(
           comtradaCineOrderCinemas.map((cinema) =>
@@ -117,6 +126,17 @@ export const moviesRouter = createTRPCRouter({
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
               cinema.cinemaxxVueCinemasMetadata!.cinemaId,
               cinema.id,
+            ),
+          ),
+        )
+      ).flat();
+
+      const premiumKinoCinemasMovies = (
+        await Promise.all(
+          premiumKinoCinemas.map((cinema) =>
+            getPremiumKinoMovies(
+              cinema.id,
+              cinema.premiumKinoSubdomain as string,
             ),
           ),
         )
@@ -183,12 +203,19 @@ export const moviesRouter = createTRPCRouter({
         ),
       );
 
+      const createdPremiumKinoCinemasMovies = await Promise.all(
+        premiumKinoCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
+      );
+
       return {
         comtradaCineOrderMovies: createdComtradaCineOrderMovies,
         comtradaForumCinemasMovies: createdComtradaForumCinemasMovies,
         kinoHeldCinemasMovies: createdKinoHeldCinemasMovies,
         kinoTicketsExpressCinemasMovies: createdKinoTicketsExpressCinemasMovies,
         cinemaxxVueCinemasMovies: createdCinemaxxVueCinemasMovies,
+        premiumKinoCinemasMovies: createdPremiumKinoCinemasMovies,
       };
     }),
 });

@@ -49,7 +49,7 @@ const foundCinema = await db.cinema.findFirst({
 
 if (!foundCinema) {
   const cinemaType = await readLine(
-    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue): ",
+    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue, 5 premiumkino): ",
   );
 
   switch (cinemaType) {
@@ -118,6 +118,23 @@ if (!foundCinema) {
               cinemaId: Number(cinemaId),
             },
           },
+        },
+      });
+      break;
+
+    case "5":
+      const subdomain = await readLine("Subdomain: ");
+
+      await db.cinema.create({
+        data: {
+          name: cinemaName,
+          slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          city: {
+            connect: {
+              id: foundCity?.id,
+            },
+          },
+          premiumKinoSubdomain: subdomain,
         },
       });
       break;
