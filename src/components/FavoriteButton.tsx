@@ -24,6 +24,7 @@ export const FavoriteButton = ({
         await toggleFavoriteWithCitySlug();
       }}
       className="flex items-center justify-center"
+      aria-label={isFavorite ? "Favoriten entfernen" : "Favoriten hinzufügen"}
     >
       <StarIcon
         fill={

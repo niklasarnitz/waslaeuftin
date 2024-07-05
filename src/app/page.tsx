@@ -92,6 +92,16 @@ const Cities = async ({ searchParams }: HomeProps) => {
           </div>
         </div>
       )}
+      {cities.length > 0 && (
+        <section className="py-3 md:py-4 lg:py-6">
+          <div className="container px-4 text-center md:px-6">
+            <Link href="/request-cinema" className="text-sm underline">
+              Dein Kino oder deine Stadt ist noch nicht aufgeführt? Wünsche es
+              dir über diesen Link!
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 };

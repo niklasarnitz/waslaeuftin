@@ -1,3 +1,4 @@
+import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
 import { db } from "@waslaeuftin/server/db";
 import { type MetadataRoute } from "next";
 
@@ -13,13 +14,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     ...cities.map((city) => ({
-      url: `https://waslaeuft.in/city/${city.slug}/today`,
+      url: `https://waslaeuft.in/city/${encodeUmlauts(city.slug)}/today`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
     })),
     ...cinemas.map((cinema) => ({
-      url: `https://waslaeuft.in/cinema/${cinema.slug}`,
+      url: `https://waslaeuft.in/cinema/${encodeUmlauts(cinema.slug)}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
