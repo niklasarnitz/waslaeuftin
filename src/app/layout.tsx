@@ -20,7 +20,7 @@ const libre_franklin = Libre_Franklin({
 });
 
 export const metadata = {
-  title: "wasläuft.in",
+  title: "wasäuft․in",
   description:
     "wasläuft.in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
 };
