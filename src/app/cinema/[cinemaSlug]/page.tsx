@@ -5,15 +5,50 @@ import { getDateString } from "@waslaeuftin/helpers/getDateString";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
+import { type Metadata } from "next";
 import { Suspense } from "react";
+
+type CinemaPageProps = {
+  params: { cinemaSlug?: string };
+  searchParams: { date?: string };
+};
+
+export async function generateMetadata({
+  params: { cinemaSlug },
+  searchParams: { date },
+}: CinemaPageProps): Promise<Metadata> {
+  if (!cinemaSlug) {
+    return {
+      title: "wasläuft.in - 404",
+      description: "Diese Seite konnte nicht gefunden werden.",
+    };
+  }
+
+  const cinema = await api.cinemas.getCinemaBySlug({
+    cinemaSlug: umlautsFixer(cinemaSlug),
+    date: date ? moment(date).toDate() : undefined,
+  });
+
+  if (!cinema) {
+    return {
+      title: "wasläuft.in - 404",
+      description: "Diese Seite konnte nicht gefunden werden.",
+    };
+  }
+
+  const city = await api.cities.getCityById(cinema.cityId);
+
+  return {
+    title: `Welche Filme laufen im ${cinema.name}${city ? ` in ${city.name}` : ""}`,
+    description:
+      "Finde jetzt heraus, welche Filme heute in deinem Kino laufen.",
+  };
+}
 
 export default async function CinemaPage({
   params: { cinemaSlug },
   searchParams: { date },
-}: {
-  params: { cinemaSlug?: string };
-  searchParams: { date?: string };
-}) {
+}: CinemaPageProps) {
   if (!cinemaSlug) {
     return <div>Not found</div>;
   }

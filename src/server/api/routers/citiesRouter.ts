@@ -151,4 +151,13 @@ export const citiesRouter = createTRPCRouter({
         },
       });
     }),
+  getCityById: publicProcedure
+    .input(z.number())
+    .query(async ({ input, ctx }) => {
+      return await ctx.db.city.findFirst({
+        where: {
+          id: input,
+        },
+      });
+    }),
 });
