@@ -113,8 +113,11 @@ export const moviesRouter = createTRPCRouter({
       const cinemaxxVueCinemasMovies = (
         await Promise.all(
           cinemaxxVueCinemas.map((cinema) =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-            getCinemaxxVueMovies(cinema.cinemaxxVueCinemasMetadata!.cinemaId),
+            getCinemaxxVueMovies(
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+              cinema.cinemaxxVueCinemasMetadata!.cinemaId,
+              cinema.id,
+            ),
           ),
         )
       ).flat();
