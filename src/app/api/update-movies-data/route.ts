@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     comtradaForumCinemasMovies,
     kinoHeldCinemasMovies,
     kinoTicketsExpressCinemasMovies,
+    cinemaxxVueCinemasMovies,
   } = await api.movies.updateMovies({
     cronSecret: req.headers.get("x-cron-secret") ?? "",
   });
@@ -19,6 +20,7 @@ export async function GET(req: NextRequest) {
       kinoHeldCinemasMoviesCount: kinoHeldCinemasMovies.length,
       kinoTicketsExpressCinemasMoviesCount:
         kinoTicketsExpressCinemasMovies.length,
+      cinemaxxVueCinemasMoviesCount: cinemaxxVueCinemasMovies.length,
     }),
   );
 }

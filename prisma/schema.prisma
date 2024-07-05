@@ -77,6 +77,16 @@ model KinoHeldCinemasMetadata {
   Cinema    Cinema[]
 }
 
+model CinemaxxVueCinemasMetadata {
+  id Int @id @default(autoincrement())
+
+  cinemaId     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  Cinema    Cinema[]
+}
+
 model Cinema {
   id   Int    @id @default(autoincrement())
   name String
@@ -92,6 +102,9 @@ model Cinema {
 
   kinoHeldCinemasMetadata   KinoHeldCinemasMetadata? @relation(fields: [kinoHeldCinemasMetadataId], references: [id])
   kinoHeldCinemasMetadataId Int?
+
+  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id])
+  cinemaxxVueCinemasMetadataId Int?
 
   city   City @relation(fields: [cityId], references: [id])
   cityId Int
