@@ -11,6 +11,7 @@ import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKino
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-ticket-express/getKinoTicketExpressMovies";
 import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/getCinemaxxVueMovies";
 import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/getPremiumKinoMovies";
+import { getCineStarMovies } from "@waslaeuftin/cinemaProviders/cinestar/getCineStarMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateMovies: publicProcedure
@@ -81,6 +82,14 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
+      const cineStarCinemas = await ctx.db.cinema.findMany({
+        where: {
+          cineStarCinemaId: {
+            not: null,
+          },
+        },
+      });
+
       const comtradaCineOrderMovies = (
         await Promise.all(
           comtradaCineOrderCinemas.map((cinema) =>
@@ -136,6 +145,15 @@ export const moviesRouter = createTRPCRouter({
           premiumKinoCinemas.map((cinema) =>
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
             getPremiumKinoMovies(cinema.id, cinema.premiumKinoSubdomain!),
+          ),
+        )
+      ).flat();
+
+      const cineStarCinemasMovies = (
+        await Promise.all(
+          cineStarCinemas.map((cinema) =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
+            getCineStarMovies(cinema.id, cinema.cineStarCinemaId!),
           ),
         )
       ).flat();
@@ -207,6 +225,12 @@ export const moviesRouter = createTRPCRouter({
         ),
       );
 
+      const createdCineStarCinemasMovies = await Promise.all(
+        cineStarCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
+      );
+
       return {
         comtradaCineOrderMovies: createdComtradaCineOrderMovies,
         comtradaForumCinemasMovies: createdComtradaForumCinemasMovies,
@@ -214,6 +238,7 @@ export const moviesRouter = createTRPCRouter({
         kinoTicketsExpressCinemasMovies: createdKinoTicketsExpressCinemasMovies,
         cinemaxxVueCinemasMovies: createdCinemaxxVueCinemasMovies,
         premiumKinoCinemasMovies: createdPremiumKinoCinemasMovies,
+        createdCineStarCinemasMovies: createdCineStarCinemasMovies,
       };
     }),
 });

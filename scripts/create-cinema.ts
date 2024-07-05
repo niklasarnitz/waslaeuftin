@@ -49,7 +49,7 @@ const foundCinema = await db.cinema.findFirst({
 
 if (!foundCinema) {
   const cinemaType = await readLine(
-    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue, 5 premiumkino): ",
+    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue, 5 premiumkino, 6 cinestar): ",
   );
 
   switch (cinemaType) {
@@ -135,6 +135,29 @@ if (!foundCinema) {
             },
           },
           premiumKinoSubdomain: subdomain,
+        },
+      });
+      break;
+
+    case "6":
+      const cinestarCinemaId = await readLine("Cinestar Cinema ID: ");
+
+      if (Number.isNaN(Number(cinestarCinemaId))) {
+        console.error("Cinestar Cinema ID is not a number");
+        process.exit(1);
+      }
+
+      await db.cinema.create({
+        data: {
+          name: cinemaName,
+          slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          city: {
+            connect: {
+              id: foundCity?.id,
+            },
+          },
+          isKinoTicketsExpress: true,
+          cineStarCinemaId: Number(cinestarCinemaId),
         },
       });
       break;

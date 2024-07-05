@@ -108,6 +108,8 @@ model Cinema {
 
   premiumKinoSubdomain String?
 
+  cineStarCinemaId Int?
+
   city   City @relation(fields: [cityId], references: [id])
   cityId Int
 
