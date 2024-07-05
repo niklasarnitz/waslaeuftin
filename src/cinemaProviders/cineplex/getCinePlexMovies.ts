@@ -19,7 +19,7 @@ const getQuery = (cineplexCinemaId: string) => gql`query {
 				id
 				datetime
 				auditoriumName
-                onlineTicketingId
+        onlineTicketingId
 			}
 		}
 	}
