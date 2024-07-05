@@ -11,15 +11,6 @@ import {
 } from "@waslaeuftin/types/RequestCinemaFormData";
 import { api } from "@waslaeuftin/trpc/react";
 import { useRouter } from "next/navigation";
-import { type Metadata } from "next";
-
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: "wasläuft.in - Kino wünschen",
-    description:
-      "Dein Kino ist bisher noch nicht aufgeführt? Hier kannst du dir eine Integration deines Kinos wünschen.",
-  };
-}
 
 export default function RequestCinemaPage() {
   const form = useForm<RequestCinemaFormData>({
