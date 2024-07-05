@@ -189,7 +189,7 @@ export const moviesRouter = createTRPCRouter({
           ctx.db.movie.create({
             data: {
               name: movie.name,
-              cinemaId: movie.cinemaId,
+              cinemaId: movie.cinema.connect.id,
               showings: {
                 createMany: {
                   data: movie.showings.createMany.data,
@@ -211,7 +211,7 @@ export const moviesRouter = createTRPCRouter({
           ctx.db.movie.create({
             data: {
               name: movie.name,
-              cinemaId: movie.cinemaId,
+              cinemaId: movie.cinema.connect.id,
               showings: {
                 createMany: {
                   data: movie.showings.createMany.data,
