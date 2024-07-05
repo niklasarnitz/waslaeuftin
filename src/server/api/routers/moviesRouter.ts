@@ -9,6 +9,7 @@ import { getComtradaCineOrderMovies } from "@waslaeuftin/cinemaProviders/comtrad
 import { getComtradaForumCinemasMovies } from "@waslaeuftin/cinemaProviders/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKinoHeldMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-ticket-express/getKinoTicketExpressMovies";
+import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/getCinemaxxVueMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateMovies: publicProcedure
@@ -60,6 +61,14 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
+      const cinemaxxVueCinemas = await ctx.db.cinema.findMany({
+        where: {
+          cinemaxxVueCinemasMetadata: {
+            isNot: null,
+          },
+        },
+      });
+
       const comtradaCineOrderMovies = (
         await Promise.all(
           comtradaCineOrderCinemas.map((cinema) =>
@@ -98,6 +107,12 @@ export const moviesRouter = createTRPCRouter({
         )
       ).flat();
 
+      const cinemaxxVueCinemasMovies = (
+        await Promise.all(
+          cinemaxxVueCinemas.map((cinema) => getCinemaxxVueMovies(cinema.id)),
+        )
+      ).flat();
+
       await ctx.db.showing.deleteMany({});
       await ctx.db.movie.deleteMany({});
 
@@ -109,7 +124,21 @@ export const moviesRouter = createTRPCRouter({
 
       const createdComtradaForumCinemasMovies = await Promise.all(
         comtradaForumCinemasMovies.map((movie) =>
-          ctx.db.movie.create({ data: movie }),
+          ctx.db.movie.create({
+            data: {
+              name: movie.name,
+              cinema: {
+                connect: {
+                  id: movie.cinema.connect.id,
+                },
+              },
+              showings: {
+                createMany: {
+                  data: movie.showings.createMany.data,
+                },
+              },
+            },
+          }),
         ),
       );
 
@@ -121,6 +150,26 @@ export const moviesRouter = createTRPCRouter({
 
       const createdKinoTicketsExpressCinemasMovies = await Promise.all(
         kinoTicketsExpressCinemasMovies.map((movie) =>
+          ctx.db.movie.create({
+            data: {
+              name: movie.name,
+              cinema: {
+                connect: {
+                  id: movie.cinema.connect.id,
+                },
+              },
+              showings: {
+                createMany: {
+                  data: movie.showings.createMany.data,
+                },
+              },
+            },
+          }),
+        ),
+      );
+
+      const createdCinemaxxVueCinemasMovies = await Promise.all(
+        cinemaxxVueCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
       );
@@ -130,6 +179,7 @@ export const moviesRouter = createTRPCRouter({
         comtradaForumCinemasMovies: createdComtradaForumCinemasMovies,
         kinoHeldCinemasMovies: createdKinoHeldCinemasMovies,
         kinoTicketsExpressCinemasMovies: createdKinoTicketsExpressCinemasMovies,
+        cinemaxxVueCinemasMovies: createdCinemaxxVueCinemasMovies,
       };
     }),
 });

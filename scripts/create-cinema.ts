@@ -49,7 +49,7 @@ const foundCinema = await db.cinema.findFirst({
 
 if (!foundCinema) {
   const cinemaType = await readLine(
-    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada): ",
+    "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue): ",
   );
 
   switch (cinemaType) {
@@ -95,10 +95,36 @@ if (!foundCinema) {
         },
       });
       break;
+
+    case "4":
+      const cinemaId = await readLine("Cinema ID: ");
+
+      if (Number.isNaN(Number(cinemaId))) {
+        console.error("Cinema ID is not a number");
+        process.exit(1);
+      }
+
+      await db.cinema.create({
+        data: {
+          name: cinemaName,
+          slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          city: {
+            connect: {
+              id: foundCity?.id,
+            },
+          },
+          cinemaxxVueCinemasMetadata: {
+            create: {
+              cinemaId: Number(cinemaId),
+            },
+          },
+        },
+      });
+      break;
+
     default:
       console.error("Anything besides kinoheld is not supported yet");
       process.exit(1);
-      break;
   }
 
   console.log(`Cinema with name ${cinemaName} created`);
