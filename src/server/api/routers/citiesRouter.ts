@@ -3,21 +3,22 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import moment from "moment-timezone";
+import { endOfDay, startOfDay } from "date-fns";
 import { z } from "zod";
 
 export const citiesRouter = createTRPCRouter({
   getCityMoviesAndShowingsBySlug: publicProcedure
     .input(z.object({ slug: z.string(), date: z.date().optional() }))
     .query(async ({ input, ctx }) => {
-      if (input.date) {
-        const endOfDay = moment(input.date).endOf("day").toISOString();
-        const selectedDate = moment(input.date).startOf("day").toISOString();
+      const { date } = input;
+
+      if (date) {
+        const selectedDate = startOfDay(date).toISOString();
 
         const showingsFilter = {
           dateTime: {
             gte: selectedDate,
-            lte: endOfDay,
+            lte: endOfDay(date).toISOString(),
           },
         };
 
@@ -89,50 +90,44 @@ export const citiesRouter = createTRPCRouter({
         });
       }
     }),
+
   getStartPageCities: publicProcedure
     .input(z.object({ searchQuery: z.string().optional() }))
     .query(({ input, ctx }) => {
-      const endOfDay = moment().endOf("day").toISOString();
-      const currentDate = moment().toISOString();
-
-      const showingsFilter = {
-        dateTime: {
-          gte: currentDate,
-          lte: endOfDay,
-        },
-      };
+      const today = new Date();
 
       return ctx.db.city.findMany({
-        orderBy: {
-          name: "asc",
-        },
+        orderBy: { name: "asc" },
         where: {
-          name:
-            input?.searchQuery && input.searchQuery !== ""
-              ? { contains: input.searchQuery, mode: "insensitive" }
-              : undefined,
+          name: input?.searchQuery
+            ? { contains: input.searchQuery, mode: "insensitive" }
+            : undefined,
         },
         include: {
           cinemas: {
-            orderBy: {
-              name: "asc",
-            },
+            orderBy: { name: "asc" },
             include: {
               movies: {
-                orderBy: {
-                  name: "asc",
-                },
+                orderBy: { name: "asc" },
                 include: {
                   showings: {
-                    orderBy: {
-                      dateTime: "asc",
+                    orderBy: { dateTime: "asc" },
+                    where: {
+                      dateTime: {
+                        gte: today,
+                        lte: endOfDay(today),
+                      },
                     },
-                    where: showingsFilter,
                   },
                 },
                 where: {
                   showings: {
-                    some: showingsFilter,
+                    some: {
+                      dateTime: {
+                        gte: today,
+                        lte: endOfDay(today),
+                      },
+                    },
                   },
                 },
               },
@@ -141,6 +136,7 @@ export const citiesRouter = createTRPCRouter({
         },
       });
     }),
+
   createCity: protectedProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
@@ -151,6 +147,7 @@ export const citiesRouter = createTRPCRouter({
         },
       });
     }),
+
   getCityById: publicProcedure
     .input(z.number())
     .query(async ({ input, ctx }) => {
