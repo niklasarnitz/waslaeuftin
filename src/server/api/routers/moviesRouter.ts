@@ -6,7 +6,6 @@ import {
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getComtradaCineOrderMovies } from "@waslaeuftin/cinemaProviders/comtrada/cineorder/getComtradaCineOrderMovies";
-import { getComtradaForumCinemasMovies } from "@waslaeuftin/cinemaProviders/comtrada/forum-cinemas/getComtradaForumCinemasMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKinoHeldMovies";
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-ticket-express/getKinoTicketExpressMovies";
 import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/getCinemaxxVueMovies";
@@ -33,17 +32,6 @@ export const moviesRouter = createTRPCRouter({
         },
         include: {
           comtradaCineOrderMetadata: true,
-        },
-      });
-
-      const comtradaForumCinemas = await ctx.db.cinema.findMany({
-        where: {
-          forumCinemasMetadata: {
-            isNot: null,
-          },
-        },
-        include: {
-          forumCinemasMetadata: true,
         },
       });
 
@@ -110,17 +98,6 @@ export const moviesRouter = createTRPCRouter({
         )
       ).flat();
 
-      const comtradaForumCinemasMovies = (
-        await Promise.all(
-          comtradaForumCinemas.map((cinema) =>
-            getComtradaForumCinemasMovies(
-              cinema.id,
-              cinema.forumCinemasMetadata!,
-            ),
-          ),
-        )
-      ).flat();
-
       const kinoHeldCinemasMovies = (
         await Promise.all(
           kinoHeldCinemas.map((cinema) =>
@@ -182,11 +159,6 @@ export const moviesRouter = createTRPCRouter({
       await Promise.all([
         ...comtradaCineOrderMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
-        ),
-        ...comtradaForumCinemasMovies.map((movie) =>
-          ctx.db.movie.create({
-            data: movie,
-          }),
         ),
         ...kinoHeldCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
