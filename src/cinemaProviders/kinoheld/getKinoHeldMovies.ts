@@ -1,5 +1,4 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
-import { type Showing } from "@waslaeuftin/types/Showing";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
 import { type Prisma, type KinoHeldCinemasMetadata } from "@prisma/client";
@@ -45,43 +44,48 @@ export async function getKinoHeldMovies(
   cinemaId: number,
   metadata: KinoHeldCinemasMetadata,
 ) {
-  try {
-    const movies = await getKinoHeldMoviesInner(metadata);
+  const movies = await getKinoHeldMoviesInner(metadata);
 
-    return movies.map((movie) => {
-      const showings = movie.shows.data.map((showing) => {
-        const showingAdditionalData = Array.from(
-          new Set([
-            ...movie.movie.genres.map((genre) => genre?.name ?? ""),
-            movie.movie.contentRating?.name
-              ? `FSK-${movie.movie.contentRating?.name ?? ""}`
-              : "",
-            ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
-            showing?.auditorium?.name ?? "",
-          ]),
-        )
-          .filter((item) => item !== "")
-          .join(UIConstants.bullet);
-
-        return {
-          dateTime: moment(showing?.beginning).toDate(),
-          bookingUrl: getKinoHeldBookingUrl(metadata, movie, showing),
-          showingAdditionalData,
-        } satisfies Showing;
-      });
+  const transformedMovies = movies.map((movie) => {
+    const showings = movie.shows.data.map((showing) => {
+      const showingAdditionalData = Array.from(
+        new Set([
+          ...movie.movie.genres.map((genre) => genre?.name ?? ""),
+          movie.movie.contentRating?.name
+            ? `FSK-${movie.movie.contentRating?.name ?? ""}`
+            : "",
+          ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
+          showing?.auditorium?.name ?? "",
+        ]),
+      )
+        .filter((item) => item !== "")
+        .join(UIConstants.bullet);
 
       return {
-        name: movie.name,
-        cinemaId,
-        showings: {
-          createMany: {
-            data: showings,
-          },
-        },
-      } satisfies Prisma.Args<typeof db.movie, "create">["data"];
+        dateTime: moment(showing?.beginning).toDate(),
+        bookingUrl: getKinoHeldBookingUrl(metadata, movie, showing),
+        showingAdditionalData,
+      };
     });
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+
+    return {
+      name: movie.name,
+      cinemaId,
+      showings,
+    };
+  });
+
+  return {
+    movies: transformedMovies.flatMap((movie) => ({
+      name: movie.name,
+      cinemaId,
+    })),
+    showings: transformedMovies.flatMap((movie) =>
+      movie.showings.flatMap((showing) => ({
+        ...showing,
+        cinemaId,
+        movieName: movie.name,
+      })),
+    ) satisfies Prisma.Args<typeof db.showing, "createMany">["data"],
+  };
 }

@@ -29,28 +29,37 @@ export const getCineStarMovies = async (
       {} as URecord<string, CineStarAttribute>,
     );
 
-  const { data: movies } = await xiorInstance.get<CineStarEventType[]>(
+  const { data } = await xiorInstance.get<CineStarEventType[]>(
     `https://www.cinestar.de/api/cinema/${cinestarCinemaId}/show/`,
   );
 
-  return movies.map(
+  const movies = data.map(
     (movie) =>
       ({
         name: movie.title,
         cinemaId,
-        showings: {
-          createMany: {
-            data: movie.showtimes.map((showtime) => ({
-              dateTime: moment(showtime.datetime).subtract(2, "hours").toDate(),
-              bookingUrl: "https://www.cinestar.de/",
-              showingAdditionalData: ArrayHelper.noUndefined(
-                showtime.attributes.map((attribute) => attributes[attribute]),
-              )
-                .map((attribute) => attribute.name)
-                .join(UIConstants.bullet),
-            })),
-          },
-        },
       }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
   );
+
+  const showings = data.map((movie) =>
+    movie.showtimes.map(
+      (showtime) =>
+        ({
+          cinemaId,
+          movieName: movie.title,
+          dateTime: moment(showtime.datetime).subtract(2, "hours").toDate(),
+          bookingUrl: "https://www.cinestar.de/",
+          showingAdditionalData: ArrayHelper.noUndefined(
+            showtime.attributes.map((attribute) => attributes[attribute]),
+          )
+            .map((attribute) => attribute.name)
+            .join(UIConstants.bullet),
+        }) satisfies Prisma.Args<typeof db.showing, "create">["data"],
+    ),
+  );
+
+  return {
+    movies,
+    showings,
+  };
 };

@@ -3,7 +3,6 @@ import {
   type ComtradaCineOrderMoviePerformance,
   type ComtradaCineOrderMovie,
 } from "@waslaeuftin/cinemaProviders/comtrada/cineorder/types/ComtradaCineOrderMovie";
-import { type Showing } from "@waslaeuftin/types/Showing";
 import moment from "moment-timezone";
 import { xior } from "xior";
 import { type ComtradaCineOrderMetadata, type Prisma } from "@prisma/client";
@@ -32,29 +31,35 @@ export const getComtradaCineOrderMovies = async (
     },
   );
 
-  return data.map(
+  const movies = data.map(
     (movie) =>
       ({
         name: movie.title,
-        showings: {
-          createMany: {
-            data: movie.performances.map((performance) => {
-              const showingAdditionalData = [
-                performance.is3D ? "3D" : "2D",
-                performance.auditoriumName,
-                performance.releaseTypeName,
-                performance.soundSystem,
-              ].join(UIConstants.bullet);
-
-              return {
-                dateTime: moment(performance.performanceDateTime).toDate(),
-                bookingUrl: getTicketUrl(metadata, movie, performance),
-                showingAdditionalData,
-              } satisfies Showing;
-            }),
-          },
-        },
         cinemaId,
       }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
   );
+
+  const showings = data.flatMap((movie) =>
+    movie.performances.map((performance) => {
+      const showingAdditionalData = [
+        performance.is3D ? "3D" : "2D",
+        performance.auditoriumName,
+        performance.releaseTypeName,
+        performance.soundSystem,
+      ].join(UIConstants.bullet);
+
+      return {
+        cinemaId,
+        movieName: movie.title,
+        dateTime: moment(performance.performanceDateTime).toDate(),
+        bookingUrl: getTicketUrl(metadata, movie, performance),
+        showingAdditionalData,
+      } satisfies Prisma.Args<typeof db.showing, "create">["data"];
+    }),
+  );
+
+  return {
+    movies,
+    showings,
+  };
 };
