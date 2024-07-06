@@ -45,15 +45,18 @@ export const getComtradaForumCinemasMovies = async (
         let date = new Date();
         switch (true) {
           case dateText.includes("heute"):
-            date = new Date();
+            date = moment().toDate();
             break;
           case dateText.includes("morgen"):
-            date = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+            date = moment().add(1, "day").toDate();
             break;
           default:
             const parsed = dateText.match(/(\d{2}\.\d{2})/);
             if (parsed && typeof parsed[0] === "string") {
-              date = moment(`${parsed[0]}.2024`, "DD.MM.YYYY")
+              date = moment(
+                `${parsed[0]}.${moment().get("year")}`,
+                "DD.MM.YYYY",
+              )
                 .add(1, "days")
                 .toDate();
             } else {
@@ -88,7 +91,7 @@ export const getComtradaForumCinemasMovies = async (
               date.getFullYear(),
               date.getMonth(),
               date.getDate(),
-              hours,
+              hours - 2,
               minutes,
             );
 
