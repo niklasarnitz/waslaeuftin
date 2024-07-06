@@ -1,4 +1,3 @@
-import { isMovie } from "@waslaeuftin/types/guards/isMovie";
 import { isShowing } from "@waslaeuftin/types/guards/isShowing";
 import { type Showing } from "@waslaeuftin/types/Showing";
 import { load } from "cheerio";
@@ -6,6 +5,7 @@ import moment from "moment-timezone";
 import { xior } from "xior";
 import { type Prisma } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
+import { isMovie } from "@waslaeuftin/types/guards/isMovie";
 
 export const getKinoTicketsExpressMovies = async (
   cinemaId: number,
@@ -19,7 +19,7 @@ export const getKinoTicketsExpressMovies = async (
 
   const movieContainers = $("body > main > div > div > div > ul > li");
 
-  return Object.values(
+  const rawData = Object.values(
     movieContainers.map((_, container) => {
       const container$ = load(container);
 
@@ -59,19 +59,33 @@ export const getKinoTicketsExpressMovies = async (
         } satisfies Showing);
       });
 
-      const filteredShowings = showings.filter((showing) =>
-        isShowing(showing),
-      ) as Showing[];
+      const filteredShowings = showings.filter((showing) => isShowing(showing));
 
       return {
         name: container$("div.mb-2").text(),
-        showings: {
-          createMany: {
-            data: filteredShowings,
-          },
-        },
+        showings: filteredShowings,
         cinemaId,
-      } satisfies Prisma.Args<typeof db.movie, "create">["data"];
+      };
     }),
   ).filter((movie) => isMovie(movie));
+
+  const movies = rawData.map((movie) => ({
+    name: movie.name,
+    cinemaId,
+  })) satisfies Prisma.Args<typeof db.movie, "createMany">["data"];
+
+  const showings = rawData.flatMap((movie) =>
+    movie.showings.map((showing) => ({
+      cinemaId,
+      movieName: movie.name,
+      dateTime: moment(showing.dateTime).toDate(),
+      bookingUrl: showing.bookingUrl,
+      showingAdditionalData: showing.showingAdditionalData,
+    })),
+  ) satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
+
+  return {
+    movies,
+    showings,
+  };
 };

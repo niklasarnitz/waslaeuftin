@@ -2,13 +2,13 @@ import { type NextRequest, NextResponse } from "next/server";
 import { api } from "@waslaeuftin/trpc/server";
 
 export async function GET(req: NextRequest) {
-  const moviesCount = await api.movies.updateMovies({
+  const moviesCount = await api.movies.updateCineplexMovies({
     cronSecret: req.headers.get("x-cron-secret") ?? "",
   });
 
   return new NextResponse(
     JSON.stringify({
-      message: `${moviesCount} Movies were successfully updated`,
+      message: `${moviesCount} Movies were successfully updated from Cineplex`,
     }),
   );
 }

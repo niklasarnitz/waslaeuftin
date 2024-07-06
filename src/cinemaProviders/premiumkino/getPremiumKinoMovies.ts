@@ -15,24 +15,29 @@ export const getPremiumKinoMovies = async (
     `https://${subdomain}.premiumkino.de/api/v1/de/movies`,
   );
 
-  return data.map(
-    (movie) =>
-      ({
-        name: movie.name,
+  const movies = data.map((movie) => ({
+    name: movie.name,
+    cinemaId,
+  }));
+
+  const showings = data
+    .map((movie) =>
+      movie.performances.map((performance) => ({
         cinemaId,
-        showings: {
-          createMany: {
-            data: movie.performances.map((performance) => ({
-              dateTime: moment(performance.begin).toDate(),
-              bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${movie.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.crypt_id}`,
-              showingAdditionalData: [
-                performance.auditorium,
-                `FSK-${performance.fsk}`,
-                performance.release_type,
-              ].join(UIConstants.bullet),
-            })),
-          },
-        },
-      }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
-  );
+        movieName: movie.name,
+        dateTime: moment(performance.begin).toDate(),
+        bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${movie.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.crypt_id}`,
+        showingAdditionalData: [
+          performance.auditorium,
+          `FSK-${performance.fsk}`,
+          performance.release_type,
+        ].join(UIConstants.bullet),
+      })),
+    )
+    .flat() satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
+
+  return {
+    movies,
+    showings,
+  };
 };

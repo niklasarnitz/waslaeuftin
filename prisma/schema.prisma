@@ -11,25 +11,26 @@ model Showing {
   id                    Int      @id @default(autoincrement())
   dateTime              DateTime
   bookingUrl            String?
-  movieId               Int
   showingAdditionalData String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @default(now()) @updatedAt
-  movie                 Movie    @relation(fields: [movieId], references: [id])
+  movie                 Movie    @relation(fields: [movieName, cinemaId], references: [name, cinemaId], onDelete: Cascade)
+  movieName             String
+  cinemaId              Int
 
-  @@index([movieId])
+  @@index([movieName, cinemaId])
 }
 
 model Movie {
-  id        Int       @id @default(autoincrement())
   name      String
   cinemaId  Int
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-  cinema    Cinema    @relation(fields: [cinemaId], references: [id])
+  cinema    Cinema    @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
   showings  Showing[]
 
-  @@index([name])
+  @@index([cinemaId, name])
+  @@unique([cinemaId, name])
 }
 
 model ComtradaCineOrderMetadata {
@@ -73,10 +74,10 @@ model Cinema {
   premiumKinoSubdomain         String?
   cineStarCinemaId             Int?
   cineplexCinemaId             String?
-  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id])
+  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
   city                         City                        @relation(fields: [cityId], references: [id])
-  comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id])
-  kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id])
+  comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id], onDelete: Cascade)
+  kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
   movies                       Movie[]
 
   @@index([name])
