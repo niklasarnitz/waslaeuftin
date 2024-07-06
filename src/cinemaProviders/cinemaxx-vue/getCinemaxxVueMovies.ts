@@ -35,7 +35,7 @@ export const getCinemaxxVueMovies = async (
           (performance) =>
             ({
               dateTime: moment(performance.Time).toDate(),
-              bookingUrl: `https://https://www.cinemaxx.de${performance.BookingLink}`,
+              bookingUrl: `https://www.cinemaxx.de${performance.BookingLink}`,
               showingAdditionalData: [
                 performance.VersionTitle,
                 `Kino ${performance.ScreenNumber}`,
