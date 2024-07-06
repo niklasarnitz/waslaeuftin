@@ -52,16 +52,6 @@ model ComtradaCineOrderMetadata {
   Cinema    Cinema[]
 }
 
-model ComtradaForumCinemasMetadata {
-  id Int @id @default(autoincrement())
-
-  centerShorty String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  Cinema    Cinema[]
-}
-
 model KinoHeldCinemasMetadata {
   id Int @id @default(autoincrement())
 
@@ -90,9 +80,6 @@ model Cinema {
 
   comtradaCineOrderMetadata   ComtradaCineOrderMetadata? @relation(fields: [comtradaCineOrderMetadataId], references: [id])
   comtradaCineOrderMetadataId Int?
-
-  forumCinemasMetadata   ComtradaForumCinemasMetadata? @relation(fields: [forumCinemasMetadataId], references: [id])
-  forumCinemasMetadataId Int?
 
   isKinoTicketsExpress Boolean?
 
