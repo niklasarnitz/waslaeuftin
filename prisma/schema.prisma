@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,174 +8,143 @@ datasource db {
 }
 
 model Showing {
-  id         Int      @id @default(autoincrement())
-  dateTime   DateTime
-  bookingUrl String?
-
-  movie   Movie @relation(fields: [movieId], references: [id])
-  movieId Int
-
+  id                    Int      @id @default(autoincrement())
+  dateTime              DateTime
+  bookingUrl            String?
+  movieId               Int
   showingAdditionalData String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @default(now()) @updatedAt
+  movie                 Movie    @relation(fields: [movieId], references: [id])
 
   @@index([movieId])
 }
 
 model Movie {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  showings Showing[]
-
-  cinema   Cinema @relation(fields: [cinemaId], references: [id])
-  cinemaId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id        Int       @id @default(autoincrement())
+  name      String
+  cinemaId  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  cinema    Cinema    @relation(fields: [cinemaId], references: [id])
+  showings  Showing[]
 
   @@index([name])
-  @@index([cinemaId])
 }
 
 model ComtradaCineOrderMetadata {
-  id           Int    @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   backendUrl   String
   centerId     String
   centerShorty String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  Cinema    Cinema[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  Cinema       Cinema[]
 }
 
 model KinoHeldCinemasMetadata {
-  id Int @id @default(autoincrement())
-
+  id           Int      @id @default(autoincrement())
   centerId     String
   centerShorty String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  Cinema    Cinema[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  Cinema       Cinema[]
 }
 
 model CinemaxxVueCinemasMetadata {
-  id Int @id @default(autoincrement())
-
-  cinemaId     Int
-
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  cinemaId  Int
   Cinema    Cinema[]
 }
 
 model Cinema {
-  id   Int    @id @default(autoincrement())
-  name String
-  slug String
-
-  comtradaCineOrderMetadata   ComtradaCineOrderMetadata? @relation(fields: [comtradaCineOrderMetadataId], references: [id])
-  comtradaCineOrderMetadataId Int?
-
-  isKinoTicketsExpress Boolean?
-
-  kinoHeldCinemasMetadata   KinoHeldCinemasMetadata? @relation(fields: [kinoHeldCinemasMetadataId], references: [id])
-  kinoHeldCinemasMetadataId Int?
-
-  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id])
+  id                           Int                         @id @default(autoincrement())
+  name                         String
+  slug                         String
+  comtradaCineOrderMetadataId  Int?
+  isKinoTicketsExpress         Boolean?
+  kinoHeldCinemasMetadataId    Int?
+  cityId                       Int
+  createdAt                    DateTime                    @default(now())
+  updatedAt                    DateTime                    @default(now()) @updatedAt
   cinemaxxVueCinemasMetadataId Int?
-
-  premiumKinoSubdomain String?
-
-  cineStarCinemaId Int?
-
-  cineplexCinemaId String?
-
-  city   City @relation(fields: [cityId], references: [id])
-  cityId Int
-
-  movies Movie[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  premiumKinoSubdomain         String?
+  cineStarCinemaId             Int?
+  cineplexCinemaId             String?
+  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id])
+  city                         City                        @relation(fields: [cityId], references: [id])
+  comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id])
+  kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id])
+  movies                       Movie[]
 
   @@index([name])
 }
 
 model Country {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  slug String @unique
-
-  cities City[]
-
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  cities    City[]
 
   @@index([name])
 }
 
 model City {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  slug String @unique
-
-  country   Country? @relation(fields: [countryId], references: [id])
-  countryId Int?
-
-  cinemas Cinema[]
-
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  countryId Int?
+  cinemas   Cinema[]
+  country   Country? @relation(fields: [countryId], references: [id])
 
   @@index([name])
 }
 
-// Necessary for Next auth
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    password String
-
-    accounts      Account[]
-    sessions      Session[]
+  id       String    @id @default(cuid())
+  name     String?
+  email    String?   @unique
+  password String
+  accounts Account[]
+  sessions Session[]
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
