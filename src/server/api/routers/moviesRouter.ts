@@ -12,6 +12,7 @@ import { getCinemaxxVueMovies } from "@waslaeuftin/cinemaProviders/cinemaxx-vue/
 import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/getPremiumKinoMovies";
 // import { getCineplexMovies } from "@waslaeuftin/cinemaProviders/cineplex/getCinePlexMovies";
 import { getCineStarMovies } from "@waslaeuftin/cinemaProviders/cinestar/getCineStarMovies";
+import { getCineplexMovies } from "@waslaeuftin/cinemaProviders/cineplex/getCinePlexMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateMovies: publicProcedure
@@ -71,13 +72,13 @@ export const moviesRouter = createTRPCRouter({
         },
       });
 
-      // const cineplexCinemas = await ctx.db.cinema.findMany({
-      //   where: {
-      //     cineplexCinemaId: {
-      //       not: null,
-      //     },
-      //   },
-      // });
+      const cineplexCinemas = await ctx.db.cinema.findMany({
+        where: {
+          cineplexCinemaId: {
+            not: null,
+          },
+        },
+      });
 
       const cinestarCinemas = await ctx.db.cinema.findMany({
         where: {
@@ -135,14 +136,14 @@ export const moviesRouter = createTRPCRouter({
         )
       ).flat();
 
-      // const cineplexCinemasMovies = (
-      //   await Promise.all(
-      //     cineplexCinemas.map((cinema) =>
-      //       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
-      //       getCineplexMovies(cinema.id, cinema.cineplexCinemaId!),
-      //     ),
-      //   )
-      // ).flat();
+      const cineplexCinemasMovies =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-argument
+        await getCineplexMovies(
+          cineplexCinemas.map((cinema) => ({
+            cinemaId: cinema.id,
+            cineplexCinemaId: cinema.cineplexCinemaId!,
+          })),
+        );
 
       const cinestarMovies = (
         await Promise.all(
@@ -174,9 +175,9 @@ export const moviesRouter = createTRPCRouter({
         ...premiumKinoCinemasMovies.map((movie) =>
           ctx.db.movie.create({ data: movie }),
         ),
-        // ...cineplexCinemasMovies.map((movie) =>
-        //   ctx.db.movie.create({ data: movie }),
-        // ),
+        ...cineplexCinemasMovies.map((movie) =>
+          ctx.db.movie.create({ data: movie }),
+        ),
         ...cinestarMovies.map((movie) => ctx.db.movie.create({ data: movie })),
       ]);
 

@@ -39,6 +39,7 @@ model Movie {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([name])
+  @@index([cinemaId])
 }
 
 model ComtradaCineOrderMetadata {
