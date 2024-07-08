@@ -28,6 +28,7 @@ if (!foundCity) {
     data: {
       name: cityName,
       slug: cityName.toLowerCase().replace(/\s/g, "_"),
+      country: "DE_DE",
     },
   });
 

@@ -1,3 +1,4 @@
+import { env } from "@waslaeuftin/env";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -25,6 +26,7 @@ export const citiesRouter = createTRPCRouter({
         return await ctx.db.city.findUnique({
           where: {
             slug: input.slug,
+            country: env.COUNTRY,
           },
           include: {
             cinemas: {
@@ -65,7 +67,7 @@ export const citiesRouter = createTRPCRouter({
         });
       } else {
         return await ctx.db.city.findUnique({
-          where: { slug: input.slug },
+          where: { slug: input.slug, country: env.COUNTRY },
           include: {
             cinemas: {
               orderBy: {
@@ -102,6 +104,7 @@ export const citiesRouter = createTRPCRouter({
           name: input?.searchQuery
             ? { contains: input.searchQuery, mode: "insensitive" }
             : undefined,
+          country: env.COUNTRY,
         },
         include: {
           cinemas: {
@@ -138,12 +141,13 @@ export const citiesRouter = createTRPCRouter({
     }),
 
   createCity: protectedProcedure
-    .input(z.string())
+    .input(z.object({ name: z.string(), country: z.enum(["DE_DE", "UK"]) }))
     .mutation(async ({ input, ctx }) => {
       return ctx.db.city.create({
         data: {
-          name: input,
-          slug: input.toLowerCase().replace(/\s/g, "_"),
+          name: input.name,
+          slug: input.name.toLowerCase().replace(/\s/g, "_"),
+          country: input.country,
         },
       });
     }),
@@ -154,6 +158,7 @@ export const citiesRouter = createTRPCRouter({
       return await ctx.db.city.findFirst({
         where: {
           id: input,
+          country: env.COUNTRY,
         },
       });
     }),

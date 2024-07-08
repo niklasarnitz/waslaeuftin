@@ -83,15 +83,9 @@ model Cinema {
   @@index([name])
 }
 
-model Country {
-  id        Int      @id @default(autoincrement())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  cities    City[]
-
-  @@index([name])
+enum Country {
+  DE_DE
+  UK
 }
 
 model City {
@@ -102,7 +96,8 @@ model City {
   updatedAt DateTime @default(now()) @updatedAt
   countryId Int?
   cinemas   Cinema[]
-  country   Country? @relation(fields: [countryId], references: [id])
+
+  country Country
 
   @@index([name])
 }

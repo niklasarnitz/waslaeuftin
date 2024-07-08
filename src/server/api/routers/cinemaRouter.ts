@@ -1,3 +1,4 @@
+import { env } from "@waslaeuftin/env";
 import {
   createTRPCRouter,
   publicProcedure,
@@ -12,6 +13,9 @@ export const cinemaRouter = createTRPCRouter({
       return await ctx.db.cinema.findFirst({
         where: {
           slug: input.cinemaSlug,
+          city: {
+            country: env.COUNTRY,
+          },
         },
         include: {
           movies: {

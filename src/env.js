@@ -16,6 +16,7 @@ export const env = createEnv({
     CRON_SECRET: z.string(),
     GITHUB_TOKEN: z.string().optional(),
     NEXTAUTH_SECRET: z.string(),
+    COUNTRY: z.enum(["DE_DE", "UK"]),
   },
   client: {
   },
@@ -25,6 +26,7 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    COUNTRY: process.env.COUNTRY,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,
