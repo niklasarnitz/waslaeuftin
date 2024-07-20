@@ -7,7 +7,6 @@ import { Suspense } from "react";
 import { getDateString } from "../../../../helpers/getDateString";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { type Metadata } from "next";
-import { useTranslation } from "@waslaeuftin/i18n/i18n";
 import { type Locale } from "@waslaeuftin/i18n/settings";
 
 type MoviesInCityProps = {

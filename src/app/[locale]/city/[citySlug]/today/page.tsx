@@ -3,9 +3,10 @@ import City from "../page";
 import { type Metadata } from "next";
 import { api } from "@waslaeuftin/trpc/server";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
+import { type Locale } from "@waslaeuftin/i18n/settings";
 
 type PageProps = {
-  params: { citySlug?: string; locale: string };
+  params: { citySlug?: string; locale: Locale };
 };
 
 export async function generateMetadata({
