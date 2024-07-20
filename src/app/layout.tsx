@@ -5,7 +5,7 @@ import { Libre_Franklin, Rubik } from "next/font/google";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 import Link from "next/link";
 import moment from "moment-timezone";
-import { isDev } from "@waslaeuftin/helpers/isDev";
+import { Analytics } from "@waslaeuftin/components/Analytics";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -50,13 +50,7 @@ export default function RootLayout({
             </Link>
           </div>
         </footer>
-        {!isDev && (
-          <script
-            defer
-            src="https://umami.app.niklas.services/script.js"
-            data-website-id="7538dcdd-2bff-4310-8b80-73c666f2d90a"
-          />
-        )}
+        <Analytics />
       </body>
     </html>
   );
