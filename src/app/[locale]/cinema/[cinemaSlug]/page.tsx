@@ -9,12 +9,12 @@ import { type Metadata } from "next";
 import { Suspense } from "react";
 
 type CinemaPageProps = {
-  params: { cinemaSlug?: string };
+  params: { cinemaSlug?: string; locale: string };
   searchParams: { date?: string };
 };
 
 export async function generateMetadata({
-  params: { cinemaSlug },
+  params: { cinemaSlug, locale },
   searchParams: { date },
 }: CinemaPageProps): Promise<Metadata> {
   if (!cinemaSlug) {

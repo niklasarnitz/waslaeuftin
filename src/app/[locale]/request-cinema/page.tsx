@@ -12,7 +12,11 @@ import {
 import { api } from "@waslaeuftin/trpc/react";
 import { useRouter } from "next/navigation";
 
-export default function RequestCinemaPage() {
+export default function RequestCinemaPage({
+  params,
+}: {
+  params: { locale: string };
+}) {
   const form = useForm<RequestCinemaFormData>({
     resolver: zodResolver(RequestCinemaSchema),
   });

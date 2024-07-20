@@ -3,8 +3,6 @@ import { headers } from "next/headers";
 export const Analytics = async () => {
   const hostname = headers().get("host");
 
-  console.log(hostname);
-
   if (hostname === "whatsshowing.in") {
     return (
       <script
