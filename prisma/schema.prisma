@@ -86,6 +86,7 @@ model Cinema {
 enum Country {
   DE_DE
   UK
+  IE
 }
 
 model City {
