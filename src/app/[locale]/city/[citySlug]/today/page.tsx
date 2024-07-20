@@ -5,7 +5,7 @@ import { api } from "@waslaeuftin/trpc/server";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 
 type PageProps = {
-  params: { citySlug?: string };
+  params: { citySlug?: string; locale: string };
 };
 
 export async function generateMetadata({

@@ -4,17 +4,17 @@ import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import { Suspense } from "react";
-import { getDateString } from "../../../helpers/getDateString";
+import { getDateString } from "../../../../helpers/getDateString";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { type Metadata } from "next";
 
 type MoviesInCityProps = {
-  params: { citySlug?: string };
+  params: { citySlug?: string; locale: string };
   searchParams: { date?: string };
 };
 
 export async function generateMetadata({
-  params: { citySlug },
+  params: { citySlug, locale },
   searchParams: { date },
 }: MoviesInCityProps): Promise<Metadata> {
   if (!citySlug) {
