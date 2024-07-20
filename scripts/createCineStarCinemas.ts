@@ -24,6 +24,7 @@ await ArrayHelper.asyncForEach(cinemas, async (cinema) => {
       data: {
         name: cinema.city,
         slug: cinema.city.toLowerCase().replace(/\s/g, "_"),
+        country: "DE_DE",
       },
     });
   }
