@@ -92,7 +92,7 @@ export default async function MoviesInCity({
       <section className="py-12 dark:bg-gray-950 md:py-16 lg:py-20">
         <div className="container">
           <Suspense fallback={<LoadingSpinner />}>
-            <MoviesByCinemaList city={city} date={date} />
+            <MoviesByCinemaList city={city} date={date} locale={locale} />
           </Suspense>
         </div>
       </section>

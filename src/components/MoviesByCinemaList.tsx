@@ -10,13 +10,16 @@ import {
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
 import Link from "next/link";
+import { type Locale } from "@waslaeuftin/i18n/settings";
 
 export const MoviesByCinemaList = ({
   city,
   date,
+  locale,
 }: {
   city: Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>;
   date?: string;
+  locale: Locale;
 }) => {
   const [expandedCinemas, setExpandedCinemas] = useQueryState(
     "expandedCinemas",
@@ -42,7 +45,7 @@ export const MoviesByCinemaList = ({
           <AccordionItem key={cinema.slug} value={cinema.slug}>
             <AccordionTrigger>
               <Link
-                href={`/cinema/${cinema.slug}${date ? `?date=${date}` : ""}`}
+                href={`/${locale}/cinema/${cinema.slug}${date ? `?date=${date}` : ""}`}
               >
                 <h1 className="text-3xl font-bold">{cinema.name}</h1>
               </Link>
