@@ -6,7 +6,6 @@ import { cookieName } from "@waslaeuftin/i18n/i18n";
 acceptLanguage.languages(locales as unknown as string[]);
 
 export const config = {
-  // matcher: '/:lng*'
   matcher: [
     "/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js|site.webmanifest).*)",
   ],
@@ -19,6 +18,16 @@ export function middleware(request: NextRequest) {
   if (!locale)
     locale = acceptLanguage.get(request.headers.get("Accept-Language"));
   if (!locale) locale = fallbackLocale;
+
+  // Allow "/" to be served without redirection
+  if (request.nextUrl.pathname === "/") {
+    if (request.nextUrl.hostname === "waslaeuft.in") {
+      return NextResponse.redirect(
+        new URL("https://waslaeuft.in/de", request.url),
+      );
+    }
+    return NextResponse.next();
+  }
 
   // Redirect if lng in path is not supported
   if (

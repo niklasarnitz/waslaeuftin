@@ -28,6 +28,7 @@ export async function generateMetadata({
   const city = await api.cities.getCityMoviesAndShowingsBySlug({
     slug: umlautsFixer(citySlug),
     date: moment().toDate(),
+    locale,
   });
 
   if (!city) {

@@ -1,4 +1,8 @@
 import {
+  CountrySlugs,
+  CountrySlugToCountry,
+} from "@waslaeuftin/helpers/CountryMapper";
+import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
@@ -7,7 +11,13 @@ import { z } from "zod";
 
 export const citiesRouter = createTRPCRouter({
   getCityMoviesAndShowingsBySlug: publicProcedure
-    .input(z.object({ slug: z.string(), date: z.date().optional() }))
+    .input(
+      z.object({
+        slug: z.string(),
+        locale: CountrySlugs,
+        date: z.date().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const { date } = input;
 
@@ -24,6 +34,7 @@ export const citiesRouter = createTRPCRouter({
         return await ctx.db.city.findUnique({
           where: {
             slug: input.slug,
+            country: CountrySlugToCountry[input.locale],
           },
           include: {
             cinemas: {
@@ -64,7 +75,10 @@ export const citiesRouter = createTRPCRouter({
         });
       } else {
         return await ctx.db.city.findUnique({
-          where: { slug: input.slug },
+          where: {
+            slug: input.slug,
+            country: CountrySlugToCountry[input.locale],
+          },
           include: {
             cinemas: {
               orderBy: {
@@ -91,7 +105,9 @@ export const citiesRouter = createTRPCRouter({
     }),
 
   getStartPageCities: publicProcedure
-    .input(z.object({ searchQuery: z.string().optional() }))
+    .input(
+      z.object({ searchQuery: z.string().optional(), locale: CountrySlugs }),
+    )
     .query(({ input, ctx }) => {
       const today = new Date();
 
@@ -101,6 +117,7 @@ export const citiesRouter = createTRPCRouter({
           name: input?.searchQuery
             ? { contains: input.searchQuery, mode: "insensitive" }
             : undefined,
+          country: CountrySlugToCountry[input.locale],
         },
         include: {
           cinemas: {
