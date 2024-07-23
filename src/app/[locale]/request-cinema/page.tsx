@@ -11,14 +11,18 @@ import {
 } from "@waslaeuftin/types/RequestCinemaFormData";
 import { api } from "@waslaeuftin/trpc/react";
 import { useRouter } from "next/navigation";
+import { type Locale } from "@waslaeuftin/i18n/settings";
 
 export default function RequestCinemaPage({
   params,
 }: {
-  params: { locale: string };
+  params: { locale: Locale };
 }) {
   const form = useForm<RequestCinemaFormData>({
     resolver: zodResolver(RequestCinemaSchema),
+    defaultValues: {
+      locale: params.locale,
+    },
   });
 
   const { mutateAsync: createMovieRequest } =

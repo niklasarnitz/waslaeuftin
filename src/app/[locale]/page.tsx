@@ -6,6 +6,9 @@ import { cookies } from "next/headers";
 import { api } from "@waslaeuftin/trpc/server";
 import { CityRow } from "@waslaeuftin/components/CityRow";
 import { type Metadata } from "next";
+import { type Locale } from "@waslaeuftin/i18n/settings";
+import { serverSideTranslations, useTranslation } from "@waslaeuftin/i18n/i18n";
+import { type TFunction } from "i18next";
 
 export const dynamic = "force-dynamic";
 
@@ -13,17 +16,25 @@ type HomeProps = {
   searchParams?: {
     searchQuery?: string;
   };
+  params: {
+    locale: Locale;
+  };
 };
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: HomeProps): Promise<Metadata> {
+  const { t } = await serverSideTranslations(params.locale);
+
   return {
-    title: "waslaeuft․in",
-    description:
-      "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen.",
+    title: t("appName"),
+    description: t("home.cta"),
   };
 }
 
-export default function Home({ searchParams }: HomeProps) {
+export default async function Home({ searchParams, params }: HomeProps) {
+  const { t } = await useTranslation(params.locale);
+
   return (
     <main>
       <section className="bg-gray-100 py-12 dark:bg-gray-950 md:py-16 lg:py-20">
@@ -31,10 +42,10 @@ export default function Home({ searchParams }: HomeProps) {
           <div className="flex flex-col items-center justify-between gap-x-2 gap-y-standard pt-4 lg:flex-row">
             <div className="max-w-2xl flex-1 flex-col justify-start">
               <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-                waslaeuft․in
+                {t("appName")}
               </h1>
               <p className="mt-4 text-gray-500 dark:text-gray-400">
-                Entdecke, welche Filme heute noch in deiner Stadt laufen.
+                {t("home.subtitle")}
               </p>
             </div>
             <SearchTextField />
@@ -51,7 +62,7 @@ export default function Home({ searchParams }: HomeProps) {
                 </div>
               }
             >
-              <Cities searchParams={searchParams} />
+              <Cities searchParams={searchParams} params={params} t={t} />
             </Suspense>
           </div>
         </div>
@@ -60,7 +71,7 @@ export default function Home({ searchParams }: HomeProps) {
   );
 }
 
-const Cities = async ({ searchParams }: HomeProps) => {
+const Cities = async ({ searchParams, t }: HomeProps & { t: TFunction }) => {
   const cities = await api.cities.getStartPageCities({
     searchQuery: searchParams?.searchQuery,
   });
@@ -81,7 +92,7 @@ const Cities = async ({ searchParams }: HomeProps) => {
     <>
       {favoriteCities.length > 0 && (
         <>
-          <h2 className="text-3xl font-semibold">Favoriten</h2>
+          <h2 className="text-3xl font-semibold">{t("favorites")}</h2>
           {favoriteCities.map((city) => (
             <CityRow key={city.slug} city={city} isFavorite={true} />
           ))}
@@ -98,11 +109,10 @@ const Cities = async ({ searchParams }: HomeProps) => {
       {cities.length === 0 && (
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="text-center text-lg">
-            Keine Suchergebnisse.
+            {t("no.search-results")}
             <br />
             <Link href="/request-cinema" className="text-sm underline">
-              Dein Kino oder deine Stadt ist noch nicht aufgeführt? Wünsche es
-              dir über diesen Link!
+              {t("request.cinema.cta")}
             </Link>
           </div>
         </div>
@@ -111,8 +121,7 @@ const Cities = async ({ searchParams }: HomeProps) => {
         <section className="py-3 md:py-4 lg:py-6">
           <div className="container px-4 text-center md:px-6">
             <Link href="/request-cinema" className="text-sm underline">
-              Dein Kino oder deine Stadt ist noch nicht aufgeführt? Wünsche es
-              dir über diesen Link!
+              {t("request.cinema.cta")}
             </Link>
           </div>
         </section>
