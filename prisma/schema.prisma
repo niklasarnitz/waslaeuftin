@@ -78,6 +78,9 @@ model Cinema {
   city                         City                        @relation(fields: [cityId], references: [id])
   comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id], onDelete: Cascade)
   kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
+
+  myVueCinemaId                String?
+
   movies                       Movie[]
 
   @@index([name])

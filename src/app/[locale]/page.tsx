@@ -99,7 +99,12 @@ const Cities = async ({
         <>
           <h2 className="text-3xl font-semibold">{t("favorites")}</h2>
           {favoriteCities.map((city) => (
-            <CityRow key={city.slug} city={city} isFavorite={true} />
+            <CityRow
+              key={city.slug}
+              city={city}
+              isFavorite={true}
+              locale={params.locale}
+            />
           ))}
           <div className="my-4 border-b border-slate-300" />
         </>
@@ -107,7 +112,12 @@ const Cities = async ({
       {nonFavoriteCities.length > 0 && (
         <>
           {nonFavoriteCities.map((city) => (
-            <CityRow key={city.slug} city={city} isFavorite={false} />
+            <CityRow
+              key={city.slug}
+              city={city}
+              isFavorite={false}
+              locale={params.locale}
+            />
           ))}
         </>
       )}

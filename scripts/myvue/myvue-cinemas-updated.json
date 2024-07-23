@@ -1,0 +1,1122 @@
+{
+    "result": [
+        {
+            "alpha": "A",
+            "cinemas": [
+                {
+                    "cinemaId": "10002",
+                    "cinemaName": "Aberdeen",
+                    "fullName": "Aberdeen - The Lighthouse",
+                    "venueCurrency": "GBP",
+                    "itemName": "Aberdeen",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/aberdeen/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Aberdeen"
+                },
+                {
+                    "cinemaId": "10051",
+                    "cinemaName": "Accrington",
+                    "fullName": "Accrington - The Viaduct",
+                    "venueCurrency": "GBP",
+                    "itemName": "Accrington",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/accrington/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Accrington"
+                },
+                {
+                    "cinemaId": "10077",
+                    "cinemaName": "Altrincham",
+                    "fullName": "Altrincham - Denmark Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Altrincham",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/altrincham/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Altrincham"
+                },
+                {
+                    "cinemaId": "10094",
+                    "cinemaName": "Ashbourne",
+                    "fullName": "Ashbourne",
+                    "venueCurrency": "EUR",
+                    "itemName": "Ashbourne",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/ashbourne/whats-on",
+                    "isSecondaryMarket": true,
+                    "country": "Ireland",
+                    "city": "Ashbourne"
+                }
+            ]
+        },
+        {
+            "alpha": "B",
+            "cinemas": [
+                {
+                    "cinemaId": "10078",
+                    "cinemaName": "Barrow",
+                    "fullName": "Barrow - Hollywood Park",
+                    "venueCurrency": "GBP",
+                    "itemName": "Barrow",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/barrow/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Barrow"
+                },
+                {
+                    "cinemaId": "10099",
+                    "cinemaName": "Basildon",
+                    "fullName": "Vue Basildon",
+                    "venueCurrency": "GBP",
+                    "itemName": "Basildon",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/basildon/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Basildon"
+                },
+                {
+                    "cinemaId": "10029",
+                    "cinemaName": "Basingstoke Festival Place",
+                    "fullName": "Basingstoke - Festival Place",
+                    "venueCurrency": "GBP",
+                    "itemName": "Basingstoke Festival Place",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/basingstoke-festival-place/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Basingstoke Festival Place"
+                },
+                {
+                    "cinemaId": "10092",
+                    "cinemaName": "Bedford",
+                    "fullName": "Bedford",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bedford",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bedford/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bedford"
+                },
+                {
+                    "cinemaId": "10087",
+                    "cinemaName": "Bicester",
+                    "fullName": "Bicester - Pioneer Square",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bicester",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bicester/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bicester"
+                },
+                {
+                    "cinemaId": "10055",
+                    "cinemaName": "Birkenhead",
+                    "fullName": "Birkenhead - Europa Boulevard",
+                    "venueCurrency": "GBP",
+                    "itemName": "Birkenhead",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/birkenhead/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Birkenhead"
+                },
+                {
+                    "cinemaId": "10015",
+                    "cinemaName": "Birmingham (Star City)",
+                    "fullName": "Birmingham (Star City)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Birmingham",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/birmingham/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Birmingham (Star City)"
+                },
+                {
+                    "cinemaId": "10007",
+                    "cinemaName": "Blackburn",
+                    "fullName": "Blackburn - Peel Leisure Park",
+                    "venueCurrency": "GBP",
+                    "itemName": "Blackburn",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/blackburn/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Blackburn"
+                },
+                {
+                    "cinemaId": "10040",
+                    "cinemaName": "Bolton",
+                    "fullName": "Bolton - Horwich",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bolton",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bolton/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bolton"
+                },
+                {
+                    "cinemaId": "10018",
+                    "cinemaName": "Bristol Cribbs Causeway",
+                    "fullName": "Bristol - Cribbs Causeway",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bristol Cribbs Causeway",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bristol-cribbs-causeway/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bristol Cribbs Causeway"
+                },
+                {
+                    "cinemaId": "10019",
+                    "cinemaName": "Bristol Longwell Green",
+                    "fullName": "Bristol - Longwell Green",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bristol Longwell Green",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bristol-longwell-green/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bristol Longwell Green"
+                },
+                {
+                    "cinemaId": "10093",
+                    "cinemaName": "Bromley",
+                    "fullName": "Bromley - St Mark's Square",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bromley",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bromley/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bromley"
+                },
+                {
+                    "cinemaId": "10073",
+                    "cinemaName": "Bury The Rock",
+                    "fullName": "Bury The Rock",
+                    "venueCurrency": "GBP",
+                    "itemName": "Bury The Rock",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/bury-the-rock/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Bury The Rock"
+                }
+            ]
+        },
+        {
+            "alpha": "C",
+            "cinemas": [
+                {
+                    "cinemaId": "10068",
+                    "cinemaName": "Camberley",
+                    "fullName": "Camberley - The Atrium",
+                    "venueCurrency": "GBP",
+                    "itemName": "Camberley",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/camberley/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Camberley"
+                },
+                {
+                    "cinemaId": "10016",
+                    "cinemaName": "Cambridge",
+                    "fullName": "Cambridge - Grafton Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cambridge",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cambridge/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cambridge"
+                },
+                {
+                    "cinemaId": "10009",
+                    "cinemaName": "Cardiff",
+                    "fullName": "Cardiff - Millennium Plaza",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cardiff",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cardiff/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cardiff"
+                },
+                {
+                    "cinemaId": "10056",
+                    "cinemaName": "Carlisle",
+                    "fullName": "Carlisle - Botchergate",
+                    "venueCurrency": "GBP",
+                    "itemName": "Carlisle",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/carlisle/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Carlisle"
+                },
+                {
+                    "cinemaId": "10075",
+                    "cinemaName": "Carmarthen",
+                    "fullName": "Carmarthen - St Catherines Walk",
+                    "venueCurrency": "GBP",
+                    "itemName": "Carmarthen",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/carmarthen/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Carmarthen"
+                },
+                {
+                    "cinemaId": "10034",
+                    "cinemaName": "Cheshire Oaks",
+                    "fullName": "Cheshire Oaks - The Coliseum",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cheshire Oaks",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cheshire-oaks/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cheshire Oaks"
+                },
+                {
+                    "cinemaId": "10060",
+                    "cinemaName": "Cleveleys",
+                    "fullName": "Cleveleys - North Pomenade",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cleveleys",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cleveleys/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cleveleys"
+                },
+                {
+                    "cinemaId": "10085",
+                    "cinemaName": "Cramlington",
+                    "fullName": "Cramlington",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cramlington",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cramlington/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cramlington"
+                },
+                {
+                    "cinemaId": "10028",
+                    "cinemaName": "Croydon Grant's",
+                    "fullName": "Croydon - Grant's Entertainment Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Croydon Grants",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/croydon-grants/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Croydon Grant's"
+                },
+                {
+                    "cinemaId": "10025",
+                    "cinemaName": "Croydon Purley Way",
+                    "fullName": "Vue Croydon Purley Way",
+                    "venueCurrency": "GBP",
+                    "itemName": "Croydon Purley Way",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/croydon-purley-way/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Croydon Purley Way"
+                },
+                {
+                    "cinemaId": "10067",
+                    "cinemaName": "Cwmbran",
+                    "fullName": "Cwmbran",
+                    "venueCurrency": "GBP",
+                    "itemName": "Cwmbran",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/cwmbran/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Cwmbran"
+                }
+            ]
+        },
+        {
+            "alpha": "D",
+            "cinemas": [
+                {
+                    "cinemaId": "10044",
+                    "cinemaName": "Dagenham",
+                    "fullName": "Dagenham - Cook Road",
+                    "venueCurrency": "GBP",
+                    "itemName": "Dagenham",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/dagenham/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Dagenham"
+                },
+                {
+                    "cinemaId": "10090",
+                    "cinemaName": "Darlington",
+                    "fullName": "Darlington - Feethams",
+                    "venueCurrency": "GBP",
+                    "itemName": "Darlington",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/darlington/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Darlington"
+                },
+                {
+                    "cinemaId": "10041",
+                    "cinemaName": "Doncaster",
+                    "fullName": "Doncaster - Herten Way",
+                    "venueCurrency": "GBP",
+                    "itemName": "Doncaster",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/doncaster/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Doncaster"
+                },
+                {
+                    "cinemaId": "10011",
+                    "cinemaName": "Dublin (Liffey Valley)",
+                    "fullName": "Dublin - Liffey Valley",
+                    "venueCurrency": "EUR",
+                    "itemName": "Dublin",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/dublin/whats-on",
+                    "isSecondaryMarket": true,
+                    "country": "Ireland",
+                    "city": "Dublin (Liffey Valley)"
+                }
+            ]
+        },
+        {
+            "alpha": "E",
+            "cinemas": [
+                {
+                    "cinemaId": "10069",
+                    "cinemaName": "Eastleigh",
+                    "fullName": "Eastleigh - Swan Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Eastleigh",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/eastleigh/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Eastleigh"
+                },
+                {
+                    "cinemaId": "10010",
+                    "cinemaName": "Edinburgh Ocean Terminal",
+                    "fullName": "Edinburgh - Ocean Terminal",
+                    "venueCurrency": "GBP",
+                    "itemName": "Edinburgh Ocean Terminal",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/edinburgh-ocean-terminal/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Edinburgh Ocean Terminal"
+                },
+                {
+                    "cinemaId": "10038",
+                    "cinemaName": "Edinburgh Omni Centre",
+                    "fullName": "Edinburgh - Omni Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Edinburgh Omni Centre",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/edinburgh-omni-centre/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Edinburgh Omni Centre"
+                },
+                {
+                    "cinemaId": "10096",
+                    "cinemaName": "Eltham",
+                    "fullName": "Eltham - Eltham High Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Eltham",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/eltham/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Eltham"
+                },
+                {
+                    "cinemaId": "10059",
+                    "cinemaName": "Exeter",
+                    "fullName": "Exeter - Summerland Gate",
+                    "venueCurrency": "GBP",
+                    "itemName": "Exeter",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/exeter/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Exeter"
+                }
+            ]
+        },
+        {
+            "alpha": "F",
+            "cinemas": [
+                {
+                    "cinemaId": "10089",
+                    "cinemaName": "Farnborough",
+                    "fullName": "Farnborough - Kingsmead Shopping Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Farnborough",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/farnborough/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Farnborough"
+                }
+            ]
+        },
+        {
+            "alpha": "G",
+            "cinemas": [
+                {
+                    "cinemaId": "10088",
+                    "cinemaName": "Gateshead",
+                    "fullName": "Gateshead - Trinity Square",
+                    "venueCurrency": "GBP",
+                    "itemName": "Gateshead",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/gateshead/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Gateshead"
+                },
+                {
+                    "cinemaId": "10086",
+                    "cinemaName": "Glasgow Fort",
+                    "fullName": "Glasgow - Glasgow Fort",
+                    "venueCurrency": "GBP",
+                    "itemName": "Glasgow Fort",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/glasgow-fort/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Glasgow Fort"
+                },
+                {
+                    "cinemaId": "10097",
+                    "cinemaName": "Glasgow St Enoch",
+                    "fullName": "Glasgow - Glasgow St Enoch",
+                    "venueCurrency": "GBP",
+                    "itemName": "Glasgow St Enoch",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/glasgow-st-enoch/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Glasgow St Enoch"
+                }
+            ]
+        },
+        {
+            "alpha": "H",
+            "cinemas": [
+                {
+                    "cinemaId": "10076",
+                    "cinemaName": "Halifax",
+                    "fullName": "Halifax - Broad Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Halifax",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/halifax/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Halifax"
+                },
+                {
+                    "cinemaId": "10003",
+                    "cinemaName": "Hamilton",
+                    "fullName": "Hamilton - Palace Towers",
+                    "venueCurrency": "GBP",
+                    "itemName": "Hamilton",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/hamilton/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Hamilton"
+                },
+                {
+                    "cinemaId": "10006",
+                    "cinemaName": "Harrow",
+                    "fullName": "Harrow - St Georges",
+                    "venueCurrency": "GBP",
+                    "itemName": "Harrow",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/harrow/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Harrow"
+                },
+                {
+                    "cinemaId": "10035",
+                    "cinemaName": "Hartlepool",
+                    "fullName": "Hartlepool - The Lanyard",
+                    "venueCurrency": "GBP",
+                    "itemName": "Hartlepool",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/hartlepool/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Hartlepool"
+                },
+                {
+                    "cinemaId": "10065",
+                    "cinemaName": "Hull",
+                    "fullName": "Hull - Princes Quary",
+                    "venueCurrency": "GBP",
+                    "itemName": "Hull Princes Quay",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/hull-princes-quay/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Hull"
+                }
+            ]
+        },
+        {
+            "alpha": "I",
+            "cinemas": [
+                {
+                    "cinemaId": "10049",
+                    "cinemaName": "Inverness",
+                    "fullName": "Inverness - Eastfield Way",
+                    "venueCurrency": "GBP",
+                    "itemName": "Inverness",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/inverness/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Inverness"
+                }
+            ]
+        },
+        {
+            "alpha": "L",
+            "cinemas": [
+                {
+                    "cinemaId": "10061",
+                    "cinemaName": "Lancaster",
+                    "fullName": "Lancaster - Church Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Lancaster",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/lancaster/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Lancaster"
+                },
+                {
+                    "cinemaId": "10079",
+                    "cinemaName": "Leamington Spa",
+                    "fullName": "Leamington - Leamington Spa",
+                    "venueCurrency": "GBP",
+                    "itemName": "Leamington Spa",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/leamington-spa/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Leamington Spa"
+                },
+                {
+                    "cinemaId": "10037",
+                    "cinemaName": "Leeds Kirkstall Road",
+                    "fullName": "Leeds - Kirkstall Road",
+                    "venueCurrency": "GBP",
+                    "itemName": "Leeds Kirkstall Road",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/leeds-kirkstall-road/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Leeds Kirkstall Road"
+                },
+                {
+                    "cinemaId": "10012",
+                    "cinemaName": "Leeds The Light",
+                    "fullName": "Leeds - The Light",
+                    "venueCurrency": "GBP",
+                    "itemName": "Leeds The Light",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/leeds-the-light/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Leeds The Light"
+                },
+                {
+                    "cinemaId": "10026",
+                    "cinemaName": "Leicester",
+                    "fullName": "Leicester - Meridian Lesiure Park",
+                    "venueCurrency": "GBP",
+                    "itemName": "Leicester",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/leicester/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Leicester"
+                },
+                {
+                    "cinemaId": "10095",
+                    "cinemaName": "Limerick",
+                    "fullName": "Limerick",
+                    "venueCurrency": "EUR",
+                    "itemName": "Limerick",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/limerick/whats-on",
+                    "isSecondaryMarket": true,
+                    "country": "Ireland",
+                    "city": "Limerick"
+                },
+                {
+                    "cinemaId": "10001",
+                    "cinemaName": "Livingston",
+                    "fullName": "Livingston - Livingston Designer Outlet",
+                    "venueCurrency": "GBP",
+                    "itemName": "Livingston",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/livingston/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Livingston"
+                },
+                {
+                    "cinemaId": "10031",
+                    "cinemaName": "London - Finchley Road (02 Centre)",
+                    "fullName": "London - Finchley Road  (02 Centre)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Finchley Road",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/finchley-road/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Finchley Road (02 Centre)"
+                },
+                {
+                    "cinemaId": "10046",
+                    "cinemaName": "London - Fulham Broadway",
+                    "fullName": "London - Fulham Broadway",
+                    "venueCurrency": "GBP",
+                    "itemName": "Fulham Broadway",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/fulham-broadway/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Fulham Broadway"
+                },
+                {
+                    "cinemaId": "10032",
+                    "cinemaName": "London - Islington (Angel Central)",
+                    "fullName": "London - Islington (Angel Central)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Islington",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/islington/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Islington (Angel Central)"
+                },
+                {
+                    "cinemaId": "10022",
+                    "cinemaName": "London - North Finchley",
+                    "fullName": "London -  North Finchley (Finchley Lido)",
+                    "venueCurrency": "GBP",
+                    "itemName": "North Finchley",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/north-finchley/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - North Finchley"
+                },
+                {
+                    "cinemaId": "10080",
+                    "cinemaName": "London - Piccadilly Circus",
+                    "fullName": "London - Piccadilly Circus",
+                    "venueCurrency": "GBP",
+                    "itemName": "Piccadilly",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/piccadilly/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Piccadilly Circus"
+                },
+                {
+                    "cinemaId": "10033",
+                    "cinemaName": "London - Shepherd's Bush",
+                    "fullName": "London - Shepherd's Bush (not Westfield)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Shepherds Bush",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/shepherds-bush/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Shepherd's Bush"
+                },
+                {
+                    "cinemaId": "10030",
+                    "cinemaName": "London - West End (Leicester Square)",
+                    "fullName": "London - West End (Leicester Square)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Leicester Square",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/leicester-square/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - West End (Leicester Square)"
+                },
+                {
+                    "cinemaId": "10072",
+                    "cinemaName": "London - Westfield (Shepherd's Bush)",
+                    "fullName": "London - Westfield (Shepherd's Bush)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Westfield",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/westfield/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Westfield (Shepherd's Bush)"
+                },
+                {
+                    "cinemaId": "10074",
+                    "cinemaName": "London - Westfield Stratford",
+                    "fullName": "London - Westfield Stratford City",
+                    "venueCurrency": "GBP",
+                    "itemName": "Westfield Stratford City",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/westfield-stratford-city/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "London - Westfield Stratford"
+                }
+            ]
+        },
+        {
+            "alpha": "M",
+            "cinemas": [
+                {
+                    "cinemaId": "10091",
+                    "cinemaName": "Manchester Printworks",
+                    "fullName": "Manchester Printworks",
+                    "venueCurrency": "GBP",
+                    "itemName": "Manchester Printworks",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/manchester-printworks/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Manchester Printworks"
+                },
+                {
+                    "cinemaId": "10057",
+                    "cinemaName": "Manchester Quayside (Media City UK)",
+                    "fullName": "Manchester Quayside (Media City UK)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Manchester",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/manchester/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Manchester Quayside (Media City UK)"
+                },
+                {
+                    "cinemaId": "10066",
+                    "cinemaName": "Merthyr Tydfil",
+                    "fullName": "Merthyr Tydfil - Merthyr Tydfil Leisure Village",
+                    "venueCurrency": "GBP",
+                    "itemName": "Merthyr Tydfil",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/merthyr-tydfil/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Merthyr Tydfil"
+                }
+            ]
+        },
+        {
+            "alpha": "N",
+            "cinemas": [
+                {
+                    "cinemaId": "10070",
+                    "cinemaName": "Newbury",
+                    "fullName": "Newbury - The Kennet Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Newbury",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/newbury/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Newbury"
+                },
+                {
+                    "cinemaId": "10053",
+                    "cinemaName": "Newcastle Under Lyme",
+                    "fullName": "Newcastle Under Lyme - The Square",
+                    "venueCurrency": "GBP",
+                    "itemName": "Newcastle under Lyme",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/newcastle-under-lyme/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Newcastle Under Lyme"
+                },
+                {
+                    "cinemaId": "10005",
+                    "cinemaName": "Northampton",
+                    "fullName": "Northampton - Sol Central",
+                    "venueCurrency": "GBP",
+                    "itemName": "Northampton",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/northampton/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Northampton"
+                },
+                {
+                    "cinemaId": "10014",
+                    "cinemaName": "Norwich",
+                    "fullName": "Norwich - Castle Mall",
+                    "venueCurrency": "GBP",
+                    "itemName": "Norwich",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/norwich/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Norwich"
+                }
+            ]
+        },
+        {
+            "alpha": "O",
+            "cinemas": [
+                {
+                    "cinemaId": "10008",
+                    "cinemaName": "Oxford",
+                    "fullName": "Oxford - Ozone Leisure",
+                    "venueCurrency": "GBP",
+                    "itemName": "Oxford",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/oxford/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Oxford"
+                }
+            ]
+        },
+        {
+            "alpha": "P",
+            "cinemas": [
+                {
+                    "cinemaId": "10027",
+                    "cinemaName": "Plymouth",
+                    "fullName": "Plymouth - Barbican Leisure",
+                    "venueCurrency": "GBP",
+                    "itemName": "Plymouth",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/plymouth/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Plymouth"
+                },
+                {
+                    "cinemaId": "10021",
+                    "cinemaName": "Portsmouth (Gunwharf Quays)",
+                    "fullName": "Portsmouth - Gunwharf Quays",
+                    "venueCurrency": "GBP",
+                    "itemName": "Portsmouth",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/portsmouth/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Portsmouth (Gunwharf Quays)"
+                },
+                {
+                    "cinemaId": "10043",
+                    "cinemaName": "Preston",
+                    "fullName": "Preston - Capitol Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Preston",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/preston/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Preston"
+                }
+            ]
+        },
+        {
+            "alpha": "R",
+            "cinemas": [
+                {
+                    "cinemaId": "10020",
+                    "cinemaName": "Reading",
+                    "fullName": "Reading - The Oracle",
+                    "venueCurrency": "GBP",
+                    "itemName": "Reading",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/reading/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Reading"
+                },
+                {
+                    "cinemaId": "10081",
+                    "cinemaName": "Redditch",
+                    "fullName": "Redditch - Kingfisher Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Redditch",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/redditch/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Redditch"
+                },
+                {
+                    "cinemaId": "10082",
+                    "cinemaName": "Rhyl",
+                    "fullName": "Rhyl - Children's Village",
+                    "venueCurrency": "GBP",
+                    "itemName": "Rhyl",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/rhyl/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Rhyl"
+                },
+                {
+                    "cinemaId": "10013",
+                    "cinemaName": "Romford",
+                    "fullName": "Romford - The Brewery",
+                    "venueCurrency": "GBP",
+                    "itemName": "Romford",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/romford/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Romford"
+                }
+            ]
+        },
+        {
+            "alpha": "S",
+            "cinemas": [
+                {
+                    "cinemaId": "10050",
+                    "cinemaName": "Scunthorpe",
+                    "fullName": "Scunthorpe - Fentron Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Scunthorpe",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/scunthorpe/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Scunthorpe"
+                },
+                {
+                    "cinemaId": "10042",
+                    "cinemaName": "Sheffield (Meadowhall)",
+                    "fullName": "Sheffield - Meadowhall Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Sheffield",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/sheffield/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Sheffield (Meadowhall)"
+                },
+                {
+                    "cinemaId": "10004",
+                    "cinemaName": "Southport",
+                    "fullName": "Southport (Ocean Plaza)",
+                    "venueCurrency": "GBP",
+                    "itemName": "Southport",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/southport/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Southport"
+                },
+                {
+                    "cinemaId": "10024",
+                    "cinemaName": "Staines",
+                    "fullName": "Staines - Two Rivers Shopping Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Staines",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/staines/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Staines"
+                },
+                {
+                    "cinemaId": "10064",
+                    "cinemaName": "Stirling",
+                    "fullName": "Stirling - Forthside",
+                    "venueCurrency": "GBP",
+                    "itemName": "Stirling",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/stirling/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Stirling"
+                },
+                {
+                    "cinemaId": "10083",
+                    "cinemaName": "Stroud",
+                    "fullName": "Stroud",
+                    "venueCurrency": "GBP",
+                    "itemName": "Stroud",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/stroud/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Stroud"
+                },
+                {
+                    "cinemaId": "10058",
+                    "cinemaName": "Swansea",
+                    "fullName": "Swansea - York Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Swansea",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/swansea/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Swansea"
+                },
+                {
+                    "cinemaId": "10098",
+                    "cinemaName": "Swindon",
+                    "fullName": "Swindon - Greenbridge",
+                    "venueCurrency": "GBP",
+                    "itemName": "Swindon",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/swindon/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Swindon"
+                }
+            ]
+        },
+        {
+            "alpha": "T",
+            "cinemas": [
+                {
+                    "cinemaId": "10063",
+                    "cinemaName": "Thanet (Westwood Cross)",
+                    "fullName": "Thanet - Westwood Cross",
+                    "venueCurrency": "GBP",
+                    "itemName": "Thanet",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/thanet/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Thanet (Westwood Cross)"
+                },
+                {
+                    "cinemaId": "10045",
+                    "cinemaName": "Thurrock (Lakeside)",
+                    "fullName": "Thurrock - Lakeside Shopping Centre",
+                    "venueCurrency": "GBP",
+                    "itemName": "Thurrock",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/thurrock/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Thurrock (Lakeside)"
+                },
+                {
+                    "cinemaId": "10084",
+                    "cinemaName": "Torbay",
+                    "fullName": "Torbay - Paignton",
+                    "venueCurrency": "GBP",
+                    "itemName": "Torbay",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/torbay/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Torbay"
+                }
+            ]
+        },
+        {
+            "alpha": "W",
+            "cinemas": [
+                {
+                    "cinemaId": "10023",
+                    "cinemaName": "Watford",
+                    "fullName": "Watford - Garston",
+                    "venueCurrency": "GBP",
+                    "itemName": "Watford",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/watford/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Watford"
+                },
+                {
+                    "cinemaId": "10071",
+                    "cinemaName": "Wood Green",
+                    "fullName": "London - Wood Green",
+                    "venueCurrency": "GBP",
+                    "itemName": "Wood Green",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/wood-green/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Wood Green"
+                },
+                {
+                    "cinemaId": "10017",
+                    "cinemaName": "Worcester",
+                    "fullName": "Worcester - Friar Street",
+                    "venueCurrency": "GBP",
+                    "itemName": "Worcester",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/worcester/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "Worcester"
+                }
+            ]
+        },
+        {
+            "alpha": "Y",
+            "cinemas": [
+                {
+                    "cinemaId": "10048",
+                    "cinemaName": "York",
+                    "fullName": "York - Clifton Moor",
+                    "venueCurrency": "GBP",
+                    "itemName": "York",
+                    "whatsOnUrl": "https://www.myvue.com/cinema/york/whats-on",
+                    "isSecondaryMarket": false,
+                    "country": "United Kingdom",
+                    "city": "York"
+                }
+            ]
+        }
+    ]
+}
