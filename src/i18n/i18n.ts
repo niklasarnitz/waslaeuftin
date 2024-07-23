@@ -5,7 +5,7 @@ import { initReactI18next } from "react-i18next/initReactI18next";
 
 export const cookieName = "i18next";
 
-const initI18next = async (locale: (typeof locales)[number]) => {
+export const initI18next = async (locale: (typeof locales)[number]) => {
   const i18nInstance = createInstance();
 
   let lng = fallbackLocale;
@@ -33,6 +33,14 @@ const initI18next = async (locale: (typeof locales)[number]) => {
     });
   return i18nInstance;
 };
+
+export async function serverSideTranslations(locale: (typeof locales)[number]) {
+  const i18nextInstance = await initI18next(locale);
+  return {
+    t: i18nextInstance.getFixedT(locale),
+    i18n: i18nextInstance,
+  };
+}
 
 export async function useTranslation(locale: (typeof locales)[number]) {
   const i18nextInstance = await initI18next(locale);

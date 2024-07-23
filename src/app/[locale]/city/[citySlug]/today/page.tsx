@@ -4,18 +4,24 @@ import { type Metadata } from "next";
 import { api } from "@waslaeuftin/trpc/server";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { type Locale } from "@waslaeuftin/i18n/settings";
+import { serverSideTranslations } from "@waslaeuftin/i18n/i18n";
 
 type PageProps = {
   params: { citySlug?: string; locale: Locale };
 };
 
 export async function generateMetadata({
-  params: { citySlug },
+  params: { citySlug, locale },
 }: PageProps): Promise<Metadata> {
+  const { t } = await serverSideTranslations(locale);
+
+  const notFoundTitle = `${t("appName")} - ${t("error")} 404 - ${t("not.found")}`;
+  const notFoundDescription = t("page.not.found");
+
   if (!citySlug) {
     return {
-      title: "wasäuft․in - 404",
-      description: "Diese Seite konnte nicht gefunden werden.",
+      title: notFoundTitle,
+      description: notFoundDescription,
     };
   }
 
@@ -26,14 +32,18 @@ export async function generateMetadata({
 
   if (!city) {
     return {
-      title: "wasäuft․in - 404",
-      description: "Diese Seite konnte nicht gefunden werden.",
+      title: notFoundTitle,
+      description: notFoundDescription,
     };
   }
 
   return {
-    title: `Welche Filme laufen in ${city.name}`,
-    description: `Finde jetzt heraus, welche Filme heute in ${city.name} laufen.`,
+    title: t("what.movies.are.showing.in.x", {
+      city: city.name,
+    }),
+    description: t("find.out.which.movies.are.showing.in.x.cta", {
+      city: city.name,
+    }),
   };
 }
 
