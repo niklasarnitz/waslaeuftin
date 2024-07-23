@@ -34,6 +34,7 @@ export async function generateMetadata({
   const cinema = await api.cinemas.getCinemaBySlug({
     cinemaSlug: umlautsFixer(cinemaSlug),
     date: date ? moment(date).toDate() : undefined,
+    locale,
   });
 
   if (!cinema) {
@@ -66,6 +67,7 @@ export default async function CinemaPage({
   const cinema = await api.cinemas.getCinemaBySlug({
     cinemaSlug: umlautsFixer(cinemaSlug),
     date: date ? moment(date).toDate() : undefined,
+    locale,
   });
 
   if (!cinema) {

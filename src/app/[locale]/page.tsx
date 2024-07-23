@@ -71,9 +71,14 @@ export default async function Home({ searchParams, params }: HomeProps) {
   );
 }
 
-const Cities = async ({ searchParams, t }: HomeProps & { t: TFunction }) => {
+const Cities = async ({
+  searchParams,
+  t,
+  params,
+}: HomeProps & { t: TFunction }) => {
   const cities = await api.cities.getStartPageCities({
     searchQuery: searchParams?.searchQuery,
+    locale: params.locale,
   });
 
   const favoriteCitiesSlugsSet = new Set(
