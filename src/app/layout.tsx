@@ -20,9 +20,9 @@ const libre_franklin = Libre_Franklin({
 });
 
 export const metadata = {
-  title: "wasäuft․in",
+  title: "wasläuft․in",
   description:
-    "wasäuft․in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
+    "wasläuft․in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
 };
 
 moment().tz("Europe/Berlin");
