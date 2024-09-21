@@ -15,7 +15,7 @@
     "typecheck:watch": "bun run typecheck --watch"
   },
   "dependencies": {
-    "@ainias42/js-helper": "https://github.com/Ainias/js-helper",
+    "@ainias42/js-helper": "^0.8.15",
     "@apollo/client": "^3.9.9",
     "@auth/prisma-adapter": "^1.5.1",
     "@hookform/resolvers": "^3.3.4",
