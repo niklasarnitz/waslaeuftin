@@ -49,7 +49,7 @@ export const getKinoTicketsExpressMovies = async (
 
         showings.push({
           dateTime: moment(
-            `2024-${dateText[1]}-${dateText[0]}-${timeText[0]}:${timeText[1]}`,
+            `2025-${dateText[1]}-${dateText[0]}-${timeText[0]}:${timeText[1]}`,
             "YYYY-MM-DD-HH:mm",
           ).toDate(),
           bookingUrl: dateContainerInner$("div.flex-wrap>a").attr("href")
