@@ -1,6 +1,5 @@
 import { FavoriteButton } from "@waslaeuftin/components/FavoriteButton";
 import { Card, CardContent } from "@waslaeuftin/components/ui/card";
-import { type Locale } from "@waslaeuftin/i18n/settings";
 import { type api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import Link from "next/link";
@@ -8,17 +7,15 @@ import Link from "next/link";
 export const CityRow = ({
   city,
   isFavorite,
-  locale,
 }: {
   city: Awaited<ReturnType<typeof api.cities.getStartPageCities>>[number];
   isFavorite: boolean;
-  locale: Locale;
 }) => {
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-2">
-          <Link href={`/${locale}/city/${city.slug}/today`}>
+          <Link href={`/city/${city.slug}/today`}>
             <h2 className="text-2xl font-bold">
               Was läuft heute in {city.name}
             </h2>
@@ -26,7 +23,7 @@ export const CityRow = ({
           <FavoriteButton city={city} isFavorite={isFavorite} />
         </div>
         <Link
-          href={`/${locale}/city/${city.slug}/today`}
+          href={`/city/${city.slug}/today`}
           className="pl-3 text-primary hover:underline hover:underline-offset-2"
         >
           Alle
@@ -39,7 +36,7 @@ export const CityRow = ({
               <CardContent className="flex flex-col gap-4 p-6">
                 <Link
                   className="flex items-center justify-between hover:underline hover:underline-offset-2"
-                  href={`/${locale}/cinema/${cinema.slug}`}
+                  href={`/cinema/${cinema.slug}`}
                 >
                   <h3 className="flex-1 text-lg font-semibold">
                     {cinema.name}
@@ -56,7 +53,9 @@ export const CityRow = ({
                       </div>
                       <div className="max-w-1/2 flex min-w-0 flex-row flex-wrap justify-end break-words">
                         {movie.showings.map((showing, index) => (
-                          <>
+                          <div
+                            key={`${cinema.slug}-${movie.name}-${showing.dateTime.toISOString()}`}
+                          >
                             <Link
                               className="text-primary hover:underline hover:underline-offset-2"
                               href={showing.bookingUrl ?? "#"}
@@ -67,7 +66,7 @@ export const CityRow = ({
                             {index !== movie.showings.length - 1 && (
                               <span className="mx-2">|</span>
                             )}
-                          </>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -76,7 +75,7 @@ export const CityRow = ({
                     <div className="flex items-center justify-between">
                       <Link
                         className="text-gray-500 hover:underline hover:underline-offset-2 dark:text-gray-400"
-                        href={`/${locale}/cinema/${cinema.slug}?date=${moment().format("YYYY-MM-DD")}`}
+                        href={`/cinema/${cinema.slug}?date=${moment().format("YYYY-MM-DD")}`}
                       >
                         + {cinema.movies.length - 4} Filme
                       </Link>
@@ -97,7 +96,7 @@ export const CityRow = ({
         <div className="flex items-center justify-end">
           <Link
             className="text-primary hover:underline hover:underline-offset-2"
-            href={`/${locale}/city/${city.slug}/today`}
+            href={`/city/${city.slug}/today`}
           >
             + {city.cinemas.length - 3}{" "}
             {city.cinemas.length - 3 === 1 ? "Kino" : "Kinos"}

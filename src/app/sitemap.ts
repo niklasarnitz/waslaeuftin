@@ -2,7 +2,6 @@ import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
 import { db } from "@waslaeuftin/server/db";
 import { type MetadataRoute } from "next";
 
-// TODO: Rework this for multiple domains and multiple locales
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cities = await db.city.findMany();
   const cinemas = await db.cinema.findMany();

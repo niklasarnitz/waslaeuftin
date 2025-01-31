@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 export const Analytics = async () => {
-  const hostname = headers().get("host");
+  const hostname = (await headers()).get("host");
 
   if (hostname === "whatsshowing.in") {
     return (

@@ -5,19 +5,15 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-export default function DidCreateMovieRequest({
-  params,
-}: {
-  params: { locale: string };
-}) {
+export default function DidCreateMovieRequest() {
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <RequestSuccess params={params} />
+      <RequestSuccess />
     </Suspense>
   );
 }
 
-const RequestSuccess = ({ params }: { params: { locale: string } }) => {
+const RequestSuccess = () => {
   const searchParams = useSearchParams();
 
   return (
