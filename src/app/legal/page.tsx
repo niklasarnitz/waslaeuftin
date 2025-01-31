@@ -1,4 +1,4 @@
-export default function Legal({ params }: { params: { locale: string } }) {
+export default function Legal() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 p-4">
       <div className="text-3xl font-bold">Rechtliche Informationen</div>

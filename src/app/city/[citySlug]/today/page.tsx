@@ -3,20 +3,17 @@ import City from "../page";
 import { type Metadata } from "next";
 import { api } from "@waslaeuftin/trpc/server";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
-import { type Locale } from "@waslaeuftin/i18n/settings";
-import { serverSideTranslations } from "@waslaeuftin/i18n/i18n";
+import { Constants } from "@waslaeuftin/globals/Constants";
 
 type PageProps = {
-  params: { citySlug?: string; locale: Locale };
+  params: { citySlug?: string };
 };
 
 export async function generateMetadata({
-  params: { citySlug, locale },
+  params: { citySlug },
 }: PageProps): Promise<Metadata> {
-  const { t } = await serverSideTranslations(locale);
-
-  const notFoundTitle = `${t("appName")} - ${t("error")} 404 - ${t("not.found")}`;
-  const notFoundDescription = t("page.not.found");
+  const notFoundTitle = `${Constants.appName} - ${Constants.error} 404 - ${Constants["not-found"].page}`;
+  const notFoundDescription = Constants["not-found"].page;
 
   if (!citySlug) {
     return {
@@ -28,7 +25,6 @@ export async function generateMetadata({
   const city = await api.cities.getCityMoviesAndShowingsBySlug({
     slug: umlautsFixer(citySlug),
     date: moment().toDate(),
-    locale,
   });
 
   if (!city) {
@@ -39,12 +35,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: t("what.movies.are.showing.in.x", {
-      city: city.name,
-    }),
-    description: t("find.out.which.movies.are.showing.in.x.cta", {
-      city: city.name,
-    }),
+    title: Constants["what-movies-are-showing-in"].city(city.name),
+    description: Constants["find-out-which-movies-are-showing-in"].city(
+      city.name,
+    ),
   };
 }
 

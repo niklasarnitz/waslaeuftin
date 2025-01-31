@@ -1,8 +1,4 @@
 import {
-  CountrySlugs,
-  CountrySlugToCountry,
-} from "@waslaeuftin/helpers/CountryMapper";
-import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
@@ -14,7 +10,6 @@ export const cinemaRouter = createTRPCRouter({
     .input(
       z.object({
         cinemaSlug: z.string(),
-        locale: CountrySlugs,
         date: z.date().optional(),
       }),
     )
@@ -22,7 +17,6 @@ export const cinemaRouter = createTRPCRouter({
       return await ctx.db.cinema.findFirst({
         where: {
           slug: input.cinemaSlug,
-          city: { country: CountrySlugToCountry[input.locale] },
         },
         include: {
           movies: {

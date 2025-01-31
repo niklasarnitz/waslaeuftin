@@ -8,17 +8,17 @@ export async function toggleFavorite(citySlug?: string) {
     return;
   }
 
-  const isFavorite = cookies()
+  const isFavorite = (await cookies())
     .get("waslaeuftin-favorite-cities")
     ?.value.split(",")
     .includes(citySlug);
 
   const cookieExpiration = moment().add(2, "years");
 
-  cookies().set({
+  (await cookies()).set({
     name: "waslaeuftin-favorite-cities",
     value:
-      cookies()
+      (await cookies())
         .get("waslaeuftin-favorite-cities")
         ?.value.split(",")
         .filter((item) => item !== citySlug)

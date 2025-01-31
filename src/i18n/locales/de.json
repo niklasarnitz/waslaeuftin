@@ -66,16 +66,16 @@
     }
   },
   "home": {
-    "cta": "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen.",
+    "cta": "",
     "subtitle": "Entdecke, welche Filme heute noch in deiner Stadt laufen."
   },
   "favorites": "Favoriten",
   "no": {
-    "search-results": "Keine Suchergebnisse"
+    "search-results": ""
   },
   "request": {
     "cinema": {
-      "cta": "Dein Kino oder deine Stadt ist noch nicht aufgeführt? Wünsche es dir über diesen Link!"
+      "cta": ""
     }
   }
 }
