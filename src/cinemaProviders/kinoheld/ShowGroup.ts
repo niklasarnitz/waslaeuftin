@@ -4,6 +4,11 @@ export interface ShowGroup {
   movie: {
     title: string;
   };
+  cinema: {
+    city: {
+      urlSlug: string;
+    };
+  };
   shows: {
     data: ({
       id: string;
