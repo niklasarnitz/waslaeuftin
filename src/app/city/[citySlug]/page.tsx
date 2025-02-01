@@ -10,14 +10,17 @@ import { type Metadata } from "next";
 import { Constants } from "@waslaeuftin/globals/Constants";
 
 type MoviesInCityProps = {
-  params: { citySlug?: string };
-  searchParams: { date?: string };
+  params: Promise<{ citySlug?: string }>;
+  searchParams: Promise<{ date?: string }>;
 };
 
 export async function generateMetadata({
-  params: { citySlug },
-  searchParams: { date },
+  params,
+  searchParams,
 }: MoviesInCityProps): Promise<Metadata> {
+  const { citySlug } = await params;
+  const { date } = await searchParams;
+
   const notFoundTitle = `${Constants.appName} - ${Constants.error} 404 - ${Constants["not-found"].page}`;
 
   if (!citySlug) {
@@ -48,9 +51,12 @@ export async function generateMetadata({
 }
 
 export default async function MoviesInCity({
-  params: { citySlug },
-  searchParams: { date },
+  params,
+  searchParams,
 }: MoviesInCityProps) {
+  const { citySlug } = await params;
+  const { date } = await searchParams;
+
   if (!citySlug) {
     return <div>{Constants["not-found"].page}</div>;
   }

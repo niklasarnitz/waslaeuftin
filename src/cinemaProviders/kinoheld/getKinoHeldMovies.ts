@@ -3,7 +3,7 @@ import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
 import { type Prisma, type KinoHeldCinemasMetadata } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
-import { FETCH_SHOW_GROUPS_FOR_CINEMA } from "./KinoHeldQuery";
+import { FETCH_SHOW_GROUPS_FOR_CINEMA } from "./kinoHeld_FETCH_SHOW_GROUPS_FOR_CINEMA";
 import { type ShowGroup } from "./ShowGroup";
 import { type FetchShowGroupsResponse } from "./FetchShowGroupsResponse";
 import { getKinoHeldBookingUrl } from "./getKinoHeldBookingUrl";
@@ -17,7 +17,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-async function getKinoHeldMoviesInner(
+export async function getKinoHeldMoviesInner(
   metadata: KinoHeldCinemasMetadata,
   page = 1,
   allData: ShowGroup[] = [],
@@ -28,7 +28,6 @@ async function getKinoHeldMoviesInner(
       cinemaId: metadata.centerId,
       first: 100,
       page,
-      playing: {},
     },
   });
 
@@ -50,10 +49,6 @@ export async function getKinoHeldMovies(
     const showings = movie.shows.data.map((showing) => {
       const showingAdditionalData = Array.from(
         new Set([
-          ...movie.movie.genres.map((genre) => genre?.name ?? ""),
-          movie.movie.contentRating?.name
-            ? `FSK-${movie.movie.contentRating?.name ?? ""}`
-            : "",
           ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
           showing?.auditorium?.name ?? "",
         ]),
@@ -69,7 +64,7 @@ export async function getKinoHeldMovies(
     });
 
     return {
-      name: movie.name,
+      name: movie.movie.title,
       cinemaId,
       showings,
     };
