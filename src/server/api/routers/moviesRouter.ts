@@ -12,7 +12,6 @@ import { getCineStarMovies } from "@waslaeuftin/cinemaProviders/cinestar/getCine
 import { getKinoTicketsExpressMovies } from "@waslaeuftin/cinemaProviders/kino-ticket-express/getKinoTicketExpressMovies";
 import { getKinoHeldMovies } from "@waslaeuftin/cinemaProviders/kinoheld/getKinoHeldMovies";
 import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/getPremiumKinoMovies";
-import { getMyVueMovies } from "@waslaeuftin/cinemaProviders/myvue/getMyVueMovies";
 
 export const moviesRouter = createTRPCRouter({
   updateComtradaCineOrderMovies: publicProcedure
@@ -354,56 +353,6 @@ export const moviesRouter = createTRPCRouter({
         where: {
           cinemaId: {
             in: premiumKinoCinemas.map((cinema) => cinema.id),
-          },
-        },
-      });
-    }),
-  updateMyVueCinemasMovies: publicProcedure
-    .input(z.object({ cronSecret: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid secret",
-        });
-      }
-
-      const myVueCinemas = await ctx.db.cinema.findMany({
-        where: { myVueCinemaId: { not: null } },
-      });
-
-      const myVueData = await Promise.all(
-        myVueCinemas.map((cinema) =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          getMyVueMovies(cinema.id, cinema.myVueCinemaId ?? ""),
-        ),
-      );
-
-      const movies = myVueData.flatMap((data) => data.movies);
-
-      const showings = myVueData.flatMap((data) => data.showings.flat());
-
-      await ctx.db.$transaction([
-        ctx.db.movie.deleteMany({
-          where: {
-            cinemaId: {
-              in: myVueCinemas.map((cinema) => cinema.id),
-            },
-          },
-        }),
-        ctx.db.movie.createMany({
-          data: movies,
-          skipDuplicates: true,
-        }),
-        ctx.db.showing.createMany({
-          data: showings,
-        }),
-      ]);
-
-      return await ctx.db.movie.count({
-        where: {
-          cinemaId: {
-            in: myVueCinemas.map((cinema) => cinema.id),
           },
         },
       });

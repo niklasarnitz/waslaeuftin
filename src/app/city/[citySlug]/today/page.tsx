@@ -6,12 +6,14 @@ import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { Constants } from "@waslaeuftin/globals/Constants";
 
 type PageProps = {
-  params: { citySlug?: string };
+  params: Promise<{ citySlug?: string }>;
 };
 
 export async function generateMetadata({
-  params: { citySlug },
+  params,
 }: PageProps): Promise<Metadata> {
+  const { citySlug } = await params;
+
   const notFoundTitle = `${Constants.appName} - ${Constants.error} 404 - ${Constants["not-found"].page}`;
   const notFoundDescription = Constants["not-found"].page;
 
@@ -43,10 +45,9 @@ export async function generateMetadata({
 }
 
 export default function Page({ params }: PageProps) {
-  return (
-    <City
-      params={params}
-      searchParams={{ date: moment().format("YYYY-MM-DD") }}
-    />
-  );
+  const searchParams = new Promise<{ date: string }>((resolve) => {
+    resolve({ date: moment().format("YYYY-MM-DD") });
+  });
+
+  return <City params={params} searchParams={searchParams} />;
 }

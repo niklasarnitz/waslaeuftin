@@ -10,14 +10,17 @@ import { type Metadata } from "next";
 import { Suspense } from "react";
 
 type CinemaPageProps = {
-  params: { cinemaSlug?: string };
-  searchParams: { date?: string };
+  params: Promise<{ cinemaSlug?: string }>;
+  searchParams: Promise<{ date?: string }>;
 };
 
 export async function generateMetadata({
-  params: { cinemaSlug },
-  searchParams: { date },
+  params,
+  searchParams,
 }: CinemaPageProps): Promise<Metadata> {
+  const { cinemaSlug } = await params;
+  const { date } = await searchParams;
+
   const notFoundTitle = `${Constants.appName} - ${Constants.error} 404 - ${Constants["not-found"].page}`;
 
   if (!cinemaSlug) {
@@ -50,9 +53,12 @@ export async function generateMetadata({
 }
 
 export default async function CinemaPage({
-  params: { cinemaSlug },
-  searchParams: { date },
+  params,
+  searchParams,
 }: CinemaPageProps) {
+  const { cinemaSlug } = await params;
+  const { date } = await searchParams;
+
   if (!cinemaSlug) {
     return <div>{Constants["not-found"].page}</div>;
   }

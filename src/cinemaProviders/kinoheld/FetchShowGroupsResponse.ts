@@ -9,7 +9,6 @@ export interface FetchShowGroupsResponse {
       hasMorePages: boolean;
       lastItem: number | null;
       perPage: number;
-      __typename: string;
     };
     data: ShowGroup[];
   };
