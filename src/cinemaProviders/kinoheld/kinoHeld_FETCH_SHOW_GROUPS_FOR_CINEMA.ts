@@ -17,6 +17,9 @@ export const FETCH_SHOW_GROUPS_FOR_CINEMA = gql`
         name
         cinema {
           cid
+          city {
+            urlSlug
+          }
         }
         movie {
           title
