@@ -64,10 +64,20 @@ const Cities = async () => {
   // TODO: Fallback if no favorites
   return (
     <>
-      <h2 className="text-3xl font-semibold">Favoriten</h2>
       {cities.map((city) => (
         <CityRow key={city.slug} city={city} isFavorite={true} />
       ))}
+
+      {cities.length === 0 && (
+        <div className="flex flex-col space-y-4">
+          <h2 className="text-xl font-bold">
+            Du hast noch keine favorisierte Stadt.
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Wähle eine Stadt aus, um sie zu deinen Favoriten hinzuzufügen.
+          </p>
+        </div>
+      )}
       <div className="my-4 border-b border-slate-300" />
       <section className="py-3 md:py-4 lg:py-6">
         <div className="px-4 text-center md:px-6">

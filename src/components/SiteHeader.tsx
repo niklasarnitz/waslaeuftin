@@ -70,6 +70,18 @@ const CinemaHeader = async ({
   );
 };
 
+const FavoritesHeader = () => {
+  return (
+    <div className="flex flex-1 flex-row items-center justify-between gap-x-2">
+      <h1 className="flex-1 text-xl font-bold tracking-tight">
+        {Constants["whats-showing-in-date"].favorites(
+          getDateString(new Date().toISOString()),
+        )}
+      </h1>
+    </div>
+  );
+};
+
 export const SiteHeader = async ({
   date,
   pathname,
@@ -85,6 +97,8 @@ export const SiteHeader = async ({
 
   if (pathname.includes("cinema"))
     return <CinemaHeader pathname={pathname} date={date} />;
+
+  if (pathname === "/") return <FavoritesHeader />;
 
   return <></>;
 };

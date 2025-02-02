@@ -4,6 +4,7 @@ import { toggleFavorite } from "@waslaeuftin/helpers/serverActions";
 import { theme } from "@waslaeuftin/helpers/theme";
 import { type api } from "@waslaeuftin/trpc/server";
 import { StarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export const FavoriteButton = ({
   city,
@@ -14,6 +15,8 @@ export const FavoriteButton = ({
 }) => {
   const toggleFavoriteWithCitySlug = toggleFavorite.bind(null, city?.slug);
 
+  const router = useRouter();
+
   if (!city) {
     return null;
   }
@@ -22,6 +25,7 @@ export const FavoriteButton = ({
     <button
       onClick={async () => {
         await toggleFavoriteWithCitySlug();
+        router.refresh();
       }}
       className="flex items-center justify-center"
       aria-label={isFavorite ? "Favoriten entfernen" : "Favoriten hinzufügen"}
