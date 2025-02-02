@@ -1,8 +1,8 @@
 import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
 import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
-import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
+import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
 import { Constants } from "@waslaeuftin/globals/Constants";
-import { getDateString } from "@waslaeuftin/helpers/getDateString";
+import { getPathName } from "@waslaeuftin/helpers/getPathName";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
@@ -11,7 +11,7 @@ import { Suspense } from "react";
 
 type CinemaPageProps = {
   params: Promise<{ cinemaSlug?: string }>;
-  searchParams: Promise<{ date?: string }>;
+  searchParams: Promise<{ date?: string; searchQuery?: string }>;
 };
 
 export async function generateMetadata({
@@ -57,7 +57,8 @@ export default async function CinemaPage({
   searchParams,
 }: CinemaPageProps) {
   const { cinemaSlug } = await params;
-  const { date } = await searchParams;
+  const decodedParams = await searchParams;
+  const pathname = await getPathName();
 
   if (!cinemaSlug) {
     return <div>{Constants["not-found"].page}</div>;
@@ -65,7 +66,7 @@ export default async function CinemaPage({
 
   const cinema = await api.cinemas.getCinemaBySlug({
     cinemaSlug: umlautsFixer(cinemaSlug),
-    date: date ? moment(date).toDate() : undefined,
+    date: decodedParams.date ? moment(decodedParams.date).toDate() : undefined,
   });
 
   if (!cinema) {
@@ -73,27 +74,14 @@ export default async function CinemaPage({
   }
 
   return (
-    <main>
-      <section className="bg-gray-100 py-12 dark:bg-gray-950 md:py-16 lg:py-20">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-start justify-between gap-x-2 gap-y-4 pt-4 md:flex-row">
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-              {Constants["whats-showing-in-date"].cinema(
-                cinema?.name ?? "",
-                getDateString(date),
-              )}
-            </h1>
-            <UrlDatePicker cinemaSlug={cinemaSlug} />
-          </div>
-        </div>
-      </section>
-      <section className="py-12 dark:bg-gray-950 md:py-16 lg:py-20">
-        <div className="container">
+    <SiteWrapper pathname={pathname} searchParams={decodedParams}>
+      <main>
+        <section className="px-8 py-4">
           <Suspense fallback={<LoadingSpinner />}>
             <CinemaMovies cinema={cinema} />
           </Suspense>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </SiteWrapper>
   );
 }

@@ -15,7 +15,7 @@ export const CityRow = ({
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-2">
-          <Link href={`/city/${city.slug}/today`}>
+          <Link href={`/city/${city.slug}`}>
             <h2 className="text-2xl font-bold">
               Was läuft heute in {city.name}
             </h2>
@@ -23,7 +23,7 @@ export const CityRow = ({
           <FavoriteButton city={city} isFavorite={isFavorite} />
         </div>
         <Link
-          href={`/city/${city.slug}/today`}
+          href={`/city/${city.slug}`}
           className="pl-3 text-primary hover:underline hover:underline-offset-2"
         >
           Alle
@@ -96,7 +96,7 @@ export const CityRow = ({
         <div className="flex items-center justify-end">
           <Link
             className="text-primary hover:underline hover:underline-offset-2"
-            href={`/city/${city.slug}/today`}
+            href={`/city/${city.slug}`}
           >
             + {city.cinemas.length - 3}{" "}
             {city.cinemas.length - 3 === 1 ? "Kino" : "Kinos"}

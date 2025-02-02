@@ -23,7 +23,7 @@ export const SearchTextField = () => {
           await setSearchQuery(event.target.value);
           router.push("");
         }}
-        placeholder="Suche"
+        placeholder="Stadt suchen"
         className="flex-1"
       />
     </div>
