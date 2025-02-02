@@ -9,7 +9,7 @@ export const FavoriteButton = ({
   city,
   isFavorite,
 }: {
-  city: Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>;
+  city: Awaited<ReturnType<typeof api.cities.getCityBySlug>>;
   isFavorite: boolean;
 }) => {
   const toggleFavoriteWithCitySlug = toggleFavorite.bind(null, city?.slug);

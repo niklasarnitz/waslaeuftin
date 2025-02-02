@@ -2,7 +2,6 @@
 
 import { DatePicker } from "@waslaeuftin/components/ui/date-picker";
 import moment from "moment-timezone";
-import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useCallback } from "react";
@@ -13,7 +12,6 @@ export const UrlDatePicker = (
   const citySlug = "citySlug" in props ? props.citySlug : undefined;
   const cinemaSlug = "cinemaSlug" in props ? props.cinemaSlug : undefined;
 
-  const pathName = usePathname();
   const router = useRouter();
 
   const [date, setDate] = useQueryState("date", {
@@ -26,25 +24,19 @@ export const UrlDatePicker = (
     async (date: Date | undefined) => {
       if (moment(date).isSame(moment(), "day")) {
         router.push(
-          `/${citySlug ? "city" : "cinema"}/${citySlug ?? cinemaSlug}/${citySlug ? "today" : ""}`,
-        );
-      } else if (pathName.includes("/today")) {
-        router.push(
-          `/${citySlug ? "city" : "cinema"}/${citySlug ? citySlug : cinemaSlug}?date=${moment(date).format("YYYY-MM-DD")}`,
+          `/${citySlug ? "city" : "cinema"}/${citySlug ?? cinemaSlug}/`,
         );
       } else {
         await setDate(date ?? null);
       }
     },
-    [cinemaSlug, citySlug, pathName, router, setDate],
+    [cinemaSlug, citySlug, router, setDate],
   );
 
   return (
     <>
       <DatePicker
-        value={
-          date ?? pathName.endsWith("/today") ? moment().toDate() : undefined
-        }
+        value={date ?? moment().toDate()}
         onChange={updateDate}
         isAllowedToSelectPast={false}
       />

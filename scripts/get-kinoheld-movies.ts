@@ -6,13 +6,15 @@ const kinoHeldCinemas = await db.cinema.findMany({
   include: { kinoHeldCinemasMetadata: true },
 });
 
-const { movies, showings } = await getKinoHeldMovies(611, {
-  centerId: "MzA3ODQ4",
-  centerShorty: "cinemotion-berlin-hohenschoenhausen",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  id: 1,
-});
+const kinoHeldData = await Promise.all(
+  kinoHeldCinemas.map((cinema) =>
+    getKinoHeldMovies(cinema.id, cinema.kinoHeldCinemasMetadata!),
+  ),
+);
+
+const movies = kinoHeldData.flatMap((data) => data.movies);
+
+const showings = kinoHeldData.flatMap((data) => data.showings.flat());
 
 await db.$transaction([
   db.movie.deleteMany({
@@ -27,3 +29,13 @@ await db.$transaction([
     data: showings,
   }),
 ]);
+
+const foo = await db.movie.count({
+  where: {
+    cinemaId: {
+      in: kinoHeldCinemas.map((cinema) => cinema.id),
+    },
+  },
+});
+
+console.log(foo);

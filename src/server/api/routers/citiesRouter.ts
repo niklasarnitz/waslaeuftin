@@ -6,6 +6,40 @@ import { endOfDay, startOfDay } from "date-fns";
 import { z } from "zod";
 
 export const citiesRouter = createTRPCRouter({
+  getCityBySlug: publicProcedure
+    .input(z.string())
+    .query(async ({ input, ctx }) => {
+      return await ctx.db.city.findUnique({
+        where: {
+          slug: input,
+        },
+      });
+    }),
+  getCities: publicProcedure
+    .input(z.string().optional())
+    .query(async ({ ctx, input }) => {
+      return ctx.db.city.findMany({
+        include: {
+          cinemas: {
+            select: {
+              name: true,
+              slug: true,
+              id: true,
+            },
+            orderBy: { name: "asc" },
+          },
+          _count: {
+            select: {
+              cinemas: true,
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+        where: {
+          name: input ? { contains: input, mode: "insensitive" } : undefined,
+        },
+      });
+    }),
   getCityMoviesAndShowingsBySlug: publicProcedure
     .input(
       z.object({
@@ -98,16 +132,16 @@ export const citiesRouter = createTRPCRouter({
     }),
 
   getStartPageCities: publicProcedure
-    .input(z.object({ searchQuery: z.string().optional() }))
+    .input(z.array(z.string()))
     .query(({ input, ctx }) => {
       const today = new Date();
 
       return ctx.db.city.findMany({
         orderBy: { name: "asc" },
         where: {
-          name: input?.searchQuery
-            ? { contains: input.searchQuery, mode: "insensitive" }
-            : undefined,
+          slug: {
+            in: input,
+          },
         },
         include: {
           cinemas: {

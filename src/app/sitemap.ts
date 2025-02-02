@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     ...cities.map((city) => ({
-      url: `https://waslaeuft.in/city/${encodeUmlauts(city.slug)}/today`,
+      url: `https://waslaeuft.in/city/${encodeUmlauts(city.slug)}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,

@@ -3,6 +3,7 @@
 import moment from "moment-timezone";
 import { cookies } from "next/headers";
 
+// TODO: Fix this!
 export async function toggleFavorite(citySlug?: string) {
   if (!citySlug) {
     return;
