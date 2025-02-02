@@ -20,7 +20,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
               return (
                 <Link
                   href={showing.bookingUrl ?? "#"}
-                  key={`${cinema.slug}-${showing.dateTime.toISOString()}-${movie.name}`}
+                  key={`${cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}-${movie.name}`}
                 >
                   <Card className="dark:border-background-muted hover:border-gray-300 dark:hover:border-foreground/60">
                     <CardHeader>
