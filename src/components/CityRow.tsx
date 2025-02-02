@@ -16,9 +16,7 @@ export const CityRow = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-2">
           <Link href={`/city/${city.slug}`}>
-            <h2 className="text-2xl font-bold">
-              Was läuft heute in {city.name}
-            </h2>
+            <h2 className="text-2xl font-bold">{city.name}</h2>
           </Link>
           <FavoriteButton city={city} isFavorite={isFavorite} />
         </div>

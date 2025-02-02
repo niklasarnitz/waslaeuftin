@@ -48,87 +48,51 @@ export const citiesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const { date } = input;
+      let { date } = input;
 
-      if (date) {
-        const selectedDate = startOfDay(date).toISOString();
-
-        const showingsFilter = {
-          dateTime: {
-            gte: selectedDate,
-            lte: endOfDay(date).toISOString(),
-          },
-        };
-
-        return await ctx.db.city.findUnique({
-          where: {
-            slug: input.slug,
-          },
-          include: {
-            cinemas: {
-              orderBy: {
-                name: "asc",
-              },
-              include: {
-                movies: {
-                  orderBy: {
-                    name: "asc",
-                  },
-                  include: {
-                    showings: {
-                      orderBy: {
-                        dateTime: "asc",
-                      },
-                      where: showingsFilter,
-                    },
-                  },
-                  where: {
-                    showings: {
-                      some: showingsFilter,
-                    },
-                  },
-                },
-              },
-              where: {
-                movies: {
-                  some: {
-                    showings: {
-                      some: showingsFilter,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      } else {
-        return await ctx.db.city.findUnique({
-          where: {
-            slug: input.slug,
-          },
-          include: {
-            cinemas: {
-              orderBy: {
-                name: "asc",
-              },
-              include: {
-                movies: {
-                  orderBy: {
-                    name: "asc",
-                  },
-                  include: {
-                    showings: {
-                      orderBy: {
-                        dateTime: "asc",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
+      if (!date) {
+        date = new Date();
       }
+
+      const showingsFilter = {
+        dateTime: {
+          gte: startOfDay(date).toISOString(),
+          lte: endOfDay(date).toISOString(),
+        },
+      };
+
+      return await ctx.db.city.findUnique({
+        where: {
+          slug: input.slug,
+        },
+        include: {
+          cinemas: {
+            orderBy: {
+              name: "asc",
+            },
+            include: {
+              movies: {
+                orderBy: {
+                  name: "asc",
+                },
+                include: {
+                  showings: {
+                    orderBy: {
+                      dateTime: "asc",
+                    },
+                    where: showingsFilter,
+                  },
+                },
+                where: {
+                  showings: {
+                    some: showingsFilter,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
     }),
 
   getStartPageCities: publicProcedure
