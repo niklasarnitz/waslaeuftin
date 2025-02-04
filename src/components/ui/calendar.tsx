@@ -1,42 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
-import {
-  DayPicker,
-  type DayProps,
-  Day,
-  type RowProps,
-  Row,
-} from "react-day-picker";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
 import { cn } from "@waslaeuftin/lib/utils";
 import { buttonVariants } from "@waslaeuftin/components/ui/button";
-import { differenceInCalendarDays } from "date-fns";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
-  isAllowedToSelectPast?: boolean;
-};
-
-function isPastDate(date: Date) {
-  return differenceInCalendarDays(date, new Date()) < 0;
-}
-
-function OnlyFutureDay(props: DayProps) {
-  if (isPastDate(props.date)) return <></>;
-  return <Day {...props} />;
-}
-
-function OnlyFutureRows(props: RowProps) {
-  if (props.dates.every((date) => isPastDate(date))) return <></>;
-  return <Row {...props} />;
-}
+export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  isAllowedToSelectPast = true,
   ...props
 }: CalendarProps) {
   return (
@@ -76,7 +52,7 @@ function Calendar({
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
         day_outside:
-          "day-outside text-muted-foreground opacity-50  aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
@@ -84,10 +60,12 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeftIcon className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRightIcon className="h-4 w-4" />,
-        Day: isAllowedToSelectPast ? undefined : OnlyFutureDay,
-        Row: isAllowedToSelectPast ? undefined : OnlyFutureRows,
+        IconLeft: ({ className, ...props }) => (
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+        ),
+        IconRight: ({ className, ...props }) => (
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+        ),
       }}
       {...props}
     />
