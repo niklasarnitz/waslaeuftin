@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { api } from "@waslaeuftin/trpc/server";
+import { tryCatchRetry } from "@waslaeuftin/helpers/tryCatchRetry";
 
-export async function GET(req: NextRequest) {
+const getMovies = async (req: NextRequest) => {
   const moviesCount = await api.movies.updateCinemaxxVueMovies({
     cronSecret: req.headers.get("x-cron-secret") ?? "",
   });
@@ -11,4 +12,8 @@ export async function GET(req: NextRequest) {
       message: `${moviesCount} Movies were successfully updated from CinemaxX Vue`,
     }),
   );
+};
+
+export async function GET(req: NextRequest) {
+  return tryCatchRetry(() => getMovies(req), 3, 1000);
 }
