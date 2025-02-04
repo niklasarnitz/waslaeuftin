@@ -33,13 +33,5 @@ export const UrlDatePicker = (
     [cinemaSlug, citySlug, router, setDate],
   );
 
-  return (
-    <>
-      <DatePicker
-        value={date ?? moment().toDate()}
-        onChange={updateDate}
-        isAllowedToSelectPast={false}
-      />
-    </>
-  );
+  return <DatePicker value={date ?? moment().toDate()} onChange={updateDate} />;
 };
