@@ -2,7 +2,8 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import { endOfDay, startOfDay } from "date-fns";
+import { endOfDay } from "date-fns";
+import moment from "moment-timezone";
 import { z } from "zod";
 
 export const citiesRouter = createTRPCRouter({
@@ -50,14 +51,16 @@ export const citiesRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       let { date } = input;
 
-      if (!date) {
-        date = new Date();
-      }
+      date ??= new Date();
+
+      // Use moment to ensure correct day boundaries in UTC
+      const start = moment(date).startOf("day").toDate();
+      const end = moment(date).endOf("day").toDate();
 
       const showingsFilter = {
         dateTime: {
-          gte: startOfDay(date).toISOString(),
-          lte: endOfDay(date).toISOString(),
+          gte: start,
+          lte: end,
         },
       };
 
