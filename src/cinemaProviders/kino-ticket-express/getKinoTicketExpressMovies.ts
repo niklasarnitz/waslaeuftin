@@ -17,7 +17,7 @@ export const getKinoTicketsExpressMovies = async (
   );
   const $ = load(data);
 
-  const movieContainers = $("body > main > div > div > div > ul > li");
+  const movieContainers = $("main ul > li");
 
   const rawData = Object.values(
     movieContainers.map((_, container) => {
@@ -32,31 +32,35 @@ export const getKinoTicketsExpressMovies = async (
           ? additionalShowingsDataRaw
           : undefined;
 
-      const dateContainer = container$("li > ul > li");
-
+      // Find all showings for this movie (date and time with booking link)
       const showings: unknown[] = [];
-
-      dateContainer.map((_, dateContainerInner) => {
-        const dateContainerInner$ = load(dateContainerInner);
-        const dateText = dateContainerInner$("div.w-14>div:last-child")
-          .text()
-          .split(".")
-          .filter((t) => !t.includes("\n"));
-        const timeText = dateContainerInner$("div.flex-wrap>a")
-          .text()
-          .split(":")
-          .map((t) => t.replaceAll("\n", "").trim());
-
-        showings.push({
-          dateTime: moment(
-            `2025-${dateText[1]}-${dateText[0]}-${timeText[0]}:${timeText[1]}`,
+      container$("a[href^='/" + slug + "/booking/']").each((_, a) => {
+        const text = container$(a).text();
+        // Example: 'Heute 16.06.[21:00]' or 'So 22.06.[15:00]'
+        const regex = /([A-Za-z]+)?\s?(\d{2}\.\d{2}\.)?\[(\d{2}:\d{2})]/;
+        const match = regex.exec(text);
+        let dateStr = null;
+        let timeStr = null;
+        if (match) {
+          dateStr = match[2] ? match[2].replace(/\.$/, "") : null; // e.g. '16.06'
+          timeStr = match[3]; // e.g. '21:00'
+        }
+        // Fallback: try to get date from previous text node or parent
+        // For now, assume current year
+        let dateTime: Date;
+        if (dateStr && timeStr) {
+          const [day, month] = dateStr.split(".");
+          dateTime = moment(
+            `${new Date().getFullYear()}-${month}-${day}-${timeStr}`,
             "YYYY-MM-DD-HH:mm",
-          ).toDate(),
-          bookingUrl: dateContainerInner$("div.flex-wrap>a").attr("href")
-            ? `https://kinotickets.express${dateContainerInner$("div.flex-wrap>a").attr("href")}`
-            : undefined,
-          showingAdditionalData,
-        } satisfies Showing);
+          ).toDate();
+
+          showings.push({
+            dateTime,
+            bookingUrl: `https://kinotickets.express${container$(a).attr("href")}`,
+            showingAdditionalData,
+          } satisfies Showing);
+        }
       });
 
       const filteredShowings = showings.filter((showing) => isShowing(showing));
