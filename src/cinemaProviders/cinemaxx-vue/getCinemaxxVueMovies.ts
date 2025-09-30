@@ -12,7 +12,7 @@ export const getCinemaxxVueMovies = async (
   const xiorInstance = xior.create();
 
   const { data } = await xiorInstance.get<CinemaxxVueWhatsOnResponse>(
-    `https://www.cinemaxx.de/api/sitecore/WhatsOn/WhatsOnV2ByTopfilms?cinemaId=${cinemaxxCinemaId}&Datum=${moment().format("DD-MM-YYYY")},${moment().add(7, "days").format("DD-MM-YYYY")}&type=jetzt-im-kino`,
+    `https://www.cinemaxx.de/api/sitecore/WhatsOn/WhatsOnV2Alphabetic?cinemaId=${cinemaxxCinemaId}`,
   );
 
   const movies = data.WhatsOnAlphabeticFilms.map(
@@ -24,14 +24,9 @@ export const getCinemaxxVueMovies = async (
   );
 
   const showings = data.WhatsOnAlphabeticFilms.flatMap((movie) =>
-    movie.WhatsOnAlphabeticCinemas.map((day) =>
-      day.WhatsOnAlphabeticCinemas.map(
-        (cinema) => cinema.WhatsOnAlphabeticShedules,
-      ),
-    )
-      .flat()
-      .map((schedule) =>
-        schedule.map(
+    movie.WhatsOnAlphabeticCinemas.flatMap((day) =>
+      day.WhatsOnAlphabeticCinemas.flatMap((cinema) =>
+        cinema.WhatsOnAlphabeticShedules.map(
           (performance) =>
             ({
               dateTime: moment(performance.Time).toDate(),
@@ -45,8 +40,8 @@ export const getCinemaxxVueMovies = async (
               movieName: movie.Title,
             }) satisfies Prisma.Args<typeof db.showing, "create">["data"],
         ),
-      )
-      .flat(),
+      ),
+    ),
   );
 
   return {

@@ -1,5 +1,5 @@
 type CinemaxxVuePromoLabel = {
-  names: string[];
+  names: { name: string; class: string; short_name: string }[];
   position: string;
   isborder: boolean;
 };
@@ -51,8 +51,11 @@ type CinemaxxVueFilm = {
   SortField: string;
   SortFieldCommingSoon: string;
   Poster: string;
+  PosterAlt: string;
+  PosterAria: string;
   TrailerUrl: string | null;
   TrailerType: string | null;
+  TrailerAria: string;
   FilmParams: CinemaxxVueFilmParam[];
   tags: CinemaxxVueTag[];
   FilmUrl: string;
