@@ -20,18 +20,34 @@ export const getPremiumKinoMovies = async (
     cinemaId,
   }));
 
+  // Create a map of movieId -> movieName to properly link performances to movies
+  const movieIdToNameMap = new Map<string, string>();
+  data.movies.forEach((movie) => {
+    movieIdToNameMap.set(movie.id, movie.name);
+  });
+
   const showings = data.performances
-    .map((performance) => ({
-      cinemaId,
-      movieName: performance.title,
-      dateTime: moment(performance.begin).toDate(),
-      bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${performance.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.id}`,
-      showingAdditionalData: [
-        // Need to get auditorium info from auditoriumId lookup
-        `Rating: ${performance.rating}`,
-        performance.language,
-      ].join(UIConstants.bullet),
-    }))
+    .map((performance) => {
+      const movieName = movieIdToNameMap.get(performance.movieId);
+      if (!movieName) {
+        console.warn(
+          `No movie found for performance with movieId: ${performance.movieId}`,
+        );
+        return null;
+      }
+
+      return {
+        cinemaId,
+        movieName,
+        dateTime: moment(performance.begin).toDate(),
+        bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${performance.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.id}`,
+        showingAdditionalData: [
+          `Rating: ${performance.rating}`,
+          performance.language,
+        ].join(UIConstants.bullet),
+      };
+    })
+    .filter((showing) => showing !== null)
     .flat() satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
 
   return {
