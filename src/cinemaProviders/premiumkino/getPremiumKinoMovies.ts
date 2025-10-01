@@ -1,4 +1,4 @@
-import { type PremiumKinoMovie } from "@waslaeuftin/cinemaProviders/premiumkino/PremiumKinoTypes";
+import { type PremiumKinoApiResponse } from "@waslaeuftin/cinemaProviders/premiumkino/PremiumKinoTypes";
 import { xior } from "xior";
 import moment from "moment-timezone";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
@@ -11,29 +11,27 @@ export const getPremiumKinoMovies = async (
 ) => {
   const xiorInstance = xior.create();
 
-  const { data } = await xiorInstance.get<PremiumKinoMovie[]>(
-    `https://${subdomain}.premiumkino.de/api/v1/de/movies`,
+  const { data } = await xiorInstance.get<PremiumKinoApiResponse>(
+    `https://backend.premiumkino.de/v1/de/${subdomain}/program`,
   );
 
-  const movies = data.map((movie) => ({
+  const movies = data.movies.map((movie) => ({
     name: movie.name,
     cinemaId,
   }));
 
-  const showings = data
-    .map((movie) =>
-      movie.performances.map((performance) => ({
-        cinemaId,
-        movieName: movie.name,
-        dateTime: moment(performance.begin).toDate(),
-        bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${movie.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.crypt_id}`,
-        showingAdditionalData: [
-          performance.auditorium,
-          `FSK-${performance.fsk}`,
-          performance.release_type,
-        ].join(UIConstants.bullet),
-      })),
-    )
+  const showings = data.performances
+    .map((performance) => ({
+      cinemaId,
+      movieName: performance.title,
+      dateTime: moment(performance.begin).toDate(),
+      bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${performance.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.id}`,
+      showingAdditionalData: [
+        // Need to get auditorium info from auditoriumId lookup
+        `Rating: ${performance.rating}`,
+        performance.language,
+      ].join(UIConstants.bullet),
+    }))
     .flat() satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
 
   return {

@@ -17,7 +17,10 @@ export const moviesRouter = createTRPCRouter({
   updateComtradaCineOrderMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",
@@ -133,7 +136,10 @@ export const moviesRouter = createTRPCRouter({
   updateCineplexMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",
@@ -176,7 +182,10 @@ export const moviesRouter = createTRPCRouter({
   updateCineStarMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",
@@ -222,7 +231,10 @@ export const moviesRouter = createTRPCRouter({
   updateKinoTicketsExpressMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",
@@ -270,7 +282,10 @@ export const moviesRouter = createTRPCRouter({
   updateKinoHeldMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",
@@ -317,7 +332,10 @@ export const moviesRouter = createTRPCRouter({
   updatePremiumKinoMovies: publicProcedure
     .input(z.object({ cronSecret: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (env.CRON_SECRET !== input.cronSecret) {
+      if (
+        env.NODE_ENV !== "development" &&
+        env.CRON_SECRET !== input.cronSecret
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Invalid secret",

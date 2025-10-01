@@ -1,87 +1,88 @@
-type PremiumKinoDescriptor = Record<string, string>;
-
+// New API types for the updated PremiumKino API
 type PremiumKinoPoster = {
-  small: string;
-  medium: string;
-  large: string;
-  original: string;
+  src: string;
   title: string;
-};
-
-type PremiumKinoPerformance = {
-  crypt_id: string;
-  movie_crypt_id: string;
-  oid: string;
-  begin: string;
-  end: string;
-  slug: string;
-  auditorium: string;
-  title: string;
-  release_type: string;
-  release_type_image: string;
-  release_type_crypt_id: string;
-  auditorium_crypt_id: string;
-  fsk: number;
-  time: number;
-  bookable: boolean;
-  reservable: boolean;
-  is_assigned_seating: boolean;
-  is_open_air_cinema: boolean;
-  filters: string[];
-  filter_type: string;
-  restriction: {
-    max_seats_per_selection: number;
-  };
-  max_booking_time: number;
-  needs_registration: boolean;
-  workload: number;
-  language: string;
-  lang_icon: string;
-  seating_area_usage_1: number;
-  seating_area_usage_2: number;
-  is_cancelable: boolean;
+  alternate?: string;
+  width: number;
+  height: number;
 };
 
 type PremiumKinoScene = {
-  small: string;
-  medium: string;
-  large: string;
-  original: string;
+  src: string;
   title: string;
-  copyright: string;
+  alternate?: string;
+  copyright?: string;
+  width: number;
+  height: number;
 };
 
-type PremiumKinoTrailer = {
-  crypt_id: string;
+type PremiumKinoTranslation = {
+  id: string;
+  language: string;
+  flag: string;
   name: string;
-  url1080: string;
-  url720: string;
-  url640: string;
-  url480: string;
-  duration: number;
-  rating: number;
-  publish: string;
+  descShort: string;
+  descLong: string;
 };
 
 export type PremiumKinoMovie = {
-  crypt_id: string;
+  id: string;
   name: string;
   slug: string;
-  description_short: string;
-  description_long: string;
-  descriptors: PremiumKinoDescriptor;
   poster: PremiumKinoPoster;
-  genre: string;
-  country: string;
-  filters: string[];
-  minutes: number;
-  fsk: number;
-  year: number;
-  date_insert: string;
-  date_start: string;
-  date_sort: string;
-  performances: PremiumKinoPerformance[];
   scenes: PremiumKinoScene[];
-  trailers: PremiumKinoTrailer[];
-  show: boolean;
+  genreIds: string[];
+  descriptorIds: string[];
+  filterIds: string[];
+  minutes: number;
+  rating: number;
+  year: number;
+  country: string;
+  dateCreated: string;
+  dateModified: string;
+  dateStart: string;
+  dateSort: string;
+  translations: PremiumKinoTranslation[];
+  performanceIds: string[];
+};
+
+export type PremiumKinoPerformance = {
+  id: string;
+  movieId: string;
+  seatingPlanId: string;
+  auditoriumId: string;
+  releaseTypeId: string;
+  cinemaDay: string;
+  begin: string;
+  end: string;
+  title: string;
+  slug: string;
+  rating: number;
+  bookable: boolean;
+  reservable: boolean;
+  isAssignedSeating: boolean;
+  seatCountLow?: boolean;
+  workload: number;
+  language: string;
+  langIcon: string;
+  seatingAreaUsage1: number;
+  seatingAreaUsage2: number;
+  filterIds: string[];
+};
+
+export type PremiumKinoApiResponse = {
+  movies: PremiumKinoMovie[];
+  performances: PremiumKinoPerformance[];
+  auditoriumUsed: unknown[];
+  dates: unknown[];
+  events: unknown[];
+  movieFilterGroups: unknown[];
+  navigation: unknown;
+  notices: unknown[];
+  teaserBanners: unknown[];
+  teaserMovieExtras: unknown[];
+  teaserPerformanceGroups: unknown[];
+  teaserSeatingPlans: unknown[];
+  teaserShopCartConsents: unknown[];
+  teaserSliders: unknown[];
 };
