@@ -4,7 +4,7 @@ import {
   type ComtradaCineOrderMovie,
 } from "@waslaeuftin/cinemaProviders/comtrada/cineorder/types/ComtradaCineOrderMovie";
 import moment from "moment-timezone";
-import { xior } from "xior";
+import xior from "xior";
 import { type ComtradaCineOrderMetadata, type Prisma } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
 
@@ -30,6 +30,10 @@ export const getComtradaCineOrderMovies = async (
       },
     },
   );
+
+  if (!data) {
+    throw new Error("Could not load Comtrada movies");
+  }
 
   const movies = data.map(
     (movie) =>

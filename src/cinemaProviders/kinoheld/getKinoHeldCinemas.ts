@@ -26,6 +26,10 @@ async function getKinoHeldCinemasInner(
     },
   });
 
+  if (!data) {
+    throw new Error("Could not load KinoHeld cinemas");
+  }
+
   console.log(
     "Currently at page " + page + " of " + data.cinemas.paginatorInfo.lastPage,
   );

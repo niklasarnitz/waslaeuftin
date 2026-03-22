@@ -1,4 +1,7 @@
-import resolveConfig from "tailwindcss/resolveConfig";
-import tailwindConfig from "../../tailwind.config";
+import colors from "tailwindcss/colors";
 
-export const theme = resolveConfig(tailwindConfig);
+export const theme = {
+	theme: {
+		colors,
+	},
+};

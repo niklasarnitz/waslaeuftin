@@ -39,10 +39,7 @@ export default function RequestCinemaPage() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 p-4">
       <Form {...form}>
-        <form
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onSubmit={form.handleSubmit(onValidData)}
-        >
+        <form onSubmit={form.handleSubmit(onValidData)}>
           <div className="flex flex-col space-y-4 py-4">
             <h1 className="text-3xl font-bold">Kino wünschen</h1>
             <p className="text-gray-500">

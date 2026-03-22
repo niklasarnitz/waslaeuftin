@@ -19,9 +19,42 @@ export const citiesRouter = createTRPCRouter({
   getCities: publicProcedure
     .input(z.string().optional())
     .query(async ({ ctx, input }) => {
+      const normalizedQuery = input?.trim();
+
       return ctx.db.city.findMany({
+        where: normalizedQuery
+          ? {
+              OR: [
+                { name: { contains: normalizedQuery, mode: "insensitive" } },
+                {
+                  cinemas: {
+                    some: {
+                      name: { contains: normalizedQuery, mode: "insensitive" },
+                    },
+                  },
+                },
+              ],
+            }
+          : undefined,
         include: {
           cinemas: {
+            where: normalizedQuery
+              ? {
+                  OR: [
+                    {
+                      name: { contains: normalizedQuery, mode: "insensitive" },
+                    },
+                    {
+                      city: {
+                        name: {
+                          contains: normalizedQuery,
+                          mode: "insensitive",
+                        },
+                      },
+                    },
+                  ],
+                }
+              : undefined,
             select: {
               name: true,
               slug: true,
@@ -36,9 +69,6 @@ export const citiesRouter = createTRPCRouter({
           },
         },
         orderBy: { name: "asc" },
-        where: {
-          name: input ? { contains: input, mode: "insensitive" } : undefined,
-        },
       });
     }),
   getCityMoviesAndShowingsBySlug: publicProcedure

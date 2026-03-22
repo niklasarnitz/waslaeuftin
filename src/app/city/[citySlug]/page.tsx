@@ -74,8 +74,8 @@ export default async function MoviesInCity({
 
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
-      <main>
-        <section className="px-8 py-4">
+      <main className="mx-auto w-full max-w-[1200px]">
+        <section className="px-4 py-5 md:px-6 md:py-6">
           <Suspense fallback={<LoadingSpinner />}>
             <MoviesByCinemaList city={city} date={decodedParams.date} />
           </Suspense>

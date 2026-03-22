@@ -1,6 +1,7 @@
 import "@waslaeuftin/styles/globals.css";
 
 import { Libre_Franklin, Rubik } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 import Link from "next/link";
@@ -36,15 +37,20 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={libre_franklin.variable + " " + rubik.variable}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-        <footer className="flex flex-col items-center justify-center space-y-2 py-2">
-          <div className="flex flex-row items-center justify-center space-x-4">
-            <Link href="/legal" className="text-sm font-light">
+        <NuqsAdapter>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+        </NuqsAdapter>
+        <footer className="mt-4 border-t border-border/70 bg-background/80 py-4 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-row items-center justify-center space-x-4 px-4 md:justify-end md:px-6">
+            <Link
+              href="/legal"
+              className="text-sm font-light text-muted-foreground hover:text-foreground"
+            >
               Rechtliches
             </Link>
             <Link
               href="https://github.com/niklasarnitz/waslaeuftin"
-              className="text-sm font-light"
+              className="text-sm font-light text-muted-foreground hover:text-foreground"
             >
               GitHub
             </Link>

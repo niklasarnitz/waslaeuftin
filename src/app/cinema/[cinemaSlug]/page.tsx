@@ -75,8 +75,8 @@ export default async function CinemaPage({
 
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
-      <main>
-        <section className="px-8 py-8">
+      <main className="mx-auto w-full max-w-[1200px]">
+        <section className="px-4 py-5 md:px-6 md:py-6">
           <Suspense fallback={<LoadingSpinner />}>
             <CinemaMovies cinema={cinema} />
           </Suspense>

@@ -29,6 +29,10 @@ const { data } = await client.query<{
   query,
 });
 
+if (!data) {
+  throw new Error("Could not load cinemas from Cineplex API");
+}
+
 await ArrayHelper.asyncForEach(data.cinemas, async (cinema) => {
   console.log(cinema.city);
 

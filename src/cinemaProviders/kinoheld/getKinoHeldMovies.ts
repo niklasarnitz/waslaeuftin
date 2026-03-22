@@ -31,6 +31,10 @@ export async function getKinoHeldMoviesInner(
     },
   });
 
+  if (!data) {
+    throw new Error("Could not load KinoHeld show groups");
+  }
+
   const newData = allData.concat(data.showGroups.data);
   if (data.showGroups.paginatorInfo.hasMorePages) {
     return await getKinoHeldMoviesInner(metadata, page + 1, newData);
