@@ -108,7 +108,9 @@ export const citiesRouter = createTRPCRouter({
                 orderBy: {
                   name: "asc",
                 },
-                include: {
+                select: {
+                  name: true,
+                  coverUrl: true,
                   showings: {
                     orderBy: {
                       dateTime: "asc",
@@ -146,7 +148,9 @@ export const citiesRouter = createTRPCRouter({
             include: {
               movies: {
                 orderBy: { name: "asc" },
-                include: {
+                select: {
+                  name: true,
+                  coverUrl: true,
                   showings: {
                     orderBy: { dateTime: "asc" },
                     where: {

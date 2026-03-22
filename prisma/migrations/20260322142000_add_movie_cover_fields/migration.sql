@@ -1,0 +1,5 @@
+ALTER TABLE "Movie"
+ADD COLUMN "coverUrl" TEXT,
+ADD COLUMN "coverStorageKey" TEXT,
+ADD COLUMN "coverConfidence" DOUBLE PRECISION,
+ADD COLUMN "tmdbMovieId" INTEGER;

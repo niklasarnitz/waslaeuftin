@@ -28,6 +28,31 @@ type Candidate = {
   reason: string;
 };
 
+type RunMode = "agent" | "interactive";
+type ProgressFormat = "text" | "json";
+
+type CliOptions = {
+  mode: RunMode;
+  dryRun: boolean;
+  limit?: number;
+  minScore: number;
+  delayMs: number;
+  progressFormat: ProgressFormat;
+};
+
+type ProgressUpdate = {
+  format: ProgressFormat;
+  successCount: number;
+  processedCount: number;
+  totalCount: number;
+  cinemaId: number;
+  cinemaName: string;
+  cityName: string;
+  score: number;
+  mode: "high-confidence" | "agent" | "manual";
+  dryRun: boolean;
+};
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) =>
@@ -144,140 +169,452 @@ const formatCandidate = (candidate: Candidate, index: number) => {
 const HIGH_CONFIDENCE_THRESHOLD = 0.82;
 const MEDIUM_CONFIDENCE_THRESHOLD = 0.65;
 
-const main = async () => {
-  const rl = readline.createInterface({ input, output });
+const printUsage = () => {
+  console.log(`
+Usage: bun run scripts/geocode-cinemas-osm.ts [options]
 
-  const cinemas = await db.cinema.findMany({
-    where: {
-      OR: [{ latitude: null }, { longitude: null }],
-    },
-    include: {
-      city: {
-        select: { name: true },
-      },
-    },
-    orderBy: { id: "asc" },
-  });
+Options:
+  --mode <agent|interactive>     Run non-interactive for LLM agents (default: agent)
+  --limit <n>                    Process only the first n cinemas without geotags
+  --min-score <0..1>             In agent mode: minimum score for auto-accepting best candidate (default: 0.65)
+  --delay-ms <n>                 Delay between Nominatim requests in milliseconds (default: 1100)
+  --progress-format <text|json>  Progress output format after each successful tagging (default: text)
+  --dry-run                      Do not persist coordinates, only simulate decisions
+  --help                         Show this help
 
-  console.log(`Found ${cinemas.length} cinemas without geolocation.`);
+Examples:
+  bun run scripts/geocode-cinemas-osm.ts --mode agent --limit 25
+  bun run scripts/geocode-cinemas-osm.ts --mode agent --progress-format json --min-score 0.72
+  bun run scripts/geocode-cinemas-osm.ts --mode interactive
+`);
+};
 
-  let autoUpdated = 0;
-  let manuallyUpdated = 0;
-  let skipped = 0;
-  let failed = 0;
+const parseIntOption = (value: string, optionName: string) => {
+  const parsed = Number.parseInt(value, 10);
 
-  for (const cinema of cinemas) {
-    console.log(`\n[${cinema.id}] ${cinema.name} (${cinema.city.name})`);
-
-    try {
-      const nominatimResults = await fetchCandidates(cinema.name, cinema.city.name);
-
-      await delay(1100);
-
-      if (nominatimResults.length === 0) {
-        console.log("  No OSM candidate found.");
-        skipped += 1;
-        continue;
-      }
-
-      const candidates = nominatimResults
-        .map((item) => scoreCandidate(cinema.name, cinema.city.name, item))
-        .sort((a, b) => b.score - a.score);
-
-      const [bestCandidate, secondCandidate] = candidates;
-
-      if (!bestCandidate) {
-        skipped += 1;
-        continue;
-      }
-
-      const confidenceGap = secondCandidate
-        ? bestCandidate.score - secondCandidate.score
-        : bestCandidate.score;
-
-      const isHighConfidence =
-        bestCandidate.score >= HIGH_CONFIDENCE_THRESHOLD && confidenceGap >= 0.08;
-
-      if (isHighConfidence) {
-        await db.cinema.update({
-          where: { id: cinema.id },
-          data: {
-            latitude: Number(bestCandidate.result.lat),
-            longitude: Number(bestCandidate.result.lon),
-          },
-        });
-
-        console.log(
-          `  Auto-updated with high confidence (${bestCandidate.score.toFixed(2)}): ${bestCandidate.result.display_name}`,
-        );
-        autoUpdated += 1;
-        continue;
-      }
-
-      console.log("  Low confidence candidates:");
-      const topCandidates = candidates.slice(0, 3);
-      topCandidates.forEach((candidate, index) => {
-        console.log(`  ${formatCandidate(candidate, index)}`);
-      });
-
-      if (bestCandidate.score < MEDIUM_CONFIDENCE_THRESHOLD) {
-        console.log("  Best candidate below medium threshold.");
-      }
-
-      const answer = (
-        await rl.question(
-          "  Choose candidate [1-3], 's' to skip, 'q' to quit: ",
-        )
-      )
-        .trim()
-        .toLowerCase();
-
-      if (answer === "q") {
-        console.log("Stopping early by user request.");
-        break;
-      }
-
-      if (answer === "s" || answer === "") {
-        skipped += 1;
-        continue;
-      }
-
-      const selectedIndex = Number(answer) - 1;
-      const selected = topCandidates[selectedIndex];
-
-      if (!selected) {
-        console.log("  Invalid selection, skipping.");
-        skipped += 1;
-        continue;
-      }
-
-      await db.cinema.update({
-        where: { id: cinema.id },
-        data: {
-          latitude: Number(selected.result.lat),
-          longitude: Number(selected.result.lon),
-        },
-      });
-
-      manuallyUpdated += 1;
-      console.log(
-        `  Updated manually with score ${selected.score.toFixed(2)}: ${selected.result.display_name}`,
-      );
-    } catch (error) {
-      failed += 1;
-      console.error(`  Failed: ${(error as Error).message}`);
-      await delay(1200);
-    }
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`Invalid value for --${optionName}: ${value}`);
   }
 
-  await db.$disconnect();
-  rl.close();
+  return parsed;
+};
 
-  console.log("\nSummary");
-  console.log(`  Auto updated:   ${autoUpdated}`);
-  console.log(`  Manual updated: ${manuallyUpdated}`);
-  console.log(`  Skipped:        ${skipped}`);
-  console.log(`  Failed:         ${failed}`);
+const parseNumberOption = (value: string, optionName: string) => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`Invalid value for --${optionName}: ${value}`);
+  }
+
+  return parsed;
+};
+
+const parseCliOptions = (args: string[]): CliOptions => {
+  const options: CliOptions = {
+    mode: "agent",
+    dryRun: false,
+    limit: undefined,
+    minScore: MEDIUM_CONFIDENCE_THRESHOLD,
+    delayMs: 1100,
+    progressFormat: "text",
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (!arg) {
+      continue;
+    }
+
+    if (arg === "--dry-run") {
+      options.dryRun = true;
+      continue;
+    }
+
+    if (arg === "--mode" || arg.startsWith("--mode=")) {
+      const value = arg.startsWith("--mode=") ? arg.split("=")[1] : args[index + 1];
+
+      if (!value) {
+        throw new Error("Missing value for --mode");
+      }
+
+      if (arg === "--mode") {
+        index += 1;
+      }
+
+      if (value !== "agent" && value !== "interactive") {
+        throw new Error(`Invalid value for --mode: ${value}`);
+      }
+
+      options.mode = value;
+      continue;
+    }
+
+    if (arg === "--limit" || arg.startsWith("--limit=")) {
+      const value = arg.startsWith("--limit=") ? arg.split("=")[1] : args[index + 1];
+
+      if (!value) {
+        throw new Error("Missing value for --limit");
+      }
+
+      if (arg === "--limit") {
+        index += 1;
+      }
+
+      options.limit = parseIntOption(value, "limit");
+      continue;
+    }
+
+    if (arg === "--min-score" || arg.startsWith("--min-score=")) {
+      const value = arg.startsWith("--min-score=")
+        ? arg.split("=")[1]
+        : args[index + 1];
+
+      if (!value) {
+        throw new Error("Missing value for --min-score");
+      }
+
+      if (arg === "--min-score") {
+        index += 1;
+      }
+
+      options.minScore = parseNumberOption(value, "min-score");
+
+      if (options.minScore < 0 || options.minScore > 1) {
+        throw new Error(`--min-score must be between 0 and 1, got ${value}`);
+      }
+
+      continue;
+    }
+
+    if (arg === "--delay-ms" || arg.startsWith("--delay-ms=")) {
+      const value = arg.startsWith("--delay-ms=")
+        ? arg.split("=")[1]
+        : args[index + 1];
+
+      if (!value) {
+        throw new Error("Missing value for --delay-ms");
+      }
+
+      if (arg === "--delay-ms") {
+        index += 1;
+      }
+
+      options.delayMs = parseIntOption(value, "delay-ms");
+      continue;
+    }
+
+    if (
+      arg === "--progress-format" ||
+      arg.startsWith("--progress-format=")
+    ) {
+      const value = arg.startsWith("--progress-format=")
+        ? arg.split("=")[1]
+        : args[index + 1];
+
+      if (!value) {
+        throw new Error("Missing value for --progress-format");
+      }
+
+      if (arg === "--progress-format") {
+        index += 1;
+      }
+
+      if (value !== "text" && value !== "json") {
+        throw new Error(`Invalid value for --progress-format: ${value}`);
+      }
+
+      options.progressFormat = value;
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  return options;
+};
+
+const toCoordinates = (candidate: Candidate) => {
+  const latitude = Number(candidate.result.lat);
+  const longitude = Number(candidate.result.lon);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw new Error("Candidate coordinates are invalid");
+  }
+
+  return { latitude, longitude };
+};
+
+const persistCoordinates = async (
+  cinemaId: number,
+  latitude: number,
+  longitude: number,
+  dryRun: boolean,
+) => {
+  if (dryRun) {
+    return;
+  }
+
+  await db.cinema.update({
+    where: { id: cinemaId },
+    data: {
+      latitude,
+      longitude,
+    },
+  });
+};
+
+const emitProgressUpdate = ({
+  format,
+  successCount,
+  processedCount,
+  totalCount,
+  cinemaId,
+  cinemaName,
+  cityName,
+  score,
+  mode,
+  dryRun,
+}: ProgressUpdate) => {
+  const percentage = totalCount > 0 ? (successCount / totalCount) * 100 : 0;
+
+  if (format === "json") {
+    console.log(
+      JSON.stringify({
+        event: "tagging-progress",
+        successCount,
+        processedCount,
+        totalCount,
+        percentage: Number(percentage.toFixed(2)),
+        cinemaId,
+        cinemaName,
+        cityName,
+        score: Number(score.toFixed(3)),
+        mode,
+        dryRun,
+      }),
+    );
+    return;
+  }
+
+  console.log(
+    `  Progress: ${successCount}/${totalCount} successful (${percentage.toFixed(1)}%) · processed ${processedCount}/${totalCount} · mode=${mode}${dryRun ? " [dry-run]" : ""}`,
+  );
+};
+
+const main = async () => {
+  const args = process.argv.slice(2);
+
+  if (args.includes("--help") || args.includes("-h")) {
+    printUsage();
+    return;
+  }
+
+  let rl: ReturnType<typeof readline.createInterface> | null = null;
+
+  try {
+    const options = parseCliOptions(args);
+
+    if (options.mode === "interactive") {
+      rl = readline.createInterface({ input, output });
+    }
+
+    const cinemas = await db.cinema.findMany({
+      where: {
+        OR: [{ latitude: null }, { longitude: null }],
+      },
+      include: {
+        city: {
+          select: { name: true },
+        },
+      },
+      orderBy: { id: "asc" },
+      take: options.limit,
+    });
+
+    console.log(
+      `Found ${cinemas.length} cinemas without geolocation (mode=${options.mode}${options.dryRun ? ", dry-run" : ""}).`,
+    );
+
+    let autoUpdated = 0;
+    let agentUpdated = 0;
+    let manuallyUpdated = 0;
+    let successfulTaggings = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const [index, cinema] of cinemas.entries()) {
+      const processedCount = index + 1;
+
+      console.log(`\n[${cinema.id}] ${cinema.name} (${cinema.city.name})`);
+
+      try {
+        const nominatimResults = await fetchCandidates(cinema.name, cinema.city.name);
+
+        await delay(options.delayMs);
+
+        if (nominatimResults.length === 0) {
+          console.log("  No OSM candidate found.");
+          skipped += 1;
+          continue;
+        }
+
+        const candidates = nominatimResults
+          .map((item) => scoreCandidate(cinema.name, cinema.city.name, item))
+          .sort((a, b) => b.score - a.score);
+
+        const [bestCandidate, secondCandidate] = candidates;
+
+        if (!bestCandidate) {
+          skipped += 1;
+          continue;
+        }
+
+        const confidenceGap = secondCandidate
+          ? bestCandidate.score - secondCandidate.score
+          : bestCandidate.score;
+
+        const isHighConfidence =
+          bestCandidate.score >= HIGH_CONFIDENCE_THRESHOLD && confidenceGap >= 0.08;
+
+        if (isHighConfidence) {
+          const { latitude, longitude } = toCoordinates(bestCandidate);
+          await persistCoordinates(cinema.id, latitude, longitude, options.dryRun);
+
+          console.log(
+            `  Auto-updated with high confidence (${bestCandidate.score.toFixed(2)}): ${bestCandidate.result.display_name}`,
+          );
+          autoUpdated += 1;
+          successfulTaggings += 1;
+
+          emitProgressUpdate({
+            format: options.progressFormat,
+            successCount: successfulTaggings,
+            processedCount,
+            totalCount: cinemas.length,
+            cinemaId: cinema.id,
+            cinemaName: cinema.name,
+            cityName: cinema.city.name,
+            score: bestCandidate.score,
+            mode: "high-confidence",
+            dryRun: options.dryRun,
+          });
+          continue;
+        }
+
+        console.log("  Low confidence candidates:");
+        const topCandidates = candidates.slice(0, 3);
+        topCandidates.forEach((candidate, candidateIndex) => {
+          console.log(`  ${formatCandidate(candidate, candidateIndex)}`);
+        });
+
+        if (bestCandidate.score < MEDIUM_CONFIDENCE_THRESHOLD) {
+          console.log("  Best candidate below medium threshold.");
+        }
+
+        if (options.mode === "agent") {
+          if (bestCandidate.score < options.minScore) {
+            console.log(
+              `  Agent mode skip: best score ${bestCandidate.score.toFixed(2)} below --min-score ${options.minScore.toFixed(2)}.`,
+            );
+            skipped += 1;
+            continue;
+          }
+
+          const { latitude, longitude } = toCoordinates(bestCandidate);
+          await persistCoordinates(cinema.id, latitude, longitude, options.dryRun);
+
+          console.log(
+            `  Agent-updated with score ${bestCandidate.score.toFixed(2)}: ${bestCandidate.result.display_name}`,
+          );
+          agentUpdated += 1;
+          successfulTaggings += 1;
+
+          emitProgressUpdate({
+            format: options.progressFormat,
+            successCount: successfulTaggings,
+            processedCount,
+            totalCount: cinemas.length,
+            cinemaId: cinema.id,
+            cinemaName: cinema.name,
+            cityName: cinema.city.name,
+            score: bestCandidate.score,
+            mode: "agent",
+            dryRun: options.dryRun,
+          });
+          continue;
+        }
+
+        if (!rl) {
+          throw new Error("Readline interface not initialized for interactive mode");
+        }
+
+        const answer = (
+          await rl.question(
+            "  Choose candidate [1-3] (Enter = 1), 's' to skip, 'q' to quit: ",
+          )
+        )
+          .trim()
+          .toLowerCase();
+
+        if (answer === "q") {
+          console.log("Stopping early by user request.");
+          break;
+        }
+
+        if (answer === "s") {
+          skipped += 1;
+          continue;
+        }
+
+        const selectedIndex = answer === "" ? 0 : Number(answer) - 1;
+        const selected = topCandidates[selectedIndex];
+
+        if (!selected) {
+          console.log("  Invalid selection, skipping.");
+          skipped += 1;
+          continue;
+        }
+
+        const { latitude, longitude } = toCoordinates(selected);
+        await persistCoordinates(cinema.id, latitude, longitude, options.dryRun);
+
+        manuallyUpdated += 1;
+        successfulTaggings += 1;
+        console.log(
+          `  Updated manually with score ${selected.score.toFixed(2)}: ${selected.result.display_name}`,
+        );
+
+        emitProgressUpdate({
+          format: options.progressFormat,
+          successCount: successfulTaggings,
+          processedCount,
+          totalCount: cinemas.length,
+          cinemaId: cinema.id,
+          cinemaName: cinema.name,
+          cityName: cinema.city.name,
+          score: selected.score,
+          mode: "manual",
+          dryRun: options.dryRun,
+        });
+      } catch (error) {
+        failed += 1;
+        console.error(`  Failed: ${(error as Error).message}`);
+        await delay(options.delayMs);
+      }
+    }
+
+    console.log("\nSummary");
+    console.log(`  High confidence updated: ${autoUpdated}`);
+    console.log(`  Agent updated:           ${agentUpdated}`);
+    console.log(`  Manual updated:          ${manuallyUpdated}`);
+    console.log(`  Successful taggings:     ${successfulTaggings}`);
+    console.log(`  Skipped:                 ${skipped}`);
+    console.log(`  Failed:                  ${failed}`);
+  } finally {
+    rl?.close();
+    await db.$disconnect();
+  }
 };
 
 await main();

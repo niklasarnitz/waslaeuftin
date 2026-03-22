@@ -21,12 +21,16 @@ model Showing {
 }
 
 model Movie {
-  name      String
-  cinemaId  Int
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  cinema    Cinema    @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
-  showings  Showing[]
+  name            String
+  cinemaId        Int
+  coverUrl        String?
+  coverStorageKey String?
+  coverConfidence Float?
+  tmdbMovieId     Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  cinema          Cinema    @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  showings        Showing[]
 
   @@unique([cinemaId, name])
   @@index([cinemaId, name])

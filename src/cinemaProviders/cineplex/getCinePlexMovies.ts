@@ -3,10 +3,10 @@ import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
 
 const client = new ApolloClient({
-  link: new HttpLink({
-    uri: "https://graphql-api.app.cineplex.de",
-  }),
-  cache: new InMemoryCache(),
+    link: new HttpLink({
+        uri: "https://graphql-api.app.cineplex.de",
+    }),
+    cache: new InMemoryCache(),
 });
 
 const getQuery = (cineplexCinemaIds: string[]) => gql`
@@ -36,78 +36,78 @@ const getQuery = (cineplexCinemaIds: string[]) => gql`
 `;
 
 export const getCineplexMovies = async (
-  cinemas: {
-    cinemaId: number;
-    cineplexCinemaId: string;
-  }[],
+    cinemas: {
+        cinemaId: number;
+        cineplexCinemaId: string;
+    }[],
 ) => {
-  const { data } = await client.query<{
-    screenedMovies: {
-      id: string;
-      movie: {
-        title: string;
-        screenings: {
-          cinema: {
+    const { data } = await client.query<{
+        screenedMovies: {
             id: string;
-          };
-          onlineTicketingId: string;
-          datetime: string;
-          auditoriumName: string;
-          attributes: {
-            label: string | null;
-          }[];
+            movie: {
+                title: string;
+                screenings: {
+                    cinema: {
+                        id: string;
+                    };
+                    onlineTicketingId: string;
+                    datetime: string;
+                    auditoriumName: string;
+                    attributes: {
+                        label: string | null;
+                    }[];
+                }[];
+            }[];
         }[];
-      }[];
-    }[];
-  }>({
-    query: getQuery(cinemas.map((cinema) => cinema.cineplexCinemaId)),
-  });
+    }>({
+        query: getQuery(cinemas.map((cinema) => cinema.cineplexCinemaId)),
+    });
 
-  if (!data) {
-    throw new Error("Could not load Cineplex screenings");
-  }
+    if (!data) {
+        throw new Error("Could not load Cineplex screenings");
+    }
 
-  const cinemasByCineplexCinemaId = cinemas.reduce(
-    (acc, cinema) => {
-      acc[cinema.cineplexCinemaId] = cinema;
-      return acc;
-    },
-    {} as Record<string, (typeof cinemas)[number]>,
-  );
+    const cinemasByCineplexCinemaId = cinemas.reduce(
+        (acc, cinema) => {
+            acc[cinema.cineplexCinemaId] = cinema;
+            return acc;
+        },
+        {} as Record<string, (typeof cinemas)[number]>,
+    );
 
-  const showings = data.screenedMovies
-    .map((screenedMovie) => screenedMovie.movie)
-    .flat()
-    .map((movie) =>
-      movie.screenings.map((screening) => ({
-        cinemaId: cinemasByCineplexCinemaId[screening.cinema.id]?.cinemaId,
-        movieName: movie.title,
-        dateTime: moment(screening.datetime).toDate(),
-        bookingUrl: `https://buchung.cineplex.de/checkout/${screening.onlineTicketingId}init`,
-        showingAdditionalData: [
-          screening.auditoriumName,
-          ...screening.attributes
-            .map((attribute) => attribute.label)
-            .filter(Boolean),
-        ].join(UIConstants.bullet),
-      })),
-    )
-    .flat()
-    .filter((showing) => !!showing.cinemaId) as {
-    cinemaId: number;
-    movieName: string;
-    dateTime: Date;
-    bookingUrl: string;
-    showingAdditionalData: string;
-  }[];
+    const showings = data.screenedMovies
+        .map((screenedMovie) => screenedMovie.movie)
+        .flat()
+        .map((movie) =>
+            movie.screenings.map((screening) => ({
+                cinemaId: cinemasByCineplexCinemaId[screening.cinema.id]?.cinemaId,
+                movieName: movie.title,
+                dateTime: moment(screening.datetime).toDate(),
+                bookingUrl: `https://buchung.cineplex.de/checkout/${screening.onlineTicketingId}init`,
+                showingAdditionalData: [
+                    screening.auditoriumName,
+                    ...screening.attributes
+                        .map((attribute) => attribute.label)
+                        .filter(Boolean),
+                ].join(UIConstants.bullet),
+            })),
+        )
+        .flat()
+        .filter((showing) => !!showing.cinemaId) as {
+            cinemaId: number;
+            movieName: string;
+            dateTime: Date;
+            bookingUrl: string;
+            showingAdditionalData: string;
+        }[];
 
-  const movies = showings.flatMap((showing) => ({
-    name: showing.movieName,
-    cinemaId: showing.cinemaId,
-  }));
+    const movies = showings.flatMap((showing) => ({
+        name: showing.movieName,
+        cinemaId: showing.cinemaId,
+    }));
 
-  return {
-    movies,
-    showings,
-  };
+    return {
+        movies,
+        showings,
+    };
 };

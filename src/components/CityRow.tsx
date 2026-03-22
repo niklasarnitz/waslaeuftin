@@ -66,7 +66,7 @@ export const CityRow = ({
                     {cinema.name}
                   </h3>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                    {totalShowings} Zeiten
+                    {totalShowings} Vorstellungen
                   </span>
                 </Link>
 

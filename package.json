@@ -8,12 +8,17 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "dev": "next dev --turbopack",
+    "find:cinemas:without-recent-showings": "bun run scripts/find-cinemas-without-recent-showings.ts",
+    "find:duplicate:cinemas": "bun run scripts/find-duplicate-cinemas-by-city.ts",
     "postinstall": "prisma generate",
     "lint": "eslint .",
     "geocode:cinemas": "bun run scripts/geocode-cinemas-osm.ts",
     "start": "next start",
     "typecheck": "tsc --noEmit --incremental",
-    "typecheck:watch": "bun run typecheck --watch"
+    "typecheck:watch": "bun run typecheck --watch",
+    "test:tmdb:confidence": "bun run scripts/update-movies/testTmdbConfidenceScore.ts",
+    "sync:covers:all": "bun run scripts/update-movies/syncAllMovieCovers.ts",
+    "update:movies:all": "bun run scripts/update-movies/updateAllMovies.ts"
   },
   "dependencies": {
     "@ainias42/js-helper": "^0.8.15",
@@ -50,6 +55,7 @@
     "i18next-resources-to-backend": "^1.2.1",
     "lodash": "^4.17.23",
     "lucide-react": "^0.577.0",
+    "minio": "^8.0.7",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
     "momentjs": "^2.0.0",
