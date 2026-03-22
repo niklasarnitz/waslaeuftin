@@ -1,10 +1,6 @@
 import { AppSidebar } from "@waslaeuftin/components/app-sidebar";
 import { SiteHeader } from "@waslaeuftin/components/SiteHeader";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@waslaeuftin/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@waslaeuftin/components/ui/sidebar";
 
 export const SiteWrapper = async ({
   pathname,
@@ -20,13 +16,12 @@ export const SiteWrapper = async ({
 }) => {
   return (
     <SidebarProvider>
-      <AppSidebar searchQuery={searchParams?.searchQuery} />
+      <AppSidebar searchQuery={searchParams?.searchQuery} collapsible="none" />
       <SidebarInset>
-        <header className="flex shrink-0 items-center gap-2 border-b px-4 py-4">
-          <SidebarTrigger className="-ml-1 h-8 w-8" />
+        <header className="sticky top-0 z-30 flex shrink-0 items-center gap-2 border-b border-border/70 bg-background/90 px-4 py-3 backdrop-blur md:px-6">
           <SiteHeader pathname={pathname} date={searchParams?.date} />
         </header>
-        {children}
+        <div className="flex-1">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

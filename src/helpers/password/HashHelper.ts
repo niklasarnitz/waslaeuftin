@@ -19,13 +19,10 @@ export const checkHashedPassword = async (password: string, hash: string) => {
   return new Promise<boolean>((resolve, reject) => {
     const [salt, hashKey] = hash.split(".");
 
-    // eslint-disable-next-line prefer-promise-reject-errors
     if (!salt || !hashKey) reject(new Error("Invalid hash"));
 
     // we need to pass buffer values to timingSafeEqual
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const hashKeyBuff = Buffer.from(hashKey!, "hex");
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     scrypt(password, salt!, keyLength, (err, derivedKey) => {
       if (err) reject(err);
       // compare the new supplied password with the hashed password using timeSafeEqual

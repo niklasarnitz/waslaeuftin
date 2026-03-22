@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { type CinemaxxVueWhatsOnResponse } from "./CinemaxxVueWhatsOnResponse";
-import { xior } from "xior";
+import xior from "xior";
 import { type Prisma } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
@@ -14,6 +14,10 @@ export const getCinemaxxVueMovies = async (
   const { data } = await xiorInstance.get<CinemaxxVueWhatsOnResponse>(
     `https://www.cinemaxx.de/api/sitecore/WhatsOn/WhatsOnV2Alphabetic?cinemaId=${cinemaxxCinemaId}`,
   );
+
+  if (!data) {
+    throw new Error("Could not load Cinemaxx/Vue movies");
+  }
 
   const movies = data.WhatsOnAlphabeticFilms.map(
     (movie) =>

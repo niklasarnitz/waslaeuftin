@@ -63,6 +63,10 @@ export const getCineplexMovies = async (
     query: getQuery(cinemas.map((cinema) => cinema.cineplexCinemaId)),
   });
 
+  if (!data) {
+    throw new Error("Could not load Cineplex screenings");
+  }
+
   const cinemasByCineplexCinemaId = cinemas.reduce(
     (acc, cinema) => {
       acc[cinema.cineplexCinemaId] = cinema;

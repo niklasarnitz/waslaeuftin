@@ -2,7 +2,7 @@ import { isShowing } from "@waslaeuftin/types/guards/isShowing";
 import { type Showing } from "@waslaeuftin/types/Showing";
 import { load } from "cheerio";
 import moment from "moment-timezone";
-import { xior } from "xior";
+import xior from "xior";
 import { type Prisma } from "@prisma/client";
 import { type db } from "@waslaeuftin/server/db";
 import { isMovie } from "@waslaeuftin/types/guards/isMovie";
@@ -16,6 +16,11 @@ export const getKinoTicketsExpressMovies = async (
   const { data } = await xiorInstance.get<string>(
     `https://kinotickets.express/${slug}/movies`,
   );
+
+  if (!data) {
+    throw new Error("Could not load KinoTickets Express movies");
+  }
+
   const $ = load(data);
 
   // Updated selector for the new HTML structure

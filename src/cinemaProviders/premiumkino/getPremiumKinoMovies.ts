@@ -1,5 +1,5 @@
 import { type PremiumKinoApiResponse } from "@waslaeuftin/cinemaProviders/premiumkino/PremiumKinoTypes";
-import { xior } from "xior";
+import xior from "xior";
 import moment from "moment-timezone";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import { type Prisma } from "@prisma/client";
@@ -14,6 +14,10 @@ export const getPremiumKinoMovies = async (
   const { data } = await xiorInstance.get<PremiumKinoApiResponse>(
     `https://backend.premiumkino.de/v1/de/${subdomain}/program`,
   );
+
+  if (!data) {
+    throw new Error("Could not load PremiumKino movies");
+  }
 
   const movies = data.movies.map((movie) => ({
     name: movie.name,

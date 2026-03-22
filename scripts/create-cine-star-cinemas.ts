@@ -1,6 +1,6 @@
 import { ArrayHelper } from "@ainias42/js-helper";
 import { db } from "@waslaeuftin/server/db";
-import { xior } from "xior";
+import xior from "xior";
 
 const xiorClient = xior.create();
 

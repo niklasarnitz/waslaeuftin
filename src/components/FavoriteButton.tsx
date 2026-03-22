@@ -27,7 +27,7 @@ export const FavoriteButton = ({
         await toggleFavoriteWithCitySlug();
         router.refresh();
       }}
-      className="flex items-center justify-center"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/80 bg-background transition-colors hover:border-primary/40 hover:bg-primary/10"
       aria-label={isFavorite ? "Favoriten entfernen" : "Favoriten hinzufügen"}
     >
       <StarIcon
@@ -41,7 +41,7 @@ export const FavoriteButton = ({
             ? theme.theme.colors.yellow[500]
             : theme.theme.colors.slate[950]
         }
-        className="h-6 w-6"
+        className="h-4 w-4"
       />
     </button>
   );

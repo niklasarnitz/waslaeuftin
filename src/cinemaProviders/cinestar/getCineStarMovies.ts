@@ -2,7 +2,7 @@ import {
   type CineStarEventType,
   type CineStarAttribute,
 } from "@waslaeuftin/cinemaProviders/cinestar/CinestarTypes";
-import { xior } from "xior";
+import xior from "xior";
 import { ArrayHelper, type URecord } from "@ainias42/js-helper";
 import moment from "moment-timezone";
 import { type Prisma } from "@prisma/client";
@@ -19,6 +19,10 @@ export const getCineStarMovies = async (
     "https://www.cinestar.de/api/attribute",
   );
 
+  if (!rawAttributes) {
+    throw new Error("Could not load CineStar attributes");
+  }
+
   const attributes = rawAttributes
     .filter((attribute) => !!attribute.name && attribute.name.length > 0)
     .reduce(
@@ -32,6 +36,10 @@ export const getCineStarMovies = async (
   const { data } = await xiorInstance.get<CineStarEventType[]>(
     `https://www.cinestar.de/api/cinema/${cinestarCinemaId}/show/`,
   );
+
+  if (!data) {
+    throw new Error("Could not load CineStar movies");
+  }
 
   const movies = data.map(
     (movie) =>
