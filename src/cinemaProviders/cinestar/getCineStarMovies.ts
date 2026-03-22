@@ -9,6 +9,22 @@ import { type Prisma } from "@prisma/client";
 import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import { type db } from "@waslaeuftin/server/db";
 
+const parseCineStarDateTime = (dateTime: string): Date => {
+  const normalizedDateTime = dateTime.replace(/\s+(?:CET|CEST)$/, "");
+  const parsedDateTime = moment.tz(
+    normalizedDateTime,
+    "YYYY-MM-DD HH:mm",
+    true,
+    "Europe/Berlin",
+  );
+
+  if (!parsedDateTime.isValid()) {
+    throw new Error(`Invalid CineStar showtime datetime: ${dateTime}`);
+  }
+
+  return parsedDateTime.toDate();
+};
+
 export const getCineStarMovies = async (
   cinemaId: number,
   cinestarCinemaId: number,
@@ -55,7 +71,7 @@ export const getCineStarMovies = async (
         ({
           cinemaId,
           movieName: movie.title,
-          dateTime: moment(showtime.datetime).subtract(2, "hours").toDate(),
+          dateTime: parseCineStarDateTime(showtime.datetime),
           bookingUrl: "https://www.cinestar.de/",
           showingAdditionalData: ArrayHelper.noUndefined(
             showtime.attributes.map((attribute) => attributes[attribute]),

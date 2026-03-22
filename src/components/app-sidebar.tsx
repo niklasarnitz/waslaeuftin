@@ -31,7 +31,7 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
   return (
     <Sidebar {...props}>
       <SidebarHeader className="gap-3 border-b border-sidebar-border/60 px-3 pb-4 pt-3">
-        <div className="rounded-xl border border-sidebar-border/70 bg-sidebar-accent/40 p-3">
+        <div className="rounded-2xl border border-sidebar-border/70 bg-gradient-to-br from-sidebar-accent/70 to-sidebar p-3">
           <div className="flex w-full flex-row items-start gap-3">
             <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Clapperboard className="h-4 w-4" />
@@ -43,7 +43,7 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
                 </h1>
               </Link>
               <p className="mt-1 text-sm leading-snug text-sidebar-foreground/75">
-                Schnell sehen, was heute in deinem Kino läuft.
+                Cinema Atlas fuer deinen Abend.
               </p>
             </div>
           </div>
@@ -72,7 +72,7 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
         {cities.map((city) => (
           <SidebarGroup
             key={city.id}
-            className="rounded-lg border border-transparent p-1.5 transition-colors hover:border-sidebar-border/70 hover:bg-sidebar-accent/20"
+            className="rounded-xl border border-transparent p-1.5 transition-colors hover:border-sidebar-border/70 hover:bg-sidebar-accent/35"
           >
             <SidebarGroupLabel
               asChild
@@ -95,7 +95,7 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       size="default"
-                      className="h-9 rounded-lg px-2.5 text-[13px] font-normal"
+                      className="h-9 rounded-xl px-2.5 text-[13px] font-normal"
                       isActive={false}
                     >
                       <Link
