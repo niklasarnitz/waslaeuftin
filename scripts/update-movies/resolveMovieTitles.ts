@@ -311,6 +311,43 @@ const scoreTmdbCandidate = (
   return clampScore(score);
 };
 
+// ─── Rate limiting helper ──────────────────────────────────────────────────
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+class RateLimitedQueue {
+  private activeRequests = 0;
+  private readonly maxConcurrent: number;
+  private readonly minDelayMs: number;
+  private lastRequestTime = 0;
+
+  constructor(maxConcurrent: number = 3, minDelayMs: number = 334) {
+    this.maxConcurrent = maxConcurrent;
+    this.minDelayMs = minDelayMs; // ~3 requests per second
+  }
+
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    while (this.activeRequests >= this.maxConcurrent) {
+      await sleep(50);
+    }
+
+    this.activeRequests++;
+
+    try {
+      // Enforce minimum delay between requests
+      const timeSinceLastRequest = Date.now() - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minDelayMs) {
+        await sleep(this.minDelayMs - timeSinceLastRequest);
+      }
+
+      this.lastRequestTime = Date.now();
+      return await fn();
+    } finally {
+      this.activeRequests--;
+    }
+  }
+}
+
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
 
 class TmdbMovieMatcher {
@@ -318,6 +355,7 @@ class TmdbMovieMatcher {
     string,
     { bestCandidate: TmdbScoredMatch | null; acceptedCandidate: TmdbScoredMatch | null }
   >();
+  private readonly rateLimitQueue = new RateLimitedQueue(3, 334); // 3 concurrent requests, ~334ms between requests
 
   async evaluate(title: string) {
     const normalizedTitle = normalizeForComparison(
@@ -337,36 +375,38 @@ class TmdbMovieMatcher {
     const scoredCandidates: TmdbScoredMatch[] = [];
 
     for (const query of queries) {
-      const searchUrl = new URL("https://api.themoviedb.org/3/search/movie");
-      searchUrl.searchParams.set("api_key", env.TMDB_API_KEY);
-      searchUrl.searchParams.set("query", query);
-      searchUrl.searchParams.set("language", "de-DE");
-      searchUrl.searchParams.set("include_adult", "false");
-      searchUrl.searchParams.set("page", "1");
+      const result = await this.rateLimitQueue.run(async () => {
+        const searchUrl = new URL("https://api.themoviedb.org/3/search/movie");
+        searchUrl.searchParams.set("api_key", env.TMDB_API_KEY);
+        searchUrl.searchParams.set("query", query);
+        searchUrl.searchParams.set("language", "de-DE");
+        searchUrl.searchParams.set("include_adult", "false");
+        searchUrl.searchParams.set("page", "1");
 
-      const searchResponse = await fetch(searchUrl, {
-        headers: { Accept: "application/json" },
+        const searchResponse = await fetch(searchUrl, {
+          headers: { Accept: "application/json" },
+        });
+
+        if (!searchResponse.ok) {
+          throw new Error(
+            `TMDB search failed (${searchResponse.status}) for query "${query}"`,
+          );
+        }
+
+        return (await searchResponse.json()) as TmdbMovieSearchResponse;
       });
 
-      if (!searchResponse.ok) {
-        throw new Error(
-          `TMDB search failed (${searchResponse.status}) for query "${query}"`,
-        );
-      }
+      const topResults = result.results.slice(0, 7);
 
-      const payload =
-        (await searchResponse.json()) as TmdbMovieSearchResponse;
-      const topResults = payload.results.slice(0, 7);
-
-      for (const result of topResults) {
+      for (const movieResult of topResults) {
         scoredCandidates.push({
-          tmdbMovieId: result.id,
-          title: result.title,
-          originalTitle: result.original_title,
-          posterPath: result.poster_path,
-          releaseDate: result.release_date,
-          popularity: result.popularity,
-          confidence: scoreTmdbCandidate(normalizedTitle, result),
+          tmdbMovieId: movieResult.id,
+          title: movieResult.title,
+          originalTitle: movieResult.original_title,
+          posterPath: movieResult.poster_path,
+          releaseDate: movieResult.release_date,
+          popularity: movieResult.popularity,
+          confidence: scoreTmdbCandidate(normalizedTitle, movieResult),
           sourceQuery: query,
         });
       }
@@ -787,23 +827,37 @@ export const resolveAndPersistCatalog = async (
 
   let newMoviesCreated = 0;
 
-  // Phase 3a: Evaluate all TMDB titles in parallel
+  // Phase 3a: Evaluate TMDB titles in batches (respects rate limiting)
   const rawTitlesArray = Array.from(moviesToFetchTmdbData);
-  const evaluationPromises = rawTitlesArray.map((rawTitle) =>
-    matcher.evaluate(rawTitle).then((evaluation) => ({
-      rawTitle,
-      evaluation,
-    }))
-  );
+  const TMDB_BATCH_SIZE = 10; // Process 10 titles at a time with the internal rate limiter
+  const allEvaluationResults: PromiseSettledResult<{
+    rawTitle: string;
+    evaluation: Awaited<ReturnType<typeof matcher.evaluate>>;
+  }>[] = [];
 
   console.info(
-    `[Resolver] Executing ${evaluationPromises.length} TMDB evaluations in parallel...`,
+    `[Resolver] Executing ${rawTitlesArray.length} TMDB evaluations in batches (max 10 per batch)...`,
   );
 
-  const evaluationResults = await Promise.allSettled(evaluationPromises);
+  for (let i = 0; i < rawTitlesArray.length; i += TMDB_BATCH_SIZE) {
+    const batchTitles = rawTitlesArray.slice(i, i + TMDB_BATCH_SIZE);
+    const batchProgress = `${Math.min(i + TMDB_BATCH_SIZE, rawTitlesArray.length)}/${rawTitlesArray.length}`;
+
+    console.info(`[Resolver] Batch progress: ${batchProgress}`);
+
+    const batchPromises = batchTitles.map((rawTitle) =>
+      matcher.evaluate(rawTitle).then((evaluation) => ({
+        rawTitle,
+        evaluation,
+      }))
+    );
+
+    const batchResults = await Promise.allSettled(batchPromises);
+    allEvaluationResults.push(...batchResults);
+  }
 
   // Phase 3b: Process evaluation results sequentially (for poster uploads, etc.)
-  for (const [index, evaluationResult] of evaluationResults.entries()) {
+  for (const [index, evaluationResult] of allEvaluationResults.entries()) {
     const rawTitle = rawTitlesArray[index]!;
     const existingResolution = titleResolutionMap.get(rawTitle);
 
@@ -814,7 +868,7 @@ export const resolveAndPersistCatalog = async (
 
     if (evaluationResult.status === "rejected") {
       console.warn(
-        `[Resolver] [${index + 1}/${evaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
+        `[Resolver] [${index + 1}/${allEvaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
         evaluationResult.reason,
       );
       tmdbUnmatched++;
@@ -825,7 +879,7 @@ export const resolveAndPersistCatalog = async (
     const normalizedTitle = normalizeMovieTitleForSearch(rawTitle);
 
     console.info(
-      `[Resolver] [${index + 1}/${evaluationResults.length}] Processing TMDB result for: "${rawTitle}"`,
+      `[Resolver] [${index + 1}/${allEvaluationResults.length}] Processing TMDB result for: "${rawTitle}"`,
     );
 
     if (evaluation.acceptedCandidate) {
