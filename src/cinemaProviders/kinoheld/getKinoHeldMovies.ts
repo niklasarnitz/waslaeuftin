@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
 import moment from "moment-timezone";
 import { type KinoHeldCinemasMetadata } from "@prisma/client";
 import { FETCH_SHOW_GROUPS_FOR_CINEMA } from "./kinoHeld_FETCH_SHOW_GROUPS_FOR_CINEMA";
@@ -14,6 +14,31 @@ const client = new ApolloClient({
   link: httpLink,
   cache: new InMemoryCache(),
 });
+
+const FETCH_CINEMA_AUDITORIUM_COUNT = gql`
+  query FetchCinemaAuditoriumCount($cinemaId: ID) {
+    cinema(id: $cinemaId) {
+      auditoriums {
+        data {
+          id
+        }
+      }
+    }
+  }
+`;
+
+async function getCinemaHasMultipleAuditoriums(
+  centerId: string,
+): Promise<boolean> {
+  const { data } = await client.query<{
+    cinema: { auditoriums: { data: { id: string }[] } };
+  }>({
+    query: FETCH_CINEMA_AUDITORIUM_COUNT,
+    variables: { cinemaId: centerId },
+  });
+
+  return (data?.cinema?.auditoriums?.data?.length ?? 0) > 1;
+}
 
 export async function getKinoHeldMoviesInner(
   metadata: KinoHeldCinemasMetadata,
@@ -45,14 +70,19 @@ export async function getKinoHeldMovies(
   cinemaId: number,
   metadata: KinoHeldCinemasMetadata,
 ) {
-  const movies = await getKinoHeldMoviesInner(metadata);
+  const [movies, hasMultipleAuditoriums] = await Promise.all([
+    getKinoHeldMoviesInner(metadata),
+    getCinemaHasMultipleAuditoriums(metadata.centerId),
+  ]);
 
   const transformedMovies = movies.map((movie) => {
     const showings = movie.shows.data.map((showing) => {
       const showingAdditionalData = Array.from(
         new Set([
           ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
-          showing?.auditorium?.name ?? "",
+          ...(hasMultipleAuditoriums
+            ? [showing?.auditorium?.name ?? ""]
+            : []),
         ]),
       ).filter((item) => item !== "");
 

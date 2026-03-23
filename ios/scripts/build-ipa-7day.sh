@@ -29,8 +29,26 @@ fail() {
   exit 1
 }
 
+detect_team_id() {
+  local detected
+  detected="$(xcodebuild \
+    -project "$PROJECT_PATH" \
+    -scheme "$SCHEME" \
+    -configuration "$CONFIGURATION" \
+    -showBuildSettings 2>/dev/null | awk -F ' = ' '/DEVELOPMENT_TEAM = / {print $2; exit}')"
+
+  echo "$detected"
+}
+
 if ! command -v xcodebuild >/dev/null 2>&1; then
   fail "xcodebuild not found. Please install Xcode and command line tools."
+fi
+
+if [[ -z "$TEAM_ID" ]]; then
+  TEAM_ID="$(detect_team_id)"
+  if [[ -n "$TEAM_ID" ]]; then
+    echo "Detected Xcode team: $TEAM_ID"
+  fi
 fi
 
 if [[ -z "$EXPORT_OPTIONS_PLIST" ]]; then
@@ -64,7 +82,7 @@ EOF
       echo "Generated export options: $EXPORT_OPTIONS_PLIST"
     fi
   else
-    fail "TEAM_ID is required unless EXPORT_OPTIONS_PLIST is provided. Example: TEAM_ID=5NP472TPJA bash ios/scripts/build-ipa-7day.sh"
+    fail "Could not determine DEVELOPMENT_TEAM from Xcode settings. Select a team in Xcode Signing settings, or pass TEAM_ID / EXPORT_OPTIONS_PLIST explicitly."
   fi
 fi
 

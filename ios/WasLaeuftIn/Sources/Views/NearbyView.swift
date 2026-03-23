@@ -3,6 +3,7 @@ import SwiftUI
 struct NearbyView: View {
     @ObservedObject var viewModel: HomepageViewModel
     @ObservedObject var locationManager: LocationManager
+    let selectedTab: HomepageViewModel.Tab
     var activeBaseURL: String
 
     @State private var showErrorAlert = false
@@ -25,14 +26,7 @@ struct NearbyView: View {
                         if let payload = viewModel.payload {
                             summaryBar(payload: payload)
 
-                            Picker("Ansicht", selection: $viewModel.selectedTab) {
-                                ForEach(HomepageViewModel.Tab.allCases, id: \.self) { tab in
-                                    Text(tab.rawValue).tag(tab)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-
-                            if viewModel.selectedTab == .highlights {
+                            if selectedTab == .highlights {
                                 LazyVStack(spacing: 12) {
                                     ForEach(payload.movies) { movie in
                                         MovieCardView(movie: movie)
@@ -59,15 +53,6 @@ struct NearbyView: View {
             }
             .navigationTitle("In deiner Nähe")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task { await refreshAsync() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
-            }
             .task {
                 locationManager.start()
             }

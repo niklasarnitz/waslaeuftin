@@ -44,7 +44,7 @@ struct CinemaDetailView: View {
     private func movieSection(movie: HomepageResponse.CinemaMovie) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
-                AsyncImage(url: URL(string: movie.coverUrl ?? "")) { image in
+                CachedAsyncImage(url: URL(string: movie.coverUrl ?? "")) { image in
                     image
                         .resizable()
                         .scaledToFill()

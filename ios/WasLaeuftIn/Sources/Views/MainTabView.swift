@@ -12,10 +12,21 @@ struct MainTabView: View {
             NearbyView(
                 viewModel: viewModel,
                 locationManager: locationManager,
+                selectedTab: .highlights,
                 activeBaseURL: activeBaseURL
             )
             .tabItem {
-                Label("Entdecken", systemImage: "safari")
+                Label("Filme", systemImage: "film")
+            }
+
+            NearbyView(
+                viewModel: viewModel,
+                locationManager: locationManager,
+                selectedTab: .cinemas,
+                activeBaseURL: activeBaseURL
+            )
+            .tabItem {
+                Label("Kinos", systemImage: "building.2")
             }
 
             SettingsView(
