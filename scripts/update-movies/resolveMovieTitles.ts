@@ -657,7 +657,42 @@ export const resolveAndPersistCatalog = async (
     `[Resolver] Resolving ${rawTitles.length} unique raw titles from ${allShowings.length} showings`,
   );
 
-  // Resolve each title to a canonical movie
+  // ─── Phase 1: Load all existing movies from database ────────────────────
+
+  console.info(`[Resolver] Loading existing movies from database...`);
+  const dbMovies = await db.movie.findMany({
+    select: {
+      id: true,
+      canonicalKey: true,
+      name: true,
+      normalizedTitle: true,
+      tmdbMovieId: true,
+      coverUrl: true,
+      coverStorageKey: true,
+      coverConfidence: true,
+    },
+  });
+
+  // Build lookup maps for database movies
+  const dbMovieByCanonicalKey = new Map(
+    dbMovies.map((m) => [m.canonicalKey, m])
+  );
+  const dbMovieByTmdbId = new Map(
+    dbMovies.filter((m) => m.tmdbMovieId).map((m) => [m.tmdbMovieId!, m])
+  );
+  const dbMoviesByNormalizedTitle = new Map<string, typeof dbMovies>();
+  for (const movie of dbMovies) {
+    const key = normalizeForComparison(movie.normalizedTitle);
+    if (!dbMoviesByNormalizedTitle.has(key)) {
+      dbMoviesByNormalizedTitle.set(key, []);
+    }
+    dbMoviesByNormalizedTitle.get(key)!.push(movie);
+  }
+
+  console.info(`[Resolver] Loaded ${dbMovies.length} existing movies from database`);
+
+  // ─── Phase 2: Match raw titles to existing database movies or mark as new ──
+
   const matcher = new TmdbMovieMatcher();
   const minioClient = new MinioClient({
     endPoint: new URL(env.MINIO_ENDPOINT).hostname,
@@ -679,8 +714,13 @@ export const resolveAndPersistCatalog = async (
   // Map: canonicalKey -> ResolvedMovie (deduplicated)
   const canonicalMovieMap = new Map<string, ResolvedMovie>();
 
+  // Track which movies need TMDB data
+  const moviesToFetchTmdbData = new Set<string>(); // raw titles
+
   let tmdbMatched = 0;
   let tmdbUnmatched = 0;
+
+  console.info(`[Resolver] Phase 2: Matching raw titles to database movies...`);
 
   for (const [index, rawTitle] of rawTitles.entries()) {
     const normalizedTitle = normalizeMovieTitleForSearch(rawTitle);
@@ -702,14 +742,125 @@ export const resolveAndPersistCatalog = async (
       `[Resolver] [${index + 1}/${rawTitles.length}] Matching: "${rawTitle}"`,
     );
 
-    const evaluation = await matcher.evaluate(rawTitle);
-    let resolved: ResolvedMovie;
+    // Try to find in database by normalized title
+    const dbCandidates = dbMoviesByNormalizedTitle.get(comparisonKey) ?? [];
+    let dbMatch = dbCandidates.length > 0 ? dbCandidates[0] : null;
+
+    if (dbMatch) {
+      // Found in database
+      const resolved: ResolvedMovie = {
+        canonicalKey: dbMatch.canonicalKey,
+        name: dbMatch.name,
+        normalizedTitle: dbMatch.normalizedTitle,
+        tmdbMovieId: dbMatch.tmdbMovieId,
+        coverUrl: dbMatch.coverUrl,
+        coverStorageKey: dbMatch.coverStorageKey,
+        coverConfidence: dbMatch.coverConfidence,
+      };
+
+      titleResolutionMap.set(rawTitle, resolved);
+      canonicalMovieMap.set(dbMatch.canonicalKey, resolved);
+
+      // Check if we need to fetch TMDB data for this movie
+      if (!dbMatch.coverUrl || !dbMatch.tmdbMovieId) {
+        moviesToFetchTmdbData.add(rawTitle);
+      }
+
+      console.info(
+        `[Resolver]   → Found in DB: "${dbMatch.name}" (id=${dbMatch.id})`,
+      );
+      continue;
+    }
+
+    // Not found in database, mark as new and fetch TMDB data
+    moviesToFetchTmdbData.add(rawTitle);
+    console.info(
+      `[Resolver]   → Not in DB, will fetch TMDB data`,
+    );
+  }
+
+  // ─── Phase 3: Fetch TMDB data only for new or incomplete movies ──────────
+
+  console.info(
+    `[Resolver] Phase 3: Fetching TMDB data for ${moviesToFetchTmdbData.size} movies`,
+  );
+
+  let newMoviesCreated = 0;
+
+  // Phase 3a: Evaluate all TMDB titles in parallel
+  const rawTitlesArray = Array.from(moviesToFetchTmdbData);
+  const evaluationPromises = rawTitlesArray.map((rawTitle) =>
+    matcher.evaluate(rawTitle).then((evaluation) => ({
+      rawTitle,
+      evaluation,
+    }))
+  );
+
+  console.info(
+    `[Resolver] Executing ${evaluationPromises.length} TMDB evaluations in parallel...`,
+  );
+
+  const evaluationResults = await Promise.allSettled(evaluationPromises);
+
+  // Phase 3b: Process evaluation results sequentially (for poster uploads, etc.)
+  for (const [index, evaluationResult] of evaluationResults.entries()) {
+    const rawTitle = rawTitlesArray[index]!;
+    const existingResolution = titleResolutionMap.get(rawTitle);
+
+    if (!existingResolution) {
+      console.warn(`[Resolver] No resolution found for "${rawTitle}"`);
+      continue;
+    }
+
+    if (evaluationResult.status === "rejected") {
+      console.warn(
+        `[Resolver] [${index + 1}/${evaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
+        evaluationResult.reason,
+      );
+      tmdbUnmatched++;
+      continue;
+    }
+
+    const { evaluation } = evaluationResult.value;
+    const normalizedTitle = normalizeMovieTitleForSearch(rawTitle);
+
+    console.info(
+      `[Resolver] [${index + 1}/${evaluationResults.length}] Processing TMDB result for: "${rawTitle}"`,
+    );
 
     if (evaluation.acceptedCandidate) {
       const match = evaluation.acceptedCandidate;
+
+      // ─── Phase 3c: Re-check against database with TMDB ID ─────────────────
+
+      let dbMatchByTmbd = dbMovieByTmdbId.get(match.tmdbMovieId);
+
+      if (dbMatchByTmbd) {
+        // TMDB ID already exists in database
+        const resolved: ResolvedMovie = {
+          canonicalKey: dbMatchByTmbd.canonicalKey,
+          name: dbMatchByTmbd.name,
+          normalizedTitle: dbMatchByTmbd.normalizedTitle,
+          tmdbMovieId: dbMatchByTmbd.tmdbMovieId,
+          coverUrl: dbMatchByTmbd.coverUrl,
+          coverStorageKey: dbMatchByTmbd.coverStorageKey,
+          coverConfidence: dbMatchByTmbd.coverConfidence,
+        };
+
+        titleResolutionMap.set(rawTitle, resolved);
+        canonicalMovieMap.set(dbMatchByTmbd.canonicalKey, resolved);
+
+        console.info(
+          `[Resolver]   → TMDB ID found in DB (better match): "${dbMatchByTmbd.name}"`,
+        );
+        tmdbMatched++;
+        continue;
+      }
+
+      // New movie with TMDB match - fetch and upload
       const canonicalKey = `tmdb:${match.tmdbMovieId}`;
 
-      // Check if we already have this TMDB movie
+      // Check if we already processed this TMDB ID in this run
       const existing = canonicalMovieMap.get(canonicalKey);
       if (existing) {
         titleResolutionMap.set(rawTitle, existing);
@@ -753,7 +904,7 @@ export const resolveAndPersistCatalog = async (
         }
       }
 
-      resolved = {
+      const resolved: ResolvedMovie = {
         canonicalKey,
         name: match.title,
         normalizedTitle,
@@ -763,47 +914,63 @@ export const resolveAndPersistCatalog = async (
         coverConfidence: match.confidence,
       };
 
+      titleResolutionMap.set(rawTitle, resolved);
+      canonicalMovieMap.set(canonicalKey, resolved);
+
       tmdbMatched++;
+      newMoviesCreated++;
       console.info(
-        `[Resolver]   → TMDB matched: "${match.title}" (${match.tmdbMovieId}) conf=${match.confidence.toFixed(3)}`,
+        `[Resolver]   → TMDB matched (new): "${match.title}" (${match.tmdbMovieId}) conf=${match.confidence.toFixed(3)}`,
       );
     } else {
-      const canonicalKey = `title:${comparisonKey}`;
+      // No TMDB match found
+      const existingResolution = titleResolutionMap.get(rawTitle);
 
-      const existing = canonicalMovieMap.get(canonicalKey);
-      if (existing) {
-        titleResolutionMap.set(rawTitle, existing);
-        tmdbUnmatched++;
-        continue;
+      if (existingResolution && existingResolution.tmdbMovieId === null) {
+        // Already resolved with fallback
+        console.info(
+          `[Resolver]   → No TMDB match, using fallback: "${existingResolution.name}"`,
+        );
+      } else {
+        // Create fallback resolution
+        const normalizedForFallback = normalizeMovieTitleForSearch(rawTitle);
+        const comparisonKey = normalizeForComparison(normalizedForFallback);
+        const canonicalKey = `title:${comparisonKey}`;
+
+        const existing = canonicalMovieMap.get(canonicalKey);
+        if (existing) {
+          titleResolutionMap.set(rawTitle, existing);
+        } else {
+          const resolved: ResolvedMovie = {
+            canonicalKey,
+            name: normalizedForFallback || rawTitle,
+            normalizedTitle: normalizedForFallback || rawTitle,
+            tmdbMovieId: null,
+            coverUrl: null,
+            coverStorageKey: null,
+            coverConfidence: null,
+          };
+
+          titleResolutionMap.set(rawTitle, resolved);
+          canonicalMovieMap.set(canonicalKey, resolved);
+        }
+
+        console.info(
+          `[Resolver]   → No TMDB match, using fallback: "${titleResolutionMap.get(rawTitle)?.name}"`,
+        );
       }
 
-      resolved = {
-        canonicalKey,
-        name: normalizedTitle || rawTitle,
-        normalizedTitle: normalizedTitle || rawTitle,
-        tmdbMovieId: null,
-        coverUrl: null,
-        coverStorageKey: null,
-        coverConfidence: null,
-      };
-
       tmdbUnmatched++;
-      console.info(
-        `[Resolver]   → No TMDB match, using fallback: "${resolved.name}"`,
-      );
     }
-
-    titleResolutionMap.set(rawTitle, resolved);
-    canonicalMovieMap.set(resolved.canonicalKey, resolved);
   }
 
   console.info(
-    `[Resolver] Resolution complete: ${canonicalMovieMap.size} canonical movies (${tmdbMatched} TMDB matched, ${tmdbUnmatched} fallback)`,
+    `[Resolver] TMDB resolution complete: ${newMoviesCreated} new movies, ${tmdbMatched} TMDB matched, ${tmdbUnmatched} fallback)`,
   );
 
-  // ─── Persist to database ────────────────────────────────────────────────
+  // ─── Phase 4: Persist to database ────────────────────────────────────────
 
-  console.info(`[Resolver] Writing to database...`);
+  console.info(`[Resolver] Phase 4: Writing to database...`);
 
   // Upsert all canonical movies
   const movieIdByCanonicalKey = new Map<string, number>();
