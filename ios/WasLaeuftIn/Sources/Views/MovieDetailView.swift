@@ -28,6 +28,11 @@ struct MovieDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     posterView
 
+                    Text(movie.name)
+                        .font(.title.bold())
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     Text("\(movie.showingsCount) Vorstellungen in \(movie.cinemas.count) Kinos")
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.7))
@@ -40,8 +45,7 @@ struct MovieDetailView: View {
                 .padding(16)
             }
         }
-        .navigationTitle(movie.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 
@@ -49,7 +53,7 @@ struct MovieDetailView: View {
         HStack {
             Spacer()
 
-            AsyncImage(url: URL(string: movie.coverUrl ?? "")) { image in
+            CachedAsyncImage(url: URL(string: movie.coverUrl ?? "")) { image in
                 image
                     .resizable()
                     .scaledToFit()

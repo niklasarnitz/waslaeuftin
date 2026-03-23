@@ -23,6 +23,7 @@
 		CE800CC903DB7649DC263D2C /* MovieDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6115391BE0602167A048FF62 /* MovieDetailView.swift */; };
 		D57914A5068053F84203612A /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE24EC61BC5A1EF4330097E /* MainTabView.swift */; };
 		E0980FC5FA84F6B71D76C94C /* AppGradient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 541DF739B52B096C949759B2 /* AppGradient.swift */; };
+		F1A2B3C4D5E6F7081234ABCD /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F7081234ABCE /* CachedAsyncImage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		C4A2099D001F5B356D3D55A4 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		C66AEBF4E7497B829B31EECA /* MovieCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCardView.swift; sourceTree = "<group>"; };
 		E651E7DD2E525934A682E22A /* NearbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyView.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E6F7081234ABCE /* CachedAsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -50,6 +52,7 @@
 			isa = PBXGroup;
 			children = (
 				541DF739B52B096C949759B2 /* AppGradient.swift */,
+				F1A2B3C4D5E6F7081234ABCE /* CachedAsyncImage.swift */,
 				B433F56F0CEB824065E88EF9 /* CinemaCardView.swift */,
 				75CEC9A252E32FDE4FE2EB81 /* CinemaDetailView.swift */,
 				2CE24EC61BC5A1EF4330097E /* MainTabView.swift */,
@@ -185,6 +188,7 @@
 			files = (
 				2F03C0F923243620A740BECE /* APIEnvironment.swift in Sources */,
 				E0980FC5FA84F6B71D76C94C /* AppGradient.swift in Sources */,
+				F1A2B3C4D5E6F7081234ABCD /* CachedAsyncImage.swift in Sources */,
 				82A7D477FC212F227E6536AF /* CinemaCardView.swift in Sources */,
 				BE5176510C406008787E8FF8 /* CinemaDetailView.swift in Sources */,
 				1A7F59A25BAF78BCA95D89C0 /* ContentView.swift in Sources */,

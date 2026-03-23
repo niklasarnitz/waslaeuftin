@@ -1,138 +1,82 @@
 "use client";
 
-import { MovieCover } from "@waslaeuftin/components/MovieCover";
-import { ShowingTags } from "@waslaeuftin/components/ShowingTags";
+import { Film } from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { type api } from "@waslaeuftin/trpc/server";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@waslaeuftin/components/ui/accordion";
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/movieTitleNormalizer";
-import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import Link from "next/link";
-import { Clock3 } from "lucide-react";
-import moment from "moment-timezone";
-import { useMemo } from "react";
+
+import { CinemaFilterBar } from "./movie-listing/CinemaFilterBar";
+import { MovieCard } from "./movie-listing/MovieCard";
+import { groupMoviesByTitle } from "./movie-listing/groupMoviesByTitle";
+import type { ListingCinema } from "./movie-listing/types";
 
 type CityMoviesAndShowings = NonNullable<
   Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>
 >;
 
-type CityCinema = CityMoviesAndShowings["cinemas"][number];
-type CinemaMovie = CityCinema["movies"][number];
-type MovieShowing = CinemaMovie["showings"][number];
-
-type ShowingWithTags = MovieShowing & {
-  tags: string[];
-  rawMovieName: string;
-};
-
 export const MoviesByCinemaList = ({
   city,
   date,
 }: {
-  city: Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>;
+  city: CityMoviesAndShowings;
   date?: string;
 }) => {
-  const groupedMovies = useMemo(() => {
-    if (!city) {
+  const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
+
+  const normalizedCinemas: (ListingCinema & {
+    movies: CityMoviesAndShowings["cinemas"][number]["movies"];
+  })[] = useMemo(() => {
+    return city.cinemas.map((cinema) => ({
+      id: cinema.id,
+      slug: cinema.slug,
+      name: cinema.name,
+      city: { slug: city.slug, name: city.name },
+      distanceKm: null,
+      href: `/cinema/${cinema.slug}${date ? `?date=${date}` : ""}`,
+      movies: cinema.movies,
+    }));
+  }, [city, date]);
+
+  const effectiveSelectedCinemaSlugs = useMemo(() => {
+    if (selectedCinemaSlugs.length === 0) {
       return [];
     }
 
-    const groupedMoviesMap = new Map<
-      string,
-      {
-        name: string;
-        coverUrl: string | null;
-        cinemas: Array<{
-          cinema: CityCinema;
-          showings: ShowingWithTags[];
-          nextShowing: MovieShowing | undefined;
-        }>;
-        showingsCount: number;
-        nextShowing: MovieShowing | undefined;
+    const availableSlugs = new Set(normalizedCinemas.map((c) => c.slug));
+    return selectedCinemaSlugs.filter((slug) => availableSlugs.has(slug));
+  }, [normalizedCinemas, selectedCinemaSlugs]);
+
+  const filteredCinemas = useMemo(() => {
+    if (effectiveSelectedCinemaSlugs.length === 0) {
+      return normalizedCinemas;
+    }
+
+    const selected = new Set(effectiveSelectedCinemaSlugs);
+    return normalizedCinemas.filter((cinema) => selected.has(cinema.slug));
+  }, [effectiveSelectedCinemaSlugs, normalizedCinemas]);
+
+  const isCinemaFilterActive = effectiveSelectedCinemaSlugs.length > 0;
+
+  const toggleCinemaFilter = (cinemaSlug: string) => {
+    setSelectedCinemaSlugs((prev) => {
+      if (prev.includes(cinemaSlug)) {
+        return prev.filter((slug) => slug !== cinemaSlug);
       }
-    >();
 
-    const now = new Date();
-
-    city.cinemas.forEach((cinema) => {
-      cinema.movies.forEach((movie) => {
-        const showingsWithTags: ShowingWithTags[] = movie.showings
-          .filter((showing) => showing.dateTime.getTime() > now.getTime())
-          .map((showing) => {
-            const { tags } = normalizeMovieTitle(showing.rawMovieName);
-            return { ...showing, tags, rawMovieName: showing.rawMovieName };
-          });
-
-        if (showingsWithTags.length === 0) {
-          return;
-        }
-
-        const nextShowing = showingsWithTags[0];
-        const existingMovie = groupedMoviesMap.get(movie.name);
-
-        if (!existingMovie) {
-          groupedMoviesMap.set(movie.name, {
-            name: movie.name,
-            coverUrl: movie.coverUrl,
-            cinemas: [
-              {
-                cinema,
-                showings: showingsWithTags,
-                nextShowing,
-              },
-            ],
-            showingsCount: showingsWithTags.length,
-            nextShowing,
-          });
-
-          return;
-        }
-
-        existingMovie.cinemas.push({
-          cinema,
-          showings: showingsWithTags,
-          nextShowing,
-        });
-        existingMovie.showingsCount += showingsWithTags.length;
-
-        if (!existingMovie.coverUrl && movie.coverUrl) {
-          existingMovie.coverUrl = movie.coverUrl;
-        }
-
-        if (
-          nextShowing &&
-          (!existingMovie.nextShowing ||
-            nextShowing.dateTime.getTime() <
-              existingMovie.nextShowing.dateTime.getTime())
-        ) {
-          existingMovie.nextShowing = nextShowing;
-        }
-      });
+      return [...prev, cinemaSlug];
     });
+  };
 
-    return Array.from(groupedMoviesMap.values()).sort((left, right) =>
-      left.name.localeCompare(right.name),
-    );
-  }, [city]);
-
-  const [expandedMovies, setExpandedMovies] = useQueryState(
-    "expandedMovies",
-    {
-      ...parseAsArrayOf(parseAsString).withDefault(
-        groupedMovies.map((movie) => movie.name),
-      ),
-    },
+  const groupedMovies = useMemo(
+    () => groupMoviesByTitle(filteredCinemas, { sortBy: "popularity" }),
+    [filteredCinemas],
   );
 
-  if (!city) {
-    return null;
-  }
+  const totalShowings = useMemo(() => {
+    return groupedMovies.reduce((total, movie) => total + movie.showingsCount, 0);
+  }, [groupedMovies]);
 
-  if (groupedMovies.length === 0) {
+  if (groupedMovies.length === 0 && !isCinemaFilterActive) {
     return (
       <div className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
         Für den ausgewählten Tag wurden keine Vorstellungen gefunden.
@@ -141,98 +85,51 @@ export const MoviesByCinemaList = ({
   }
 
   return (
-    <Accordion
-      type="multiple"
-      value={expandedMovies ?? []}
-      onValueChange={setExpandedMovies}
-      className="space-y-3"
-    >
-      {groupedMovies.map((movie) => {
-        const sortedCinemas = [...movie.cinemas].sort((left, right) => {
-          const leftTime = left.nextShowing?.dateTime.getTime() ?? Number.POSITIVE_INFINITY;
-          const rightTime = right.nextShowing?.dateTime.getTime() ?? Number.POSITIVE_INFINITY;
+    <div>
+      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
+        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+          {groupedMovies.length} Filme
+        </span>
+        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+          {filteredCinemas.length}{" "}
+          {filteredCinemas.length === 1 ? "Kino" : "Kinos"}{" "}
+          {isCinemaFilterActive ? "ausgewählt" : "verfügbar"}
+        </span>
+        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+          {totalShowings} Vorstellungen heute
+        </span>
+      </div>
 
-          if (leftTime === rightTime) {
-            return left.cinema.name.localeCompare(right.cinema.name);
-          }
+      <div className="mt-2.5 sm:mt-3">
+        <CinemaFilterBar
+          options={normalizedCinemas.map(({ id, slug, name }) => ({ id, slug, name }))}
+          selectedSlugs={effectiveSelectedCinemaSlugs}
+          onToggle={toggleCinemaFilter}
+          onClear={() => setSelectedCinemaSlugs([])}
+        />
+      </div>
 
-          return leftTime - rightTime;
-        });
+      <div className="mt-4">
+        <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+          <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
+            <Film className="h-4 w-4 text-primary" />
+            Filme in {city.name}
+          </h3>
+          <span className="text-xs text-muted-foreground">Sortiert nach Beliebtheit</span>
+        </div>
 
-        return (
-          <AccordionItem
-            key={movie.name}
-            value={movie.name}
-            className="rounded-xl border border-border/80 bg-card px-4"
-          >
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex w-full flex-col items-start gap-2 py-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                <div className="flex items-start gap-3">
-                  <MovieCover
-                    title={movie.name}
-                    coverUrl={movie.coverUrl}
-                    className="w-14 shrink-0"
-                  />
-                  <h2 className="text-left text-xl font-bold tracking-tight sm:text-2xl">
-                    {movie.name}
-                  </h2>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:justify-end">
-                  <span className="rounded-full bg-primary/10 px-2 py-1 font-semibold text-primary">
-                    {movie.cinemas.length} {movie.cinemas.length === 1 ? "Kino" : "Kinos"}
-                  </span>
-                  <span className="rounded-full bg-muted px-2 py-1 font-medium">
-                    {movie.showingsCount} Vorstellungen
-                  </span>
-                  {movie.nextShowing && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border/80 px-2 py-1 font-medium">
-                      <Clock3 className="h-3.5 w-3.5" />
-                      Nächste: {moment(movie.nextShowing.dateTime).format("HH:mm")}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-y-4">
-              {sortedCinemas.map((cinemaEntry) => (
-                <section
-                  key={`${movie.name}-${cinemaEntry.cinema.slug}`}
-                  className="rounded-xl border border-border/70 bg-card/60 p-4"
-                >
-                  <div className="mb-4 flex items-center justify-between gap-2">
-                    <Link
-                      href={`/cinema/${cinemaEntry.cinema.slug}${date ? `?date=${date}` : ""}`}
-                      className="text-lg font-semibold tracking-tight hover:underline"
-                    >
-                      {cinemaEntry.cinema.name}
-                    </Link>
-                    <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {cinemaEntry.showings.length} Termine
-                    </span>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-x-visible">
-                    {cinemaEntry.showings.map((showing) => (
-                      <Link
-                        key={`${movie.name}-${cinemaEntry.cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}`}
-                        href={showing.bookingUrl ?? "#"}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
-                      >
-                        <Clock3 className="h-3.5 w-3.5" />
-                        <span>{moment(showing.dateTime).format("HH:mm")}</span>
-                        <ShowingTags
-                          showingId={showing.id}
-                          titleTags={showing.tags}
-                          additionalData={showing.showingAdditionalData}
-                        />
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        );
-      })}
-    </Accordion>
+        <div className="space-y-3">
+          {groupedMovies.map((movie) => (
+            <MovieCard key={movie.name} movie={movie} />
+          ))}
+        </div>
+
+        {groupedMovies.length === 0 && (
+          <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+            In den ausgewählten Kinos sind aktuell keine Filme mit restlichen Vorstellungen verfügbar.
+          </p>
+        )}
+      </div>
+    </div>
   );
 };

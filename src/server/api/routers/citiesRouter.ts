@@ -115,6 +115,11 @@ export const citiesRouter = createTRPCRouter({
                       id: true,
                       name: true,
                       coverUrl: true,
+                      tmdbMetadata: {
+                        select: {
+                          popularity: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -137,6 +142,7 @@ export const citiesRouter = createTRPCRouter({
             {
               name: string;
               coverUrl: string | null;
+              tmdbMetadata: { popularity: number | null } | null;
               showings: typeof cinema.showings;
             }
           >();
@@ -149,6 +155,7 @@ export const citiesRouter = createTRPCRouter({
               movieMap.set(showing.movie.id, {
                 name: showing.movie.name,
                 coverUrl: showing.movie.coverUrl,
+                tmdbMetadata: showing.movie.tmdbMetadata,
                 showings: [showing],
               });
             }
@@ -198,6 +205,11 @@ export const citiesRouter = createTRPCRouter({
                       id: true,
                       name: true,
                       coverUrl: true,
+                      tmdbMetadata: {
+                        select: {
+                          popularity: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -215,6 +227,7 @@ export const citiesRouter = createTRPCRouter({
             {
               name: string;
               coverUrl: string | null;
+              tmdbMetadata: { popularity: number | null } | null;
               showings: typeof cinema.showings;
             }
           >();
@@ -227,6 +240,7 @@ export const citiesRouter = createTRPCRouter({
               movieMap.set(showing.movie.id, {
                 name: showing.movie.name,
                 coverUrl: showing.movie.coverUrl,
+                tmdbMetadata: showing.movie.tmdbMetadata,
                 showings: [showing],
               });
             }

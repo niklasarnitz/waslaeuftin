@@ -7,6 +7,14 @@ struct WasLaeuftInApp: App {
     @AppStorage("apiEnvironment") private var apiEnvironmentRawValue = APIEnvironment.production.rawValue
     @AppStorage("customApiBaseURL") private var customApiBaseURL = ""
 
+    init() {
+        URLCache.shared = URLCache(
+            memoryCapacity: 100 * 1024 * 1024,
+            diskCapacity: 500 * 1024 * 1024,
+            diskPath: "waslaeuftin-url-cache"
+        )
+    }
+
     private var apiEnvironment: APIEnvironment {
         APIEnvironment(rawValue: apiEnvironmentRawValue) ?? .production
     }
