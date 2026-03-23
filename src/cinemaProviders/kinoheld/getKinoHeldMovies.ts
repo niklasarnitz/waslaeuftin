@@ -1,8 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
-import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
-import { type Prisma, type KinoHeldCinemasMetadata } from "@prisma/client";
-import { type db } from "@waslaeuftin/server/db";
+import { type KinoHeldCinemasMetadata } from "@prisma/client";
 import { FETCH_SHOW_GROUPS_FOR_CINEMA } from "./kinoHeld_FETCH_SHOW_GROUPS_FOR_CINEMA";
 import { type ShowGroup } from "./ShowGroup";
 import { type FetchShowGroupsResponse } from "./FetchShowGroupsResponse";
@@ -56,9 +54,7 @@ export async function getKinoHeldMovies(
           ...(showing?.flags?.map((flag) => flag?.name ?? "") ?? []),
           showing?.auditorium?.name ?? "",
         ]),
-      )
-        .filter((item) => item !== "")
-        .join(UIConstants.bullet);
+      ).filter((item) => item !== "");
 
       return {
         dateTime: moment(showing?.beginning).toDate(),
@@ -85,6 +81,6 @@ export async function getKinoHeldMovies(
         cinemaId,
         movieName: movie.name,
       })),
-    ) satisfies Prisma.Args<typeof db.showing, "createMany">["data"],
+    ),
   };
 }

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from "@waslaeuftin/components/ui/card";
 import { MovieCover } from "@waslaeuftin/components/MovieCover";
 import { ShowingTags } from "@waslaeuftin/components/ShowingTags";
+import { normalizeMovieTitle } from "@waslaeuftin/helpers/movieTitleNormalizer";
 import { type api } from "@waslaeuftin/trpc/server";
 import { Ticket } from "lucide-react";
 import moment from "moment-timezone";
@@ -8,8 +9,8 @@ import Link from "next/link";
 
 export type CinemaMoviesProps = {
   cinema: NonNullable<
-    Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>
-  >["cinemas"][number];
+    Awaited<ReturnType<typeof api.cinemas.getCinemaBySlug>>
+  >;
 };
 
 export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
@@ -47,6 +48,8 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {movie.showings.map((showing) => {
+                  const { tags } = normalizeMovieTitle(showing.rawMovieName);
+
                   return (
                     <Link
                       href={showing.bookingUrl ?? "#"}
@@ -62,11 +65,11 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
                             {moment(showing.dateTime).format("dddd, DD.MM.YYYY")}
                           </div>
                         </CardHeader>
-                        {showing.showingAdditionalData && (
+                        {(showing.showingAdditionalData.length > 0 || tags.length > 0) && (
                           <CardContent className="pt-0">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex gap-1 overflow-x-auto sm:flex-wrap sm:overflow-x-visible">
                               <ShowingTags
-                                titleTags={[]}
+                                titleTags={tags}
                                 additionalData={showing.showingAdditionalData}
                               />
                             </div>

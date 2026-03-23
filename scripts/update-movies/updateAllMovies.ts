@@ -1,211 +1,137 @@
-import {
-  getMovieIdentitySnapshot,
-  syncTmdbMovieCoversForNewMovies,
-} from "./syncTmdbMovieCovers";
 import { db } from "@waslaeuftin/server/db";
+import {
+    type ProviderCatalog,
+    resolveAndPersistCatalog,
+} from "./resolveMovieTitles";
+import { fetchCineStarCatalog } from "./fetchCineStarCatalog";
+import { fetchCineplexCatalog } from "./fetchCineplexCatalog";
+import { fetchComtradaCineOrderCatalog } from "./fetchComtradaCineOrderCatalog";
+import { fetchKinoHeldCatalog } from "./fetchKinoHeldCatalog";
+import { fetchKinoTicketsExpressCatalog } from "./fetchKinoTicketsExpressCatalog";
+import { fetchPremiumKinoCatalog } from "./fetchPremiumKinoCatalog";
 
-type UpdateScript = {
-  name: string;
-  path: string;
+type ProviderFetcher = {
+    name: string;
+    fetch: () => Promise<ProviderCatalog>;
 };
-
-type ScriptResult = {
-  exitCode: number;
-  output: string;
-};
-
-const decoder = new TextDecoder();
-
-const streamToConsoleAndCapture = async (
-  stream: ReadableStream<Uint8Array>,
-  write: (text: string) => void,
-): Promise<string> => {
-  const reader = stream.getReader();
-  let capturedOutput = "";
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) {
-        break;
-      }
-
-      const chunk = decoder.decode(value, { stream: true });
-      capturedOutput += chunk;
-      write(chunk);
-    }
-
-    const tail = decoder.decode();
-    if (tail.length > 0) {
-      capturedOutput += tail;
-      write(tail);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-
-  return capturedOutput;
-};
-
-const updateScripts: UpdateScript[] = [
-  {
-    name: "CineStar",
-    path: "scripts/update-movies/updateCineStarMovies.ts",
-  },
-  {
-    name: "Cineplex",
-    path: "scripts/update-movies/updateCineplexMovies.ts",
-  },
-  {
-    name: "Comtrada CineOrder",
-    path: "scripts/update-movies/updateComtradaCineOrderMovies.ts",
-  },
-  {
-    name: "KinoHeld",
-    path: "scripts/update-movies/updateKinoHeldMovies.ts",
-  },
-  {
-    name: "KinoTicketsExpress",
-    path: "scripts/update-movies/updateKinoTicketsExpress.ts",
-  },
-  {
-    name: "PremiumKino",
-    path: "scripts/update-movies/updatePremiumKinoMovies.ts",
-  },
-];
 
 const pushoverToken =
-  process.env.PUSHOVER_TOKEN ?? process.env.PUSHOVER_APP_TOKEN;
+    process.env.PUSHOVER_TOKEN ?? process.env.PUSHOVER_APP_TOKEN;
 const pushoverUser = process.env.PUSHOVER_USER ?? process.env.PUSHOVER_USER_KEY;
 
 const MAX_PUSHOVER_MESSAGE_LENGTH = 1_000;
 const MAX_PUSHOVER_TITLE_LENGTH = 250;
 
 const formatOutputForPushover = (output: string) => {
-  const normalizedOutput = output.replace(/\r/g, "").trim();
+    const normalizedOutput = output.replace(/\r/g, "").trim();
 
-  if (normalizedOutput.length === 0) {
-    return "No script output available.";
-  }
+    if (normalizedOutput.length === 0) {
+        return "No script output available.";
+    }
 
-  if (normalizedOutput.length <= MAX_PUSHOVER_MESSAGE_LENGTH) {
-    return normalizedOutput;
-  }
+    if (normalizedOutput.length <= MAX_PUSHOVER_MESSAGE_LENGTH) {
+        return normalizedOutput;
+    }
 
-  const maxTailLength = MAX_PUSHOVER_MESSAGE_LENGTH - 40;
+    const maxTailLength = MAX_PUSHOVER_MESSAGE_LENGTH - 40;
 
-  return `...\n${normalizedOutput.slice(-maxTailLength)}`;
+    return `...\n${normalizedOutput.slice(-maxTailLength)}`;
 };
 
 const sendPushoverNotification = async (title: string, message: string) => {
-  if (!pushoverToken || !pushoverUser) {
-    console.warn(
-      "Pushover credentials are missing. Set PUSHOVER_TOKEN and PUSHOVER_USER to enable notifications.",
-    );
-    return;
-  }
+    if (!pushoverToken || !pushoverUser) {
+        console.warn(
+            "Pushover credentials are missing. Set PUSHOVER_TOKEN and PUSHOVER_USER to enable notifications.",
+        );
+        return;
+    }
 
-  const body = new URLSearchParams({
-    token: pushoverToken,
-    user: pushoverUser,
-    title: title.slice(0, MAX_PUSHOVER_TITLE_LENGTH),
-    message,
-  });
+    const body = new URLSearchParams({
+        token: pushoverToken,
+        user: pushoverUser,
+        title: title.slice(0, MAX_PUSHOVER_TITLE_LENGTH),
+        message,
+    });
 
-  const response = await fetch("https://api.pushover.net/1/messages.json", {
-    method: "POST",
-    body,
-  });
+    const response = await fetch("https://api.pushover.net/1/messages.json", {
+        method: "POST",
+        body,
+    });
 
-  if (!response.ok) {
-    const errorResponse = await response.text();
-    console.error("Failed to send Pushover notification:", errorResponse);
-  }
+    if (!response.ok) {
+        const errorResponse = await response.text();
+        console.error("Failed to send Pushover notification:", errorResponse);
+    }
 };
 
-const runUpdateScript = async (script: UpdateScript): Promise<ScriptResult> => {
-  const processHandle = Bun.spawn(["bun", "run", script.path], {
-    stdout: "pipe",
-    stderr: "pipe",
-  });
+const providerFetchers: ProviderFetcher[] = [
+    { name: "CineStar", fetch: fetchCineStarCatalog },
+    { name: "Cineplex", fetch: fetchCineplexCatalog },
+    { name: "Comtrada CineOrder", fetch: fetchComtradaCineOrderCatalog },
+    { name: "KinoHeld", fetch: fetchKinoHeldCatalog },
+    { name: "KinoTicketsExpress", fetch: fetchKinoTicketsExpressCatalog },
+    { name: "PremiumKino", fetch: fetchPremiumKinoCatalog },
+];
 
-  const [stdout, stderr] = await Promise.all([
-    streamToConsoleAndCapture(processHandle.stdout, (chunk) => {
-      process.stdout.write(chunk);
-    }),
-    streamToConsoleAndCapture(processHandle.stderr, (chunk) => {
-      process.stderr.write(chunk);
-    }),
-  ]);
-
-  const exitCode = await processHandle.exited;
-
-  return {
-    exitCode,
-    output: [stdout, stderr].filter(Boolean).join("\n").trim(),
-  };
-};
-
-const failedScripts: string[] = [];
-const totalScripts = updateScripts.length;
-const existingMovieKeys = await getMovieIdentitySnapshot();
+const failedProviders: string[] = [];
+const catalogs: ProviderCatalog[] = [];
 
 try {
-  for (const [index, script] of updateScripts.entries()) {
+    // Phase 1: Fetch all provider data (no DB writes yet)
+    for (const [index, provider] of providerFetchers.entries()) {
+        console.info(
+            `[UpdateAll] Fetching ${provider.name} (${index + 1}/${providerFetchers.length})`,
+        );
+
+        try {
+            const catalog = await provider.fetch();
+            catalogs.push(catalog);
+            console.info(
+                `[UpdateAll] ${provider.name} done: ${catalog.movies.length} movies, ${catalog.showings.length} showings`,
+            );
+        } catch (error) {
+            failedProviders.push(provider.name);
+
+            const errorOutput =
+                error instanceof Error ? (error.stack ?? error.message) : String(error);
+            const message = [
+                `Provider fetch failed: ${provider.name}`,
+                "Output:",
+                formatOutputForPushover(errorOutput),
+            ].join("\n");
+
+            await sendPushoverNotification("Movie Update Failed", message);
+            console.error(message);
+        }
+    }
+
+    if (failedProviders.length > 0) {
+        console.warn(
+            `[UpdateAll] ${failedProviders.length} providers failed: ${failedProviders.join(", ")}. Continuing with successful providers.`,
+        );
+    }
+
+    if (catalogs.length === 0) {
+        throw new Error("All providers failed. No data to process.");
+    }
+
+    // Phase 2: Resolve titles via TMDB and persist everything
+    console.info(`[UpdateAll] Starting title resolution and DB write...`);
+    const result = await resolveAndPersistCatalog(catalogs);
+
     console.info(
-      `[UpdateAll] Starting ${script.name} (${index + 1}/${totalScripts}) (${script.path})`,
+        `[UpdateAll] Done: ${result.canonicalMovies} movies, ${result.totalShowings} showings, ` +
+        `${result.tmdbMatched} TMDB matched, ${result.tmdbUnmatched} unmatched, ` +
+        `${result.staleMoviesDeleted} stale movies deleted`,
     );
 
-    try {
-      const result = await runUpdateScript(script);
-
-      if (result.exitCode === 0) {
-        console.info(
-          `[UpdateAll] Finished ${script.name} successfully (${index + 1}/${totalScripts})`,
-        );
-        continue;
-      }
-
-      failedScripts.push(script.name);
-
-      const message = [
-        `Script failed: ${script.path}`,
-        `Exit code: ${result.exitCode}`,
-        "Output:",
-        formatOutputForPushover(result.output),
-      ].join("\n");
-
-      await sendPushoverNotification("Movie Update Failed", message);
-      console.error(message);
-    } catch (error) {
-      failedScripts.push(script.name);
-
-      const errorOutput =
-        error instanceof Error ? (error.stack ?? error.message) : String(error);
-      const message = [
-        `Script crashed: ${script.path}`,
-        "Output:",
-        formatOutputForPushover(errorOutput),
-      ].join("\n");
-
-      await sendPushoverNotification("Movie Update Failed", message);
-      console.error(message);
+    if (failedProviders.length > 0) {
+        const failureMessage = `Movie updates finished with provider failures: ${failedProviders.join(", ")}`;
+        console.error(failureMessage);
+        throw new Error(failureMessage);
     }
-  }
 
-  if (failedScripts.length > 0) {
-    const failureMessage = `Movie updates finished with failures: ${failedScripts.join(", ")}`;
-    console.error(failureMessage);
-    throw new Error(failureMessage);
-  }
-
-  const coverSyncResult = await syncTmdbMovieCoversForNewMovies(existingMovieKeys);
-  console.info(
-    `[UpdateAll] TMDB cover sync finished: updated=${coverSyncResult.updatedMovies}, considered=${coverSyncResult.consideredMovies}, skippedExistingCover=${coverSyncResult.skippedExistingCover}, lowConfidence=${coverSyncResult.skippedLowConfidence}, noPoster=${coverSyncResult.skippedNoPoster}, noMatch=${coverSyncResult.skippedNoTmdbMatch}`,
-  );
-
-  console.info("Movie updates finished successfully.");
+    console.info("Movie updates finished successfully.");
 } finally {
-  await db.$disconnect();
+    await db.$disconnect();
 }

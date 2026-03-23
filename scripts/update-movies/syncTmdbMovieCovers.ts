@@ -4,11 +4,10 @@ import { Client as MinioClient } from "minio";
 
 import { env } from "@waslaeuftin/env";
 import { db } from "@waslaeuftin/server/db";
-
-type MovieIdentity = {
-  cinemaId: number;
-  name: string;
-};
+import {
+  normalizeForComparison,
+  normalizeMovieTitleForSearch,
+} from "./resolveMovieTitles";
 
 type TmdbMovieSearchResponse = {
   results: TmdbMovieSearchResult[];
@@ -18,9 +17,41 @@ type TmdbMovieSearchResult = {
   id: number;
   title: string;
   original_title: string;
+  original_language: string;
+  overview: string | null;
   poster_path: string | null;
+  backdrop_path: string | null;
   release_date: string | null;
   popularity: number;
+  vote_average: number;
+  vote_count: number;
+  adult: boolean;
+  video: boolean;
+  genre_ids: number[];
+};
+
+type TmdbMovieDetailsResponse = {
+  id: number;
+  title: string;
+  original_title: string;
+  original_language: string;
+  overview: string | null;
+  tagline: string | null;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string | null;
+  runtime: number | null;
+  budget: number;
+  revenue: number;
+  popularity: number;
+  vote_average: number;
+  vote_count: number;
+  status: string;
+  adult: boolean;
+  video: boolean;
+  homepage: string | null;
+  imdb_id: string | null;
+  genres: Array<{ id: number; name: string }>;
 };
 
 type TmdbScoredMatch = {
@@ -56,82 +87,8 @@ type SyncMovieCoversResult = {
   skippedLowConfidence: number;
 };
 
-const MOVIE_KEY_SEPARATOR = "::";
-
 const sanitizeWhitespace = (value: string) => {
   return value.replace(/\s+/g, " ").trim();
-};
-
-const normalizeForComparison = (value: string) => {
-  return sanitizeWhitespace(
-    value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/&/g, " und ")
-      .replace(/[^a-z0-9\s]/g, " "),
-  );
-};
-
-const shouldDropBracketSection = (section: string) => {
-  const normalized = normalizeForComparison(section);
-
-  if (normalized.length === 0) {
-    return true;
-  }
-
-  const metadataMarkers = [
-    "ov",
-    "omu",
-    "omeu",
-    "2d",
-    "3d",
-    "imax",
-    "dolby",
-    "atmos",
-    "preview",
-    "sneak",
-    "fsk",
-    "dt fassung",
-    "deutsche fassung",
-    "original version",
-    "originalfassung",
-    "untertitel",
-    "english",
-    "70mm",
-    "35mm",
-    "4k",
-    "hfr",
-    "screenx",
-    "4dx",
-    "laser",
-  ];
-
-  return metadataMarkers.some((marker) => normalized.includes(marker));
-};
-
-const normalizeMovieTitleForSearch = (title: string) => {
-  const withoutMetadataBrackets = title.replace(/\(([^)]*)\)/g, (full, section) => {
-    if (shouldDropBracketSection(section)) {
-      return " ";
-    }
-
-    return full;
-  });
-
-  const withoutCommonTags = withoutMetadataBrackets.replace(
-    /\b(ov|omu|omeu|2d|3d|imax|dolby\s*atmos|dolby|preview|sneak|english|dt\.?\s*fassung|deutsche\s*fassung|original\s*version|70mm|35mm|4k|hfr|screenx|4dx|laser)\b/gi,
-    " ",
-  );
-
-  const normalized = sanitizeWhitespace(
-    withoutCommonTags
-      .replace(/[–—]/g, "-")
-      .replace(/[|]/g, " ")
-      .replace(/\s+-\s+/g, " - "),
-  );
-
-  return normalized;
 };
 
 const getBigramSet = (value: string) => {
@@ -201,12 +158,15 @@ const extractYear = (value: string) => {
   return yearMatch ? Number(yearMatch[0]) : null;
 };
 
-const buildMovieIdentityKey = (movie: MovieIdentity) => {
-  return `${movie.cinemaId}${MOVIE_KEY_SEPARATOR}${movie.name}`;
-};
-
-const buildTmdbSearchQueries = (originalTitle: string, normalizedTitle: string) => {
-  const queries = [normalizedTitle, originalTitle, normalizeMovieTitleForSearch(originalTitle)];
+const buildTmdbSearchQueries = (
+  originalTitle: string,
+  normalizedTitle: string,
+) => {
+  const queries = [
+    normalizedTitle,
+    originalTitle,
+    normalizeMovieTitleForSearch(originalTitle),
+  ];
 
   const colonIndex = normalizedTitle.indexOf(":");
   if (colonIndex > 0) {
@@ -232,6 +192,79 @@ const getTmdbPosterUrl = (posterPath: string) => {
   const normalizedPosterPath = posterPath.replace(/^\/+/, "");
 
   return `${normalizedBaseUrl}/${env.TMDB_POSTER_SIZE}/${normalizedPosterPath}`;
+};
+
+const fetchTmdbMovieDetails = async (
+  tmdbId: number,
+): Promise<TmdbMovieDetailsResponse> => {
+  const detailsUrl = new URL(`https://api.themoviedb.org/3/movie/${tmdbId}`);
+  detailsUrl.searchParams.set("api_key", env.TMDB_API_KEY);
+  detailsUrl.searchParams.set("language", "de-DE");
+
+  const response = await fetch(detailsUrl, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `TMDB details fetch failed (${response.status}) for movie ${tmdbId}`,
+    );
+  }
+
+  return (await response.json()) as TmdbMovieDetailsResponse;
+};
+
+const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
+  const genresString = details.genres.map((g) => g.name).join(", ");
+
+  await db.tmdbMetadata.upsert({
+    where: { tmdbId: details.id },
+    create: {
+      tmdbId: details.id,
+      title: details.title,
+      originalTitle: details.original_title,
+      originalLanguage: details.original_language,
+      overview: details.overview,
+      tagline: details.tagline,
+      posterPath: details.poster_path,
+      backdropPath: details.backdrop_path,
+      releaseDate: details.release_date,
+      runtime: details.runtime,
+      budget: details.budget,
+      revenue: details.revenue,
+      popularity: details.popularity,
+      voteAverage: details.vote_average,
+      voteCount: details.vote_count,
+      status: details.status,
+      adult: details.adult,
+      video: details.video,
+      homepage: details.homepage,
+      imdbId: details.imdb_id,
+      genres: genresString,
+    },
+    update: {
+      title: details.title,
+      originalTitle: details.original_title,
+      originalLanguage: details.original_language,
+      overview: details.overview,
+      tagline: details.tagline,
+      posterPath: details.poster_path,
+      backdropPath: details.backdrop_path,
+      releaseDate: details.release_date,
+      runtime: details.runtime,
+      budget: details.budget,
+      revenue: details.revenue,
+      popularity: details.popularity,
+      voteAverage: details.vote_average,
+      voteCount: details.vote_count,
+      status: details.status,
+      adult: details.adult,
+      video: details.video,
+      homepage: details.homepage,
+      imdbId: details.imdb_id,
+      genres: genresString,
+    },
+  });
 };
 
 const getUrlPathJoin = (...parts: string[]) => {
@@ -279,7 +312,10 @@ const scoreTmdbCandidate = (
   );
   const bestDice = Math.max(titleDice, originalTitleDice);
 
-  const titleOverlap = getTokenOverlapScore(requestedNormalizedTitle, candidateTitle);
+  const titleOverlap = getTokenOverlapScore(
+    requestedNormalizedTitle,
+    candidateTitle,
+  );
   const originalTitleOverlap = getTokenOverlapScore(
     requestedNormalizedTitle,
     candidateOriginalTitle,
@@ -295,7 +331,8 @@ const scoreTmdbCandidate = (
       ? 0.08
       : 0;
 
-  const exactMatchBoost = requestedNormalizedTitle === candidateForInclusion ? 0.18 : 0;
+  const exactMatchBoost =
+    requestedNormalizedTitle === candidateForInclusion ? 0.18 : 0;
 
   const requestedYear = extractYear(requestedNormalizedTitle);
   const releaseYear = extractYear(result.release_date ?? "");
@@ -321,19 +358,26 @@ class TmdbMovieMatcher {
   private readonly searchCache = new Map<string, TmdbMatchEvaluation>();
 
   async evaluate(title: string): Promise<TmdbMatchEvaluation> {
-    const normalizedTitle = normalizeForComparison(normalizeMovieTitleForSearch(title));
+    const normalizedTitle = normalizeForComparison(
+      normalizeMovieTitleForSearch(title),
+    );
     const cacheKey = normalizedTitle || normalizeForComparison(title);
 
     const cached = this.searchCache.get(cacheKey);
     if (cached) {
-      console.info(`[TMDB Cover Sync]   → Cache hit for normalized title: "${cacheKey}"`);
+      console.info(
+        `[TMDB Cover Sync]   → Cache hit for normalized title: "${cacheKey}"`,
+      );
       return {
         ...cached,
         requestedTitle: title,
       };
     }
 
-    const queries = buildTmdbSearchQueries(title, normalizeMovieTitleForSearch(title));
+    const queries = buildTmdbSearchQueries(
+      title,
+      normalizeMovieTitleForSearch(title),
+    );
     const scoredCandidates: TmdbScoredMatch[] = [];
 
     for (const query of queries) {
@@ -356,7 +400,8 @@ class TmdbMovieMatcher {
         );
       }
 
-      const payload = (await searchResponse.json()) as TmdbMovieSearchResponse;
+      const payload =
+        (await searchResponse.json()) as TmdbMovieSearchResponse;
       const topResults = payload.results.slice(0, 7);
 
       for (const result of topResults) {
@@ -381,9 +426,10 @@ class TmdbMovieMatcher {
       }
     }
 
-    const bestCandidate = Array.from(byTmdbId.values()).sort(
-      (left, right) => right.confidence - left.confidence,
-    )[0] ?? null;
+    const bestCandidate =
+      Array.from(byTmdbId.values()).sort(
+        (left, right) => right.confidence - left.confidence,
+      )[0] ?? null;
 
     const acceptedCandidate =
       bestCandidate &&
@@ -449,8 +495,15 @@ const ensureMinioFolder = async (client: MinioClient, prefix: string) => {
   }
 };
 
-const buildStorageKey = (prefix: string, movieName: string, match: TmdbScoredMatch) => {
-  const extension = (match.posterPath?.split(".").pop() ?? "jpg").replace(/[^a-z0-9]/gi, "");
+const buildStorageKey = (
+  prefix: string,
+  movieName: string,
+  match: TmdbScoredMatch,
+) => {
+  const extension = (match.posterPath?.split(".").pop() ?? "jpg").replace(
+    /[^a-z0-9]/gi,
+    "",
+  );
   const posterHash = createHash("sha1")
     .update(match.posterPath ?? `${match.tmdbMovieId}`)
     .digest("hex")
@@ -489,15 +542,24 @@ const uploadTmdbPosterToMinio = async (
   const posterBuffer = Buffer.from(posterArrayBuffer);
 
   if (posterBuffer.length === 0) {
-    throw new Error(`TMDB poster download returned empty payload for ${posterUrl}`);
+    throw new Error(
+      `TMDB poster download returned empty payload for ${posterUrl}`,
+    );
   }
 
   const objectKey = buildStorageKey(prefix, movieName, match);
 
-  await client.putObject(env.MINIO_BUCKET, objectKey, posterBuffer, posterBuffer.length, {
-    "Content-Type": posterResponse.headers.get("content-type") ?? "image/jpeg",
-    "Cache-Control": "public, max-age=31536000, immutable",
-  });
+  await client.putObject(
+    env.MINIO_BUCKET,
+    objectKey,
+    posterBuffer,
+    posterBuffer.length,
+    {
+      "Content-Type":
+        posterResponse.headers.get("content-type") ?? "image/jpeg",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  );
 
   const publicUrl = getUrlPathJoin(
     env.MINIO_PUBLIC_BASE_URL,
@@ -514,117 +576,6 @@ const uploadTmdbPosterToMinio = async (
   return uploaded;
 };
 
-export const getMovieIdentitySnapshot = async () => {
-  const movies = await db.movie.findMany({
-    select: {
-      cinemaId: true,
-      name: true,
-    },
-  });
-
-  return new Set(movies.map((movie) => buildMovieIdentityKey(movie)));
-};
-
-export const syncTmdbMovieCoversForNewMovies = async (
-  existingMovieKeys: Set<string>,
-): Promise<SyncMovieCoversResult> => {
-  const matcher = new TmdbMovieMatcher();
-  const minioClient = createMinioClient();
-  const normalizedPrefix = normalizePrefix(env.MINIO_MOVIE_COVERS_PREFIX);
-  const uploadedPosterCache = new Map<string, UploadedCover>();
-
-  await ensureMinioFolder(minioClient, normalizedPrefix);
-
-  const currentMovies = await db.movie.findMany({
-    select: {
-      cinemaId: true,
-      name: true,
-      coverUrl: true,
-    },
-  });
-
-  const newlyCreatedMovies = currentMovies.filter((movie) => {
-    return !existingMovieKeys.has(buildMovieIdentityKey(movie));
-  });
-
-  const result: SyncMovieCoversResult = {
-    consideredMovies: newlyCreatedMovies.length,
-    updatedMovies: 0,
-    skippedExistingCover: 0,
-    skippedNoPoster: 0,
-    skippedNoTmdbMatch: 0,
-    skippedLowConfidence: 0,
-  };
-
-  console.info(
-    `[TMDB Cover Sync] Found ${newlyCreatedMovies.length} newly created movies to evaluate`,
-  );
-
-  for (const [index, movie] of newlyCreatedMovies.entries()) {
-    console.info(
-      `[TMDB Cover Sync] [${index + 1}/${newlyCreatedMovies.length}] Processing: ${movie.name}`,
-    );
-
-    if (movie.coverUrl) {
-      result.skippedExistingCover += 1;
-      console.info(`[TMDB Cover Sync]   → Skipped (existing cover)`);
-      continue;
-    }
-
-    const evaluation = await matcher.evaluate(movie.name);
-
-    if (!evaluation.bestCandidate) {
-      result.skippedNoTmdbMatch += 1;
-      console.info(`[TMDB Cover Sync]   → Skipped (no TMDB match)`);
-      continue;
-    }
-
-    if (evaluation.bestCandidate.confidence < evaluation.threshold) {
-      result.skippedLowConfidence += 1;
-      console.info(
-        `[TMDB Cover Sync]   → Skipped (low confidence: ${evaluation.bestCandidate.confidence.toFixed(3)} < ${evaluation.threshold})`,
-      );
-      continue;
-    }
-
-    if (!evaluation.acceptedCandidate?.posterPath) {
-      result.skippedNoPoster += 1;
-      console.info(`[TMDB Cover Sync]   → Skipped (no poster)`);
-      continue;
-    }
-
-    const uploadedCover = await uploadTmdbPosterToMinio(
-      minioClient,
-      movie.name,
-      evaluation.acceptedCandidate,
-      normalizedPrefix,
-      uploadedPosterCache,
-    );
-
-    await db.movie.update({
-      where: {
-        cinemaId_name: {
-          cinemaId: movie.cinemaId,
-          name: movie.name,
-        },
-      },
-      data: {
-        coverUrl: uploadedCover.publicUrl,
-        coverStorageKey: uploadedCover.objectKey,
-        coverConfidence: evaluation.acceptedCandidate.confidence,
-        tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId,
-      },
-    });
-
-    result.updatedMovies += 1;
-    console.info(
-      `[TMDB Cover Sync]   → Updated with confidence=${evaluation.acceptedCandidate.confidence.toFixed(3)}`,
-    );
-  }
-
-  return result;
-};
-
 export const syncTmdbMovieCoversForAllMovies = async (options?: {
   forceRefreshExistingCovers?: boolean;
 }): Promise<SyncMovieCoversResult> => {
@@ -637,7 +588,7 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
   const allMovies = await db.movie.findMany({
     select: {
-      cinemaId: true,
+      id: true,
       name: true,
       coverUrl: true,
     },
@@ -652,7 +603,8 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
     skippedLowConfidence: 0,
   };
 
-  const forceRefreshExistingCovers = options?.forceRefreshExistingCovers ?? false;
+  const forceRefreshExistingCovers =
+    options?.forceRefreshExistingCovers ?? false;
 
   console.info(
     `[TMDB Cover Sync] Found ${allMovies.length} movies to evaluate (forceRefreshExistingCovers=${forceRefreshExistingCovers})`,
@@ -699,13 +651,20 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
       uploadedPosterCache,
     );
 
+    try {
+      const details = await fetchTmdbMovieDetails(
+        evaluation.acceptedCandidate.tmdbMovieId,
+      );
+      await upsertTmdbMetadata(details);
+    } catch (error) {
+      console.warn(
+        `[TMDB Cover Sync]   → Warning: Could not fetch/store TMDB metadata for movie ${evaluation.acceptedCandidate.tmdbMovieId}:`,
+        error,
+      );
+    }
+
     await db.movie.update({
-      where: {
-        cinemaId_name: {
-          cinemaId: movie.cinemaId,
-          name: movie.name,
-        },
-      },
+      where: { id: movie.id },
       data: {
         coverUrl: uploadedCover.publicUrl,
         coverStorageKey: uploadedCover.objectKey,

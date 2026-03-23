@@ -3,10 +3,7 @@ import { type Showing } from "@waslaeuftin/types/Showing";
 import { load } from "cheerio";
 import moment from "moment-timezone";
 import xior from "xior";
-import { type Prisma } from "@prisma/client";
-import { type db } from "@waslaeuftin/server/db";
 import { isMovie } from "@waslaeuftin/types/guards/isMovie";
-import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 
 export const getKinoTicketsExpressMovies = async (
   cinemaId: number,
@@ -61,7 +58,6 @@ export const getKinoTicketsExpressMovies = async (
                   !line.match(/^\s*$/) &&
                   !line.includes("mt-2 flex space-x-2"),
               )
-              .join(UIConstants.bullet)
           : undefined;
 
       // Find all showings for this movie - handle multiple formats
@@ -183,7 +179,7 @@ export const getKinoTicketsExpressMovies = async (
   const movies = rawData.map((movie) => ({
     name: movie.name,
     cinemaId,
-  })) satisfies Prisma.Args<typeof db.movie, "createMany">["data"];
+  }));
 
   const showings = rawData.flatMap((movie) =>
     movie.showings.map((showing) => ({
@@ -193,7 +189,7 @@ export const getKinoTicketsExpressMovies = async (
       bookingUrl: showing.bookingUrl,
       showingAdditionalData: showing.showingAdditionalData,
     })),
-  ) satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
+  );
 
   return {
     movies,

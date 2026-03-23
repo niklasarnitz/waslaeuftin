@@ -15,15 +15,10 @@ export const ShowingTags = ({
   additionalData,
 }: {
   titleTags: string[];
-  additionalData?: string | null;
+  additionalData?: string[] | null;
 }) => {
-  const { tags, remainingText } = useMemo(() => {
-    const parts = additionalData
-      ? additionalData
-          .split(" • ")
-          .map((part) => part.trim())
-          .filter(Boolean)
-      : [];
+  const { tags, otherParts } = useMemo(() => {
+    const parts = additionalData ?? [];
 
     const matchedTags: string[] = [];
     const otherParts: string[] = [];
@@ -49,11 +44,11 @@ export const ShowingTags = ({
 
     return {
       tags: merged.sort((a, b) => a.localeCompare(b)),
-      remainingText: otherParts.join(" • "),
+      otherParts,
     };
   }, [titleTags, additionalData]);
 
-  if (tags.length === 0 && !remainingText) {
+  if (tags.length === 0 && otherParts.length === 0) {
     return null;
   }
 
@@ -62,16 +57,19 @@ export const ShowingTags = ({
       {tags.map((tag) => (
         <span
           key={tag}
-          className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-primary"
+          className="whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-primary"
         >
           {tag}
         </span>
       ))}
-      {remainingText && (
-        <span className="max-w-[240px] truncate text-[11px] font-medium text-muted-foreground">
-          {remainingText}
+      {otherParts.map((part) => (
+        <span
+          key={part}
+          className="whitespace-nowrap rounded-full border border-border/80 bg-white px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground dark:bg-muted/50"
+        >
+          {part}
         </span>
-      )}
+      ))}
     </>
   );
 };

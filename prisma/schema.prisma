@@ -10,30 +10,67 @@ model Showing {
   id                    Int      @id @default(autoincrement())
   dateTime              DateTime
   bookingUrl            String?
-  showingAdditionalData String?
+  showingAdditionalData String[]
+  rawMovieName          String
   createdAt             DateTime @default(now())
   updatedAt             DateTime @default(now()) @updatedAt
-  cinemaId              Int
-  movieName             String
-  movie                 Movie    @relation(fields: [movieName, cinemaId], references: [name, cinemaId], onDelete: Cascade)
 
-  @@index([movieName, cinemaId])
+  cinemaId              Int
+  movieId               Int
+
+  cinema                Cinema   @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
+  movie                 Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([cinemaId, movieId, dateTime])
+  @@index([cinemaId, dateTime])
+  @@index([movieId, dateTime])
+  @@index([movieId, cinemaId])
 }
 
 model Movie {
+  id              Int           @id @default(autoincrement())
   name            String
-  cinemaId        Int
+  normalizedTitle String
+  canonicalKey    String        @unique
   coverUrl        String?
   coverStorageKey String?
   coverConfidence Float?
-  tmdbMovieId     Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @default(now()) @updatedAt
-  cinema          Cinema    @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+  tmdbMovieId     Int?          @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
+
+  tmdbMetadata    TmdbMetadata? @relation(fields: [tmdbMovieId], references: [tmdbId], onDelete: SetNull)
   showings        Showing[]
 
-  @@unique([cinemaId, name])
-  @@index([cinemaId, name])
+  @@index([name])
+  @@index([normalizedTitle])
+}
+
+model TmdbMetadata {
+  tmdbId           Int      @id
+  title            String
+  originalTitle    String
+  originalLanguage String
+  overview         String?
+  tagline          String?
+  posterPath       String?
+  backdropPath     String?
+  releaseDate      String?
+  runtime          Int?
+  budget           Int?
+  revenue          Int?
+  popularity       Float?
+  voteAverage      Float?
+  voteCount        Int?
+  status           String?
+  adult            Boolean?
+  video            Boolean?
+  homepage         String?
+  imdbId           String?
+  genres           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  movie            Movie?
 }
 
 model ComtradaCineOrderMetadata {
@@ -80,11 +117,12 @@ model Cinema {
   cineStarCinemaId             Int?
   cineplexCinemaId             String?
   myVueCinemaId                String?
+  lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
   city                         City                        @relation(fields: [cityId], references: [id])
   comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id], onDelete: Cascade)
   kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
-  movies                       Movie[]
+  showings                     Showing[]
 
   @@index([name])
   @@index([latitude, longitude])

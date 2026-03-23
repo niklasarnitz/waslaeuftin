@@ -14,14 +14,6 @@ try {
       where: {
         name: cinemaName,
       },
-      include: {
-        movies: {
-          orderBy: {
-            name: "asc",
-          },
-          take: SAMPLE_SIZE_PER_CINEMA,
-        },
-      },
     });
 
     if (!cinema) {
@@ -29,12 +21,22 @@ try {
       continue;
     }
 
+    // Get unique movies shown at this cinema via showings
+    const showings = await db.showing.findMany({
+      where: { cinemaId: cinema.id },
+      select: { movie: { select: { id: true, name: true } } },
+      distinct: ["movieId"],
+      take: SAMPLE_SIZE_PER_CINEMA,
+    });
+
+    const movies = showings.map((s) => s.movie);
+
     console.info(
-      `[TMDB Confidence Test] ${cinema.name}: evaluating ${cinema.movies.length} movies`,
+      `[TMDB Confidence Test] ${cinema.name}: evaluating ${movies.length} movies`,
     );
 
     const evaluations = await Promise.all(
-      cinema.movies.map((movie) => evaluateMovieTitleAgainstTmdb(movie.name)),
+      movies.map((movie) => evaluateMovieTitleAgainstTmdb(movie.name)),
     );
 
     let accepted = 0;
@@ -44,7 +46,7 @@ try {
     let totalConfidence = 0;
 
     for (const [index, evaluation] of evaluations.entries()) {
-      const movie = cinema.movies[index];
+      const movie = movies[index];
 
       if (!movie) {
         continue;

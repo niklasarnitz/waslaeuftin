@@ -72,7 +72,6 @@ export const NearbyCinemasSection = () => {
             latitude: coordinates?.latitude ?? 0,
             longitude: coordinates?.longitude ?? 0,
             maxDistanceKm: radiusKm,
-            limit: 6,
         },
         {
             enabled: Boolean(coordinates),
@@ -82,7 +81,7 @@ export const NearbyCinemasSection = () => {
 
     type NearbyCinema = NonNullable<typeof nearbyQuery.data>[number];
     type NearbyShowing = NearbyCinema["movies"][number]["showings"][number];
-    type NearbyShowingWithTags = NearbyShowing & { tags: string[] };
+    type NearbyShowingWithTags = NearbyShowing & { tags: string[]; rawMovieName: string };
 
     const nearbyCinemas = useMemo(() => nearbyQuery.data ?? [], [nearbyQuery.data]);
 
@@ -147,6 +146,7 @@ export const NearbyCinemasSection = () => {
             {
                 name: string;
                 coverUrl: string | null;
+                tmdbPopularity: number | null;
                 cinemaEntries: Array<{
                     cinema: NearbyCinema;
                     showings: NearbyShowingWithTags[];
@@ -161,22 +161,27 @@ export const NearbyCinemasSection = () => {
 
         filteredNearbyCinemas.forEach((cinema) => {
             cinema.movies.forEach((movie) => {
-                const { baseTitle, tags } = normalizeMovieTitle(movie.name);
                 const showingsWithTags: NearbyShowingWithTags[] = movie.showings
                     .filter((showing) => showing.dateTime.getTime() > now.getTime())
-                    .map((showing) => ({ ...showing, tags }));
+                    .map((showing) => {
+                        const { tags } = normalizeMovieTitle(showing.rawMovieName);
+                        return { ...showing, tags, rawMovieName: showing.rawMovieName };
+                    });
 
                 if (showingsWithTags.length === 0) {
                     return;
                 }
 
                 const nextShowing = showingsWithTags[0];
-                const existingMovie = groupedMoviesMap.get(baseTitle);
+                const existingMovie = groupedMoviesMap.get(movie.name);
+
+                const moviePopularity = movie.tmdbMetadata?.popularity ?? null;
 
                 if (!existingMovie) {
-                    groupedMoviesMap.set(baseTitle, {
-                        name: baseTitle,
+                    groupedMoviesMap.set(movie.name, {
+                        name: movie.name,
                         coverUrl: movie.coverUrl,
+                        tmdbPopularity: moviePopularity,
                         cinemaEntries: [
                             {
                                 cinema,
@@ -203,6 +208,13 @@ export const NearbyCinemasSection = () => {
                 }
 
                 if (
+                    moviePopularity !== null &&
+                    (existingMovie.tmdbPopularity === null || moviePopularity > existingMovie.tmdbPopularity)
+                ) {
+                    existingMovie.tmdbPopularity = moviePopularity;
+                }
+
+                if (
                     nextShowing &&
                     (!existingMovie.nextShowing ||
                         nextShowing.dateTime.getTime() <
@@ -215,7 +227,16 @@ export const NearbyCinemasSection = () => {
 
         return Array.from(groupedMoviesMap.values())
             .filter((movie) => Boolean(movie.nextShowing))
-            .sort((left, right) => left.name.localeCompare(right.name))
+            .sort((left, right) => {
+                const leftPopularity = left.tmdbPopularity ?? 0;
+                const rightPopularity = right.tmdbPopularity ?? 0;
+
+                if (leftPopularity !== rightPopularity) {
+                    return rightPopularity - leftPopularity;
+                }
+
+                return left.name.localeCompare(right.name);
+            })
             .slice(0, 18);
     }, [filteredNearbyCinemas]);
 
@@ -267,19 +288,29 @@ export const NearbyCinemasSection = () => {
     }, []);
 
     return (
-        <section className="rounded-[2rem] border border-border/70 bg-gradient-to-br from-slate-50/90 via-background to-cyan-50/70 p-5 shadow-sm md:p-8 dark:from-slate-950/60 dark:to-slate-900/40">
+        <section className="sm:rounded-[2rem] sm:border sm:border-border/70 sm:bg-gradient-to-br sm:from-slate-50/90 sm:via-background sm:to-cyan-50/70 sm:p-5 sm:shadow-sm md:p-8 dark:sm:from-slate-950/60 dark:sm:to-slate-900/40">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground/75">
                         <Navigation className="h-3.5 w-3.5" />
                         In meiner Nähe
                     </p>
-                    <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">Kinos rund um deinen Standort</h2>
-                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+                    <div className="mt-3 flex items-center gap-2">
+                        <h2 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">Kinos rund um deinen Standort</h2>
+                        <button
+                            type="button"
+                            onClick={requestLocation}
+                            title="Standort erneut abfragen"
+                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 sm:p-2"
+                        >
+                            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </button>
+                    </div>
+                    <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 md:text-base">
                         Diese Filme laufen heute in deiner Nähe. Der Radius ist standardmaessig 20 km und frei anpassbar.
                     </p>
                 </div>
-                <div className="flex flex-col items-stretch gap-2 md:items-end">
+                <div className="hidden flex-col items-end gap-2 sm:flex">
                     <label
                         htmlFor="nearby-radius"
                         className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/70"
@@ -294,16 +325,8 @@ export const NearbyCinemasSection = () => {
                         step={5}
                         value={radiusKm}
                         onChange={(event) => setRadiusKm(Number(event.target.value))}
-                        className="w-[220px] accent-primary"
+                        className="w-full max-w-[280px] accent-primary md:w-[220px]"
                     />
-                    <button
-                        type="button"
-                        onClick={requestLocation}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-                    >
-                        <Compass className="h-4 w-4" />
-                        Standort erneut abfragen
-                    </button>
                 </div>
             </div>
 
@@ -322,22 +345,22 @@ export const NearbyCinemasSection = () => {
 
             {nearbyCinemas.length > 0 && (
                 <>
-                    <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-1">
+                    <div className="mt-4 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:mt-5 sm:gap-2 sm:text-xs">
+                        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                             {nearbyMovies.length} Filme in der Nähe
                         </span>
-                        <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-1">
+                        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                             {filteredNearbyCinemas.length}{" "}
                             {filteredNearbyCinemas.length === 1 ? "Kino" : "Kinos"}{" "}
                             {isCinemaFilterActive ? "ausgewählt" : "gefunden"}
                         </span>
-                        <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-1">
+                        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                             {totalShowings} Vorstellungen heute
                         </span>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/60">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/60 sm:text-xs">
                             Nach Kino filtern
                         </span>
                         {nearbyCinemas.map((cinema) => {
@@ -349,7 +372,7 @@ export const NearbyCinemasSection = () => {
                                     type="button"
                                     onClick={() => toggleCinemaFilter(cinema.slug)}
                                     aria-pressed={isSelected}
-                                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors sm:px-3 sm:py-1 sm:text-xs ${
                                         isSelected
                                             ? "border-primary bg-primary text-primary-foreground"
                                             : "border-border/80 bg-background/80 text-foreground hover:border-primary/50"
@@ -363,20 +386,20 @@ export const NearbyCinemasSection = () => {
                             <button
                                 type="button"
                                 onClick={() => setSelectedCinemaSlugs([])}
-                                className="rounded-full border border-border/80 px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                                className="rounded-full border border-border/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground sm:px-3 sm:py-1 sm:text-xs"
                             >
                                 Filter zurücksetzen
                             </button>
                         )}
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-border/70 bg-background/70 p-4 md:p-5">
-                        <div className="mb-4 flex items-center justify-between gap-2">
-                            <h3 className="inline-flex items-center gap-2 text-lg font-bold tracking-tight md:text-xl">
+                    <div className="mt-4">
+                        <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                            <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
                                 <Film className="h-4 w-4 text-primary" />
                                 Diese Filme laufen heute in deiner Nähe
                             </h3>
-                            <span className="text-xs text-muted-foreground">Sortiert nach nächster Uhrzeit</span>
+                            <span className="text-xs text-muted-foreground">Sortiert nach Beliebtheit</span>
                         </div>
 
                         <div className="space-y-3">
@@ -395,10 +418,21 @@ export const NearbyCinemasSection = () => {
                                 return (
                                     <article
                                         key={movie.name}
-                                        className="rounded-2xl border border-border/70 bg-background/85 p-4 transition-colors hover:bg-background md:p-5"
+                                        className="rounded-xl border border-border/70 bg-background/85 p-3 transition-colors hover:bg-background sm:rounded-2xl sm:p-4 md:p-5"
                                     >
-                                        <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)] md:gap-5 lg:grid-cols-[140px_minmax(0,1fr)]">
-                                            <div className="mx-auto w-full max-w-[140px] md:mx-0">
+                                        {/* Title + badge — always on top on mobile, inside grid on sm+ */}
+                                        <div className="mb-2 flex items-start justify-between gap-2 sm:hidden">
+                                            <h4 className="line-clamp-2 text-base font-bold tracking-tight">
+                                                {movie.name}
+                                            </h4>
+                                            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                                {movie.cinemaEntries.length}{" "}
+                                                {movie.cinemaEntries.length === 1 ? "Kino" : "Kinos"}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 sm:grid-cols-[100px_minmax(0,1fr)] md:grid-cols-[120px_minmax(0,1fr)] md:gap-5 lg:grid-cols-[140px_minmax(0,1fr)]">
+                                            <div>
                                                 <MovieCover
                                                     title={movie.name}
                                                     coverUrl={movie.coverUrl}
@@ -406,32 +440,33 @@ export const NearbyCinemasSection = () => {
                                                 />
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <h4 className="line-clamp-2 text-xl font-bold tracking-tight sm:text-2xl">
+                                                {/* Title + badge — hidden on mobile, shown on sm+ */}
+                                                <div className="hidden items-start justify-between gap-2 sm:flex">
+                                                    <h4 className="line-clamp-2 text-xl font-bold tracking-tight md:text-2xl">
                                                         {movie.name}
                                                     </h4>
-                                                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                                    <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                                                         {movie.cinemaEntries.length}{" "}
                                                         {movie.cinemaEntries.length === 1 ? "Kino" : "Kinos"}
                                                     </span>
                                                 </div>
 
-                                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                    <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-1">
+                                                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:mt-3 sm:gap-2 sm:text-xs">
+                                                    <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                                                         {movie.showingsCount} Vorstellungen heute
                                                     </span>
                                                     {movie.nextShowing && (
-                                                        <span className="inline-flex items-center gap-1 rounded-full border border-border/80 bg-background/80 px-2.5 py-1">
-                                                            <Clock3 className="h-3.5 w-3.5" />
+                                                        <span className="inline-flex items-center gap-1 rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+                                                            <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                                             Nächste um {formatTime(movie.nextShowing.dateTime)}
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <div className="mt-4 space-y-3">
+                                                <div className="hidden sm:mt-4 sm:block sm:space-y-3">
                                                     {sortedCinemas.map((cinemaEntry) => (
-                                                        <div key={`${movie.name}-${cinemaEntry.cinema.id}`} className="rounded-xl border border-border/70 bg-background/70 p-3">
-                                                            <div className="mb-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                                                        <div key={`${movie.name}-${cinemaEntry.cinema.id}-desktop`} className="rounded-xl border border-border/70 bg-background/70 p-3">
+                                                            <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
                                                                 <MapPin className="h-3.5 w-3.5" />
                                                                 <Link href={`/cinema/${cinemaEntry.cinema.slug}`} className="font-medium hover:underline">
                                                                     {cinemaEntry.cinema.name}
@@ -443,11 +478,10 @@ export const NearbyCinemasSection = () => {
                                                                 <span className="text-foreground/40">•</span>
                                                                 <span>{formatDistance(cinemaEntry.cinema.distanceKm)}</span>
                                                             </div>
-
                                                             <div className="flex flex-wrap gap-2">
                                                                 {cinemaEntry.showings.slice(0, 5).map((showing) => (
                                                                      <Link
-                                                                         key={`${movie.name}-${cinemaEntry.cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}`}
+                                                                         key={`${movie.name}-${cinemaEntry.cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}-desktop`}
                                                                          href={showing.bookingUrl ?? "#"}
                                                                          className="inline-flex items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
                                                                      >
@@ -465,6 +499,43 @@ export const NearbyCinemasSection = () => {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Showings — mobile only, below the grid */}
+                                        <div className="mt-3 space-y-2 sm:hidden">
+                                            {sortedCinemas.map((cinemaEntry) => (
+                                                <div key={`${movie.name}-${cinemaEntry.cinema.id}`} className="rounded-lg border border-border/70 bg-background/70 p-2.5 sm:rounded-xl sm:p-3">
+                                                    <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
+                                                        <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                                        <Link href={`/cinema/${cinemaEntry.cinema.slug}`} className="font-medium hover:underline">
+                                                            {cinemaEntry.cinema.name}
+                                                        </Link>
+                                                        <span className="text-foreground/40">•</span>
+                                                        <Link href={`/city/${cinemaEntry.cinema.city.slug}`} className="hover:underline">
+                                                            {cinemaEntry.cinema.city.name}
+                                                        </Link>
+                                                        <span className="text-foreground/40">•</span>
+                                                        <span>{formatDistance(cinemaEntry.cinema.distanceKm)}</span>
+                                                    </div>
+
+                                                    <div className="flex gap-1.5 overflow-x-auto sm:flex-wrap sm:gap-2 sm:overflow-x-visible">
+                                                        {cinemaEntry.showings.slice(0, 5).map((showing) => (
+                                                             <Link
+                                                                 key={`${movie.name}-${cinemaEntry.cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}`}
+                                                                 href={showing.bookingUrl ?? "#"}
+                                                                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs"
+                                                                     >
+                                                                         <Clock3 className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
+                                                                 <span>{formatTime(showing.dateTime)}</span>
+                                                                 <ShowingTags
+                                                                     titleTags={showing.tags}
+                                                                     additionalData={showing.showingAdditionalData}
+                                                                 />
+                                                             </Link>
+                                                         ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </article>
                                 );
                             })}
@@ -480,7 +551,7 @@ export const NearbyCinemasSection = () => {
                     <div className="mt-6">
                         <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground/60">Kinos in der Nähe</h3>
 
-                        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <div className="mt-3 grid gap-2 sm:gap-3 sm:grid-cols-2">
                             {filteredNearbyCinemas.map((cinema) => {
                                 const nextShowing = cinema.movies
                                     .flatMap((movie) => movie.showings)
@@ -489,37 +560,37 @@ export const NearbyCinemasSection = () => {
                                 return (
                                     <article
                                         key={cinema.id}
-                                        className="rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:bg-background"
+                                        className="rounded-xl border border-border/70 bg-background/80 p-3 transition-colors hover:bg-background sm:rounded-2xl sm:p-4"
                                     >
                                         <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <Link href={`/cinema/${cinema.slug}`} className="text-base font-semibold tracking-tight hover:underline">
+                                            <div className="min-w-0">
+                                                <Link href={`/cinema/${cinema.slug}`} className="text-sm font-semibold tracking-tight hover:underline sm:text-base">
                                                     {cinema.name}
                                                 </Link>
-                                                <p className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground">
-                                                    <MapPin className="h-3.5 w-3.5" />
+                                                <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+                                                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                                     <Link href={`/city/${cinema.city.slug}`} className="hover:underline">
                                                         {cinema.city.name}
                                                     </Link>
                                                 </p>
                                             </div>
-                                            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary sm:px-2.5 sm:py-1 sm:text-xs">
                                                 {formatDistance(cinema.distanceKm)}
                                             </span>
                                         </div>
 
-                                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                                            <span className="rounded-full border border-border/80 px-2.5 py-1 text-foreground/80">
+                                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] sm:mt-3 sm:gap-2 sm:text-xs">
+                                            <span className="rounded-full border border-border/80 px-2 py-0.5 text-foreground/80 sm:px-2.5 sm:py-1">
                                                 {cinema.movies.length} Filme
                                             </span>
-                                            <span className="rounded-full border border-border/80 px-2.5 py-1 text-foreground/80">
+                                            <span className="rounded-full border border-border/80 px-2 py-0.5 text-foreground/80 sm:px-2.5 sm:py-1">
                                                 {cinema.movies.reduce((total, movie) => total + movie.showings.length, 0)} Vorstellungen
                                             </span>
                                         </div>
 
                                         {nextShowing && (
-                                            <p className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground">
-                                                <Ticket className="h-3.5 w-3.5" />
+                                            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-muted/40 px-2 py-1 text-[11px] text-muted-foreground sm:mt-3 sm:px-2.5 sm:py-1.5 sm:text-xs">
+                                                <Ticket className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                                 Nächste Vorstellung um {formatTime(nextShowing.dateTime)}
                                             </p>
                                         )}
