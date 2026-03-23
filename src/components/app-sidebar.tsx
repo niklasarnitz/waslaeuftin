@@ -43,7 +43,7 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
                 </h1>
               </Link>
               <p className="mt-1 text-sm leading-snug text-sidebar-foreground/75">
-                Cinema Atlas fuer deinen Abend.
+                Cinema Atlas für deinen Abend.
               </p>
             </div>
           </div>
