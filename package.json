@@ -100,9 +100,5 @@
   },
   "ct3aMetadata": {
     "initVersion": "7.30.0"
-  },
-  "overrides": {
-    "@types/react": "19.0.8",
-    "@types/react-dom": "19.0.3"
   }
 }
