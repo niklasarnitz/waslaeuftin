@@ -56,15 +56,15 @@ export const ShowingTags = ({
     <>
       {tags.map((tag) => (
         <span
-          key={tag}
+          key={`tag-${tag}`}
           className="whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-primary"
         >
           {tag}
         </span>
       ))}
-      {otherParts.map((part) => (
+      {otherParts.map((part, index) => (
         <span
-          key={part}
+          key={`other-${part}-${index}`}
           className="whitespace-nowrap rounded-full border border-border/80 bg-white px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground dark:bg-muted/50"
         >
           {part}
