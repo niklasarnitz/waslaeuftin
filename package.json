@@ -8,6 +8,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "dev": "next dev --turbopack",
+    "ios:build:ipa:7d": "bash ios/scripts/build-ipa-7day.sh",
     "find:cinemas:without-recent-showings": "bun run scripts/find-cinemas-without-recent-showings.ts",
     "find:duplicate:cinemas": "bun run scripts/find-duplicate-cinemas-by-city.ts",
     "postinstall": "prisma generate",

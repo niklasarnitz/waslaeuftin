@@ -545,7 +545,7 @@ export const NearbyCinemasSection = () => {
 
                         {nearbyMovies.length === 0 && (
                             <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
-                                In den {isCinemaFilterActive ? "ausgewählten" : "gefundenen"} Kinos sind aktuell keine Filme mit restlichen Vorstellungen verfuegbar.
+                                In den {isCinemaFilterActive ? "ausgewählten" : "gefundenen"} Kinos sind aktuell keine Filme mit restlichen Vorstellungen verügbar.
                             </p>
                         )}
                     </div>
@@ -606,7 +606,7 @@ export const NearbyCinemasSection = () => {
 
             {nearbyCinemas.length === 0 && (
                 <p className="mt-5 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-                    In einem Radius von {radiusKm} km wurden keine Kinos mit Vorstellungen fuer heute gefunden.
+                    In einem Radius von {radiusKm} km wurden keine Kinos mit Vorstellungen für heute gefunden.
                 </p>
             )}
         </section>
