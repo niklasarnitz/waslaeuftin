@@ -11,9 +11,11 @@ const KNOWN_TAGS = new Set([
 const isKnownTag = (value: string) => KNOWN_TAGS.has(value.toLowerCase());
 
 export const ShowingTags = ({
+  showingId,
   titleTags,
   additionalData,
 }: {
+  showingId: number;
   titleTags: string[];
   additionalData?: string[] | null;
 }) => {
@@ -56,7 +58,7 @@ export const ShowingTags = ({
     <>
       {tags.map((tag) => (
         <span
-          key={`tag-${tag}`}
+          key={`tag-${showingId}-${tag}`}
           className="whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-primary"
         >
           {tag}
@@ -64,7 +66,7 @@ export const ShowingTags = ({
       ))}
       {otherParts.map((part, index) => (
         <span
-          key={`other-${part}-${index}`}
+          key={`other-${showingId}-${part}-${index}`}
           className="whitespace-nowrap rounded-full border border-border/80 bg-white px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground dark:bg-muted/50"
         >
           {part}

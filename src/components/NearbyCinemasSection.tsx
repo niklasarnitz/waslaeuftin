@@ -488,6 +488,7 @@ export const NearbyCinemasSection = () => {
                                                                          <Clock3 className="h-3 w-3" />
                                                                          <span>{formatTime(showing.dateTime)}</span>
                                                                          <ShowingTags
+                                                                             showingId={showing.id}
                                                                              titleTags={showing.tags}
                                                                              additionalData={showing.showingAdditionalData}
                                                                          />
@@ -527,6 +528,7 @@ export const NearbyCinemasSection = () => {
                                                                          <Clock3 className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                                                                  <span>{formatTime(showing.dateTime)}</span>
                                                                  <ShowingTags
+                                                                     showingId={showing.id}
                                                                      titleTags={showing.tags}
                                                                      additionalData={showing.showingAdditionalData}
                                                                  />

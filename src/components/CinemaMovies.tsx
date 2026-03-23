@@ -69,6 +69,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
                           <CardContent className="pt-0">
                             <div className="flex gap-1 overflow-x-auto sm:flex-wrap sm:overflow-x-visible">
                               <ShowingTags
+                                showingId={showing.id}
                                 titleTags={tags}
                                 additionalData={showing.showingAdditionalData}
                               />
