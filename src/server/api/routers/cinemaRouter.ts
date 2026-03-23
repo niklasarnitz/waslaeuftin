@@ -2,30 +2,9 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
-import { endOfDay, startOfDay } from "date-fns";
 import moment from "moment-timezone";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
-
-const toRadians = (value: number) => (value * Math.PI) / 180;
-
-const haversineDistanceKm = (
-  originLat: number,
-  originLon: number,
-  targetLat: number,
-  targetLon: number,
-) => {
-  const earthRadiusKm = 6371;
-  const latDelta = toRadians(targetLat - originLat);
-  const lonDelta = toRadians(targetLon - originLon);
-
-  const a =
-    Math.sin(latDelta / 2) ** 2 +
-    Math.cos(toRadians(originLat)) *
-      Math.cos(toRadians(targetLat)) *
-      Math.sin(lonDelta / 2) ** 2;
-
-  return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
-};
 
 export const cinemaRouter = createTRPCRouter({
   getCinemaBySlug: publicProcedure
@@ -36,51 +15,77 @@ export const cinemaRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      return await ctx.db.cinema.findFirst({
+      const showingDateFilter = input.date
+        ? {
+            dateTime: {
+              lt:
+                moment(input.date).format("YYYY-MM-DD") +
+                "T23:59:59.999Z",
+              gt: input.date.toISOString(),
+            },
+          }
+        : undefined;
+
+      const cinema = await ctx.db.cinema.findFirst({
         where: {
           slug: input.cinemaSlug,
         },
         include: {
-          movies: {
+          showings: {
+            where: showingDateFilter,
             orderBy: {
-              name: "asc",
+              dateTime: "asc",
             },
-            select: {
-              name: true,
-              coverUrl: true,
-              showings: {
-                orderBy: {
-                  dateTime: "asc",
+            include: {
+              movie: {
+                select: {
+                  id: true,
+                  name: true,
+                  coverUrl: true,
                 },
-                where: input.date
-                  ? {
-                      dateTime: {
-                        lt:
-                          moment(input.date).format("YYYY-MM-DD") +
-                          "T23:59:59.999Z",
-                        gt: input.date?.toISOString(),
-                      },
-                    }
-                  : undefined,
               },
             },
-            where: input.date
-              ? {
-                  showings: {
-                    some: {
-                      dateTime: {
-                        lt: input.date
-                          ? moment(input.date).endOf("day").toDate()
-                          : undefined,
-                        gt: input.date?.toISOString() ?? undefined,
-                      },
-                    },
-                  },
-                }
-              : undefined,
           },
         },
       });
+
+      if (!cinema) {
+        return null;
+      }
+
+      // Group showings by movie to preserve the movies[] shape for the frontend
+      const movieMap = new Map<
+        number,
+        {
+          name: string;
+          coverUrl: string | null;
+          showings: typeof cinema.showings;
+        }
+      >();
+
+      for (const showing of cinema.showings) {
+        const existing = movieMap.get(showing.movie.id);
+        if (existing) {
+          existing.showings.push(showing);
+        } else {
+          movieMap.set(showing.movie.id, {
+            name: showing.movie.name,
+            coverUrl: showing.movie.coverUrl,
+            showings: [showing],
+          });
+        }
+      }
+
+      const movies = Array.from(movieMap.values()).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+
+      const { showings: _showings, ...cinemaWithoutShowings } = cinema;
+
+      return {
+        ...cinemaWithoutShowings,
+        movies,
+      };
     }),
   getNearbyCinemas: publicProcedure
     .input(
@@ -88,34 +93,58 @@ export const cinemaRouter = createTRPCRouter({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
         maxDistanceKm: z.number().positive().max(250).default(20),
-        limit: z.number().int().positive().max(30).default(8),
       }),
     )
     .query(async ({ input, ctx }) => {
-      const now = new Date();
-      const dayStart = startOfDay(now);
-      const dayEnd = endOfDay(now);
+      // After 23:00 German time, show the next day's movies
+      const nowInGermany = moment.tz("Europe/Berlin");
+      const targetDay =
+        nowInGermany.hour() >= 23
+          ? nowInGermany.clone().add(1, "day")
+          : nowInGermany;
+      const dayStart = targetDay.clone().startOf("day").toDate();
+      const dayEnd = targetDay.clone().endOf("day").toDate();
 
+      // Step 1: Find nearby cinema IDs + distances using raw SQL haversine
+      const nearbyCinemaRows = await ctx.db.$queryRaw<
+        Array<{ id: number; distance_km: number }>
+      >(Prisma.sql`
+        SELECT sub.id, sub.distance_km
+        FROM (
+          SELECT
+            c.id,
+            (
+              6371 * acos(
+                LEAST(1.0, GREATEST(-1.0,
+                  cos(radians(${input.latitude}))
+                  * cos(radians(c.latitude))
+                  * cos(radians(c.longitude) - radians(${input.longitude}))
+                  + sin(radians(${input.latitude}))
+                  * sin(radians(c.latitude))
+                ))
+              )
+            ) AS distance_km
+          FROM "Cinema" c
+          WHERE c.latitude IS NOT NULL
+            AND c.longitude IS NOT NULL
+        ) sub
+        WHERE sub.distance_km <= ${input.maxDistanceKm}
+        ORDER BY sub.distance_km ASC
+      `);
+
+      if (nearbyCinemaRows.length === 0) {
+        return [];
+      }
+
+      const cinemaIds = nearbyCinemaRows.map((row) => row.id);
+      const distanceById = new Map(
+        nearbyCinemaRows.map((row) => [row.id, Number(row.distance_km)]),
+      );
+
+      // Step 2: Fetch full cinema data with showings for only the nearby IDs.
       const cinemas = await ctx.db.cinema.findMany({
         where: {
-          latitude: {
-            not: null,
-          },
-          longitude: {
-            not: null,
-          },
-          movies: {
-            some: {
-              showings: {
-                some: {
-                  dateTime: {
-                    gte: dayStart,
-                    lte: dayEnd,
-                  },
-                },
-              },
-            },
-          },
+          id: { in: cinemaIds },
         },
         include: {
           city: {
@@ -124,32 +153,27 @@ export const cinemaRouter = createTRPCRouter({
               slug: true,
             },
           },
-          movies: {
+          showings: {
             where: {
-              showings: {
-                some: {
-                  dateTime: {
-                    gte: dayStart,
-                    lte: dayEnd,
-                  },
-                },
+              dateTime: {
+                gte: dayStart,
+                lte: dayEnd,
               },
             },
             orderBy: {
-              name: "asc",
+              dateTime: "asc",
             },
-            select: {
-              name: true,
-              coverUrl: true,
-              showings: {
-                where: {
-                  dateTime: {
-                    gte: dayStart,
-                    lte: dayEnd,
+            include: {
+              movie: {
+                select: {
+                  id: true,
+                  name: true,
+                  coverUrl: true,
+                  tmdbMetadata: {
+                    select: {
+                      popularity: true,
+                    },
                   },
-                },
-                orderBy: {
-                  dateTime: "asc",
                 },
               },
             },
@@ -159,20 +183,43 @@ export const cinemaRouter = createTRPCRouter({
 
       return cinemas
         .map((cinema) => {
-          const distanceKm = haversineDistanceKm(
-            input.latitude,
-            input.longitude,
-            cinema.latitude ?? 0,
-            cinema.longitude ?? 0,
+          // Group showings by movie
+          const movieMap = new Map<
+            number,
+            {
+              name: string;
+              coverUrl: string | null;
+              tmdbMetadata: { popularity: number | null } | null;
+              showings: typeof cinema.showings;
+            }
+          >();
+
+          for (const showing of cinema.showings) {
+            const existing = movieMap.get(showing.movie.id);
+            if (existing) {
+              existing.showings.push(showing);
+            } else {
+              movieMap.set(showing.movie.id, {
+                name: showing.movie.name,
+                coverUrl: showing.movie.coverUrl,
+                tmdbMetadata: showing.movie.tmdbMetadata,
+                showings: [showing],
+              });
+            }
+          }
+
+          const movies = Array.from(movieMap.values()).sort((a, b) =>
+            a.name.localeCompare(b.name),
           );
 
+          const { showings: _showings, ...cinemaWithoutShowings } = cinema;
+
           return {
-            ...cinema,
-            distanceKm,
+            ...cinemaWithoutShowings,
+            movies,
+            distanceKm: distanceById.get(cinema.id) ?? 0,
           };
         })
-        .filter((cinema) => cinema.distanceKm <= input.maxDistanceKm)
-        .sort((left, right) => left.distanceKm - right.distanceKm)
-        .slice(0, input.limit);
+        .sort((left, right) => left.distanceKm - right.distanceKm);
     }),
 });

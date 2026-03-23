@@ -10,14 +10,10 @@ cutoffDate.setMonth(cutoffDate.getMonth() - LOOKBACK_MONTHS);
 
 const cinemas = await db.cinema.findMany({
   where: {
-    movies: {
+    showings: {
       none: {
-        showings: {
-          some: {
-            dateTime: {
-              gte: cutoffDate,
-            },
-          },
+        dateTime: {
+          gte: cutoffDate,
         },
       },
     },
@@ -31,17 +27,13 @@ const cinemas = await db.cinema.findMany({
         name: true,
       },
     },
-    movies: {
+    showings: {
+      orderBy: {
+        dateTime: "desc",
+      },
+      take: 1,
       select: {
-        showings: {
-          orderBy: {
-            dateTime: "desc",
-          },
-          take: 1,
-          select: {
-            dateTime: true,
-          },
-        },
+        dateTime: true,
       },
     },
   },
@@ -53,9 +45,7 @@ console.log(
 );
 
 for (const cinema of cinemas) {
-  const latestShowing = cinema.movies
-    .flatMap((movie) => movie.showings)
-    .sort((left, right) => right.dateTime.getTime() - left.dateTime.getTime())[0];
+  const latestShowing = cinema.showings[0];
 
   const latestShowingLabel = latestShowing
     ? latestShowing.dateTime.toISOString()
@@ -66,8 +56,8 @@ for (const cinema of cinemas) {
   );
 }
 
-const neverShownCinemas = cinemas.filter((cinema) =>
-  cinema.movies.every((movie) => movie.showings.length === 0),
+const neverShownCinemas = cinemas.filter(
+  (cinema) => cinema.showings.length === 0,
 );
 
 console.log(`\nNever had any showings: ${neverShownCinemas.length}`);

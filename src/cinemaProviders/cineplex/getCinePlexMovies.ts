@@ -1,5 +1,4 @@
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
-import { UIConstants } from "@waslaeuftin/globals/UIConstants";
 import moment from "moment-timezone";
 
 const client = new ApolloClient({
@@ -89,7 +88,7 @@ export const getCineplexMovies = async (
                     ...screening.attributes
                         .map((attribute) => attribute.label)
                         .filter(Boolean),
-                ].join(UIConstants.bullet),
+                ].filter((v): v is string => typeof v === "string" && v.length > 0),
             })),
         )
         .flat()
@@ -98,7 +97,7 @@ export const getCineplexMovies = async (
             movieName: string;
             dateTime: Date;
             bookingUrl: string;
-            showingAdditionalData: string;
+            showingAdditionalData: string[];
         }[];
 
     const movies = showings.flatMap((showing) => ({

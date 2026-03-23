@@ -1,0 +1,34 @@
+name: WasLaeuftIn
+options:
+  minimumXcodeGenVersion: 2.45.0
+  deploymentTarget:
+    iOS: 17.0
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    PRODUCT_BUNDLE_IDENTIFIER: com.niklasarnitz.waslaeuftin
+    DEVELOPMENT_TEAM: ""
+targets:
+  WasLaeuftIn:
+    type: application
+    platform: iOS
+    sources:
+      - path: WasLaeuftIn/Sources
+    settings:
+      base:
+        PRODUCT_NAME: wasläuft.in
+        INFOPLIST_KEY_CFBundleDisplayName: wasläuft.in
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Wir verwenden deinen Standort, um Kinos und Vorstellungen in deiner Naehe anzuzeigen.
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+    info:
+      path: WasLaeuftIn/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    scheme:
+      testTargets: []

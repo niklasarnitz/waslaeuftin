@@ -94,7 +94,7 @@ export const citiesRouter = createTRPCRouter({
         },
       };
 
-      return await ctx.db.city.findUnique({
+      const city = await ctx.db.city.findUnique({
         where: {
           slug: input.slug,
         },
@@ -104,23 +104,18 @@ export const citiesRouter = createTRPCRouter({
               name: "asc",
             },
             include: {
-              movies: {
+              showings: {
+                where: showingsFilter,
                 orderBy: {
-                  name: "asc",
+                  dateTime: "asc",
                 },
-                select: {
-                  name: true,
-                  coverUrl: true,
-                  showings: {
-                    orderBy: {
-                      dateTime: "asc",
+                include: {
+                  movie: {
+                    select: {
+                      id: true,
+                      name: true,
+                      coverUrl: true,
                     },
-                    where: showingsFilter,
-                  },
-                },
-                where: {
-                  showings: {
-                    some: showingsFilter,
                   },
                 },
               },
@@ -128,14 +123,57 @@ export const citiesRouter = createTRPCRouter({
           },
         },
       });
+
+      if (!city) {
+        return null;
+      }
+
+      // Transform to preserve the movies[] shape per cinema for the frontend
+      return {
+        ...city,
+        cinemas: city.cinemas.map((cinema) => {
+          const movieMap = new Map<
+            number,
+            {
+              name: string;
+              coverUrl: string | null;
+              showings: typeof cinema.showings;
+            }
+          >();
+
+          for (const showing of cinema.showings) {
+            const existing = movieMap.get(showing.movie.id);
+            if (existing) {
+              existing.showings.push(showing);
+            } else {
+              movieMap.set(showing.movie.id, {
+                name: showing.movie.name,
+                coverUrl: showing.movie.coverUrl,
+                showings: [showing],
+              });
+            }
+          }
+
+          const movies = Array.from(movieMap.values())
+            .filter((movie) => movie.showings.length > 0)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const { showings: _showings, ...cinemaWithoutShowings } = cinema;
+
+          return {
+            ...cinemaWithoutShowings,
+            movies,
+          };
+        }),
+      };
     }),
 
   getStartPageCities: publicProcedure
     .input(z.array(z.string()))
-    .query(({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       const today = new Date();
 
-      return ctx.db.city.findMany({
+      const cities = await ctx.db.city.findMany({
         orderBy: { name: "asc" },
         where: {
           slug: {
@@ -146,28 +184,20 @@ export const citiesRouter = createTRPCRouter({
           cinemas: {
             orderBy: { name: "asc" },
             include: {
-              movies: {
-                orderBy: { name: "asc" },
-                select: {
-                  name: true,
-                  coverUrl: true,
-                  showings: {
-                    orderBy: { dateTime: "asc" },
-                    where: {
-                      dateTime: {
-                        gte: today,
-                        lte: endOfDay(today),
-                      },
-                    },
+              showings: {
+                where: {
+                  dateTime: {
+                    gte: today,
+                    lte: endOfDay(today),
                   },
                 },
-                where: {
-                  showings: {
-                    some: {
-                      dateTime: {
-                        gte: today,
-                        lte: endOfDay(today),
-                      },
+                orderBy: { dateTime: "asc" },
+                include: {
+                  movie: {
+                    select: {
+                      id: true,
+                      name: true,
+                      coverUrl: true,
                     },
                   },
                 },
@@ -176,6 +206,44 @@ export const citiesRouter = createTRPCRouter({
           },
         },
       });
+
+      return cities.map((city) => ({
+        ...city,
+        cinemas: city.cinemas.map((cinema) => {
+          const movieMap = new Map<
+            number,
+            {
+              name: string;
+              coverUrl: string | null;
+              showings: typeof cinema.showings;
+            }
+          >();
+
+          for (const showing of cinema.showings) {
+            const existing = movieMap.get(showing.movie.id);
+            if (existing) {
+              existing.showings.push(showing);
+            } else {
+              movieMap.set(showing.movie.id, {
+                name: showing.movie.name,
+                coverUrl: showing.movie.coverUrl,
+                showings: [showing],
+              });
+            }
+          }
+
+          const movies = Array.from(movieMap.values())
+            .filter((movie) => movie.showings.length > 0)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const { showings: _showings, ...cinemaWithoutShowings } = cinema;
+
+          return {
+            ...cinemaWithoutShowings,
+            movies,
+          };
+        }),
+      }));
     }),
   getCityById: publicProcedure
     .input(z.number())

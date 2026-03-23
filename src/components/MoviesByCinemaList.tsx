@@ -26,6 +26,7 @@ type MovieShowing = CinemaMovie["showings"][number];
 
 type ShowingWithTags = MovieShowing & {
   tags: string[];
+  rawMovieName: string;
 };
 
 export const MoviesByCinemaList = ({
@@ -59,21 +60,23 @@ export const MoviesByCinemaList = ({
 
     city.cinemas.forEach((cinema) => {
       cinema.movies.forEach((movie) => {
-        const { baseTitle, tags } = normalizeMovieTitle(movie.name);
         const showingsWithTags: ShowingWithTags[] = movie.showings
           .filter((showing) => showing.dateTime.getTime() > now.getTime())
-          .map((showing) => ({ ...showing, tags }));
+          .map((showing) => {
+            const { tags } = normalizeMovieTitle(showing.rawMovieName);
+            return { ...showing, tags, rawMovieName: showing.rawMovieName };
+          });
 
         if (showingsWithTags.length === 0) {
           return;
         }
 
         const nextShowing = showingsWithTags[0];
-        const existingMovie = groupedMoviesMap.get(baseTitle);
+        const existingMovie = groupedMoviesMap.get(movie.name);
 
         if (!existingMovie) {
-          groupedMoviesMap.set(baseTitle, {
-            name: baseTitle,
+          groupedMoviesMap.set(movie.name, {
+            name: movie.name,
             coverUrl: movie.coverUrl,
             cinemas: [
               {
@@ -207,12 +210,12 @@ export const MoviesByCinemaList = ({
                       {cinemaEntry.showings.length} Termine
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-2 overflow-x-auto sm:flex-wrap sm:overflow-x-visible">
                     {cinemaEntry.showings.map((showing) => (
                       <Link
                         key={`${movie.name}-${cinemaEntry.cinema.slug}-${showing.id}-${showing.dateTime.toISOString()}`}
                         href={showing.bookingUrl ?? "#"}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
                       >
                         <Clock3 className="h-3.5 w-3.5" />
                         <span>{moment(showing.dateTime).format("HH:mm")}</span>

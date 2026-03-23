@@ -5,9 +5,7 @@ import {
 import xior from "xior";
 import { ArrayHelper, type URecord } from "@ainias42/js-helper";
 import moment from "moment-timezone";
-import { type Prisma } from "@prisma/client";
-import { UIConstants } from "@waslaeuftin/globals/UIConstants";
-import { type db } from "@waslaeuftin/server/db";
+
 
 const parseCineStarDateTime = (dateTime: string): Date => {
   const normalizedDateTime = dateTime.replace(/\s+(?:CET|CEST)$/, "");
@@ -62,7 +60,7 @@ export const getCineStarMovies = async (
       ({
         name: movie.title,
         cinemaId,
-      }) satisfies Prisma.Args<typeof db.movie, "create">["data"],
+      }),
   );
 
   const showings = data.map((movie) =>
@@ -77,8 +75,8 @@ export const getCineStarMovies = async (
             showtime.attributes.map((attribute) => attributes[attribute]),
           )
             .map((attribute) => attribute.name)
-            .join(UIConstants.bullet),
-        }) satisfies Prisma.Args<typeof db.showing, "create">["data"],
+            .filter((name): name is string => typeof name === "string" && name.length > 0),
+        }),
     ),
   );
 

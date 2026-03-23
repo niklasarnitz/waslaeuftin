@@ -1,9 +1,6 @@
 import { type PremiumKinoApiResponse } from "@waslaeuftin/cinemaProviders/premiumkino/PremiumKinoTypes";
 import xior from "xior";
 import moment from "moment-timezone";
-import { UIConstants } from "@waslaeuftin/globals/UIConstants";
-import { type Prisma } from "@prisma/client";
-import { type db } from "@waslaeuftin/server/db";
 
 export const getPremiumKinoMovies = async (
   cinemaId: number,
@@ -48,11 +45,11 @@ export const getPremiumKinoMovies = async (
         showingAdditionalData: [
           `Rating: ${performance.rating}`,
           performance.language,
-        ].join(UIConstants.bullet),
+        ].filter((v): v is string => typeof v === "string" && v.length > 0),
       };
     })
     .filter((showing) => showing !== null)
-    .flat() satisfies Prisma.Args<typeof db.showing, "createMany">["data"];
+    .flat();
 
   return {
     movies,

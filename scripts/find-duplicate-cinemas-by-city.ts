@@ -303,7 +303,7 @@ const main = async () => {
   const recentMoviesCountByCinemaId = new Map<number, number>();
 
   if (cinemaIds.length > 0) {
-    const recentMovieCounts = await db.movie.groupBy({
+    const recentShowingCounts = await db.showing.groupBy({
       by: ["cinemaId"],
       where: {
         cinemaId: {
@@ -318,8 +318,8 @@ const main = async () => {
       },
     });
 
-    for (const recentMovieCount of recentMovieCounts) {
-      recentMoviesCountByCinemaId.set(recentMovieCount.cinemaId, recentMovieCount._count._all);
+    for (const recentShowingCount of recentShowingCounts) {
+      recentMoviesCountByCinemaId.set(recentShowingCount.cinemaId, recentShowingCount._count._all);
     }
   }
 

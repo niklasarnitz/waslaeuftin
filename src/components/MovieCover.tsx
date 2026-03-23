@@ -16,9 +16,9 @@ const MovieCoverFallback = ({ title }: { title: string }) => {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-border/70 bg-gradient-to-br from-background via-muted/50 to-accent/60">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,hsl(var(--primary)/0.2),transparent_45%),radial-gradient(circle_at_84%_82%,hsl(var(--accent-foreground)/0.14),transparent_52%)]" />
-      <div className="relative z-10 flex items-center gap-2 text-muted-foreground">
-        <Film className="h-4 w-4" />
-        <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+      <div className="relative z-10 flex flex-col items-center gap-1 text-muted-foreground sm:flex-row sm:gap-2">
+        <Film className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+        <span className="text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-xs">
           Kein Cover
         </span>
       </div>
