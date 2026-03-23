@@ -220,6 +220,7 @@ export const MoviesByCinemaList = ({
                         <Clock3 className="h-3.5 w-3.5" />
                         <span>{moment(showing.dateTime).format("HH:mm")}</span>
                         <ShowingTags
+                          showingId={showing.id}
                           titleTags={showing.tags}
                           additionalData={showing.showingAdditionalData}
                         />
