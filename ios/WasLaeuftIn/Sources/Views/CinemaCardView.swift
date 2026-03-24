@@ -26,7 +26,7 @@ struct CinemaCardView: View {
                         .background(Color.orange.opacity(0.16), in: Capsule())
                 }
 
-                Text("\(cinema.movies.count) Filme heute")
+                Text("\(cinema.movies.count) Filme")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.7))
 

@@ -1,0 +1,40 @@
+{
+    "name": "wasläuft.in",
+    "subtitle": "Deine Kinoübersicht für die Stadt",
+    "description": "waslaeuft.in zeigt, welche Filme heute und in Zukunft in deiner Stadt laufen.",
+    "iconURL": "https://i.imgur.com/6SGd6X3.png",
+    "website": "https://waslaeuft.in",
+    "tintColor": "#1F2937",
+    "featuredApps": [
+        "com.niklasarnitz.waslaeuftin"
+    ],
+    "apps": [
+        {
+            "name": "wasläuft.in",
+            "bundleIdentifier": "com.niklasarnitz.waslaeuftin",
+            "developerName": "Niklas Arnitz",
+            "subtitle": "Kinoübersicht für Städte",
+            "localizedDescription": "waslaeuft.in bietet eine Übersicht, welche Filme in deiner Stadt heute und zukünftig laufen.",
+            "iconURL": "https://i.imgur.com/9VEPZ1i.png",
+            "tintColor": "#046495",
+            "category": "lifestyle",
+            "screenshots": [],
+            "versions": [
+                {
+                    "version": "1.5",
+                    "date": "2026-03-24T15:42:03.257Z",
+                    "size": 1054690,
+                    "downloadURL": "https://waslaeuft.in/app/1.5/waslaeuftIn.ipa",
+                    "localizedDescription": ""
+                }
+            ],
+            "appPermissions": {
+                "entitlements": [],
+                "privacy": {
+                    "NSLocationWhenInUseUsageDescription": "Um die Kinos in der Nähe zu finden, gib bitte der app Location permissions."
+                }
+            }
+        }
+    ],
+    "news": []
+}

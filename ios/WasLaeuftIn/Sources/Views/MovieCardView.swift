@@ -10,6 +10,18 @@ struct MovieCardView: View {
         return formatter
     }()
 
+    private static func formatShowingTime(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return timeFormatter.string(from: date)
+        }
+        let day = calendar.component(.day, from: date)
+        let month = calendar.component(.month, from: date)
+        let dayStr = String(format: "%02d", day)
+        let monthStr = String(format: "%02d", month)
+        return "\(dayStr).\(monthStr). \(timeFormatter.string(from: date))"
+    }
+
     var body: some View {
         NavigationLink {
             MovieDetailView(movie: movie)
@@ -44,7 +56,7 @@ struct MovieCardView: View {
                             .foregroundStyle(.white.opacity(0.7))
 
                         if let nextShowing = movie.nextShowing {
-                            Label(Self.timeFormatter.string(from: nextShowing.dateTime), systemImage: "clock.fill")
+                            Label(Self.formatShowingTime(nextShowing.dateTime), systemImage: "clock.fill")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.cyan)
                         }

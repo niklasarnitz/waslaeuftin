@@ -27,7 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		021E8ADF7CAAD64592818879 /* wasläuft.in.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "wasläuft.in.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		021E8ADF7CAAD64592818879 /* waslaeuftIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "waslaeuftIn.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		11C74DA3C4A3A6AEF67D04CF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1D19432ADF4B62237A6724AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2CE24EC61BC5A1EF4330097E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -116,7 +116,7 @@
 		F5BCFE448F934BB8C8F5DC71 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				021E8ADF7CAAD64592818879 /* wasläuft.in.app */,
+				021E8ADF7CAAD64592818879 /* waslaeuftIn.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -139,7 +139,7 @@
 			packageProductDependencies = (
 			);
 			productName = WasLaeuftIn;
-			productReference = 021E8ADF7CAAD64592818879 /* wasläuft.in.app */;
+			productReference = 021E8ADF7CAAD64592818879 /* waslaeuftIn.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -215,7 +215,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 5NP472TPJA;
 				INFOPLIST_FILE = WasLaeuftIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "wasläuft.in";
+				INFOPLIST_KEY_CFBundleDisplayName = "waslaeuftIn";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wir verwenden deinen Standort, um Kinos und Vorstellungen in deiner Naehe anzuzeigen.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -226,7 +226,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "wasläuft.in";
+				PRODUCT_NAME = "waslaeuftIn";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -362,7 +362,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 5NP472TPJA;
 				INFOPLIST_FILE = WasLaeuftIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "wasläuft.in";
+				INFOPLIST_KEY_CFBundleDisplayName = "waslaeuftIn";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wir verwenden deinen Standort, um Kinos und Vorstellungen in deiner Naehe anzuzeigen.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -373,7 +373,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "wasläuft.in";
+				PRODUCT_NAME = "waslaeuftIn";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
