@@ -10,6 +10,18 @@ struct CinemaDetailView: View {
         return formatter
     }()
 
+    private static func formatShowingTime(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return timeFormatter.string(from: date)
+        }
+        let day = calendar.component(.day, from: date)
+        let month = calendar.component(.month, from: date)
+        let dayStr = String(format: "%02d", day)
+        let monthStr = String(format: "%02d", month)
+        return "\(dayStr).\(monthStr). \(timeFormatter.string(from: date))"
+    }
+
     var body: some View {
         ZStack {
             AppGradient.background
@@ -89,7 +101,7 @@ struct CinemaDetailView: View {
     @ViewBuilder
     private func showingCapsule(showing: HomepageResponse.Showing) -> some View {
         let content = HStack(spacing: 4) {
-            Text(Self.timeFormatter.string(from: showing.dateTime))
+            Text(Self.formatShowingTime(showing.dateTime))
                 .font(.subheadline.weight(.semibold).monospacedDigit())
                 .foregroundStyle(.white)
 

@@ -8,13 +8,6 @@ struct NearbyView: View {
 
     @State private var showErrorAlert = false
 
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
     var body: some View {
         NavigationStack {
             ZStack {

@@ -137,7 +137,7 @@ export const citiesRouter = createTRPCRouter({
       return {
         ...city,
         cinemas: city.cinemas.map((cinema) => {
-          const movieMap = new Map<
+          const movieMap: Record<
             number,
             {
               name: string;
@@ -145,23 +145,23 @@ export const citiesRouter = createTRPCRouter({
               tmdbMetadata: { popularity: number | null } | null;
               showings: typeof cinema.showings;
             }
-          >();
+          > = {};
 
           for (const showing of cinema.showings) {
-            const existing = movieMap.get(showing.movie.id);
-            if (existing) {
+            const existing = movieMap[showing.movie.id];
+            if (existing !== undefined) {
               existing.showings.push(showing);
             } else {
-              movieMap.set(showing.movie.id, {
+              movieMap[showing.movie.id] = {
                 name: showing.movie.name,
                 coverUrl: showing.movie.coverUrl,
                 tmdbMetadata: showing.movie.tmdbMetadata,
                 showings: [showing],
-              });
+              };
             }
           }
 
-          const movies = Array.from(movieMap.values())
+          const movies = Object.values(movieMap)
             .filter((movie) => movie.showings.length > 0)
             .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -222,7 +222,7 @@ export const citiesRouter = createTRPCRouter({
       return cities.map((city) => ({
         ...city,
         cinemas: city.cinemas.map((cinema) => {
-          const movieMap = new Map<
+          const movieMap: Record<
             number,
             {
               name: string;
@@ -230,23 +230,23 @@ export const citiesRouter = createTRPCRouter({
               tmdbMetadata: { popularity: number | null } | null;
               showings: typeof cinema.showings;
             }
-          >();
+          > = {};
 
           for (const showing of cinema.showings) {
-            const existing = movieMap.get(showing.movie.id);
-            if (existing) {
+            const existing = movieMap[showing.movie.id];
+            if (existing !== undefined) {
               existing.showings.push(showing);
             } else {
-              movieMap.set(showing.movie.id, {
+              movieMap[showing.movie.id] = {
                 name: showing.movie.name,
                 coverUrl: showing.movie.coverUrl,
                 tmdbMetadata: showing.movie.tmdbMetadata,
                 showings: [showing],
-              });
+              };
             }
           }
 
-          const movies = Array.from(movieMap.values())
+          const movies = Object.values(movieMap)
             .filter((movie) => movie.showings.length > 0)
             .sort((a, b) => a.name.localeCompare(b.name));
 
