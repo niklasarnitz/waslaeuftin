@@ -62,6 +62,7 @@ export const getKinoTicketsExpressMovies = async (
 
       // Find all showings for this movie - handle multiple formats
       const showings: unknown[] = [];
+      const seenBookingUrls = new Set<string>();
 
       // Method 1: Try the original format with regex (for backward compatibility)
       container$("a[href*='/booking/']").each((_, a) => {
@@ -95,6 +96,7 @@ export const getKinoTicketsExpressMovies = async (
                 bookingUrl: fullBookingUrl,
                 showingAdditionalData,
               } satisfies Showing);
+              seenBookingUrls.add(fullBookingUrl);
             }
           } catch (error) {
             console.warn(
@@ -119,11 +121,13 @@ export const getKinoTicketsExpressMovies = async (
           const bookingUrl = showtimeContainer$(timeLink).attr("href");
 
           if (dateStr && timeText && bookingUrl) {
+            // Ensure the URL is absolute
+            const fullBookingUrl = bookingUrl.startsWith("http")
+              ? bookingUrl
+              : `https://kinotickets.express${bookingUrl}`;
+
             // Check if this showing was already added by method 1
-            const existingShowing = showings.find(
-              (showing) =>
-                isShowing(showing) && showing.bookingUrl?.includes(bookingUrl),
-            );
+            const existingShowing = seenBookingUrls.has(fullBookingUrl);
 
             if (!existingShowing) {
               try {
@@ -143,16 +147,12 @@ export const getKinoTicketsExpressMovies = async (
                       "YYYY-MM-DD HH:mm",
                     ).toDate();
 
-                    // Ensure the URL is absolute
-                    const fullBookingUrl = bookingUrl.startsWith("http")
-                      ? bookingUrl
-                      : `https://kinotickets.express${bookingUrl}`;
-
                     showings.push({
                       dateTime,
                       bookingUrl: fullBookingUrl,
                       showingAdditionalData,
                     } satisfies Showing);
+                    seenBookingUrls.add(fullBookingUrl);
                   }
                 }
               } catch (error) {

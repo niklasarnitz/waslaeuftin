@@ -96,7 +96,7 @@ export const MoviesByCinemaList = ({
           {isCinemaFilterActive ? "ausgewählt" : "verfügbar"}
         </span>
         <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
-          {totalShowings} Vorstellungen heute
+          {totalShowings} Vorstellungen
         </span>
       </div>
 

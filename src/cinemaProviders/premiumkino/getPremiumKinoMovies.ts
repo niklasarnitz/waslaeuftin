@@ -22,10 +22,9 @@ export const getPremiumKinoMovies = async (
   }));
 
   // Create a map of movieId -> movieName to properly link performances to movies
-  const movieIdToNameMap = new Map<string, string>();
-  data.movies.forEach((movie) => {
-    movieIdToNameMap.set(movie.id, movie.name);
-  });
+  const movieIdToNameMap = new Map<string, string>(
+    data.movies.map((movie) => [movie.id, movie.name]),
+  );
 
   const showings = data.performances
     .map((performance) => {

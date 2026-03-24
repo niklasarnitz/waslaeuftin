@@ -3,7 +3,7 @@ import { Clock3, Film } from "lucide-react";
 import { MovieCover } from "@waslaeuftin/components/MovieCover";
 
 import { CinemaShowingsCard } from "./CinemaShowingsCard";
-import { formatTime } from "./formatters";
+import { formatShowingTime } from "./formatters";
 import type { ListingMovieCard } from "./types";
 
 type MovieCardProps = {
@@ -63,12 +63,12 @@ export const MovieCard = ({
 
           <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:mt-3 sm:gap-2 sm:text-xs">
             <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
-              {movie.showingsCount} Vorstellungen heute
+              {movie.showingsCount} Vorstellungen
             </span>
             {movie.nextShowing && (
               <span className="inline-flex items-center gap-1 rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                 <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                Nächste um {formatTime(movie.nextShowing.dateTime)}
+                Nächste um {formatShowingTime(movie.nextShowing.dateTime)}
               </span>
             )}
           </div>

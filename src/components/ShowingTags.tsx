@@ -36,7 +36,15 @@ export const ShowingTags = ({
     const seen = new Set<string>();
     const merged: string[] = [];
 
-    for (const tag of [...titleTags, ...matchedTags]) {
+    for (const tag of titleTags) {
+      const key = tag.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(tag);
+      }
+    }
+
+    for (const tag of matchedTags) {
       const key = tag.toLowerCase();
       if (!seen.has(key)) {
         seen.add(key);
