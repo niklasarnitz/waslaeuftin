@@ -9,7 +9,7 @@ import { api } from "@waslaeuftin/trpc/react";
 import { CinemaFilterBar } from "./movie-listing/CinemaFilterBar";
 import { MovieCard } from "./movie-listing/MovieCard";
 import { groupMoviesByTitle } from "./movie-listing/groupMoviesByTitle";
-import { formatDistance, formatTime } from "./movie-listing/formatters";
+import { formatDistance, formatShowingTime } from "./movie-listing/formatters";
 import type { ListingCinema } from "./movie-listing/types";
 
 type Coordinates = {
@@ -194,7 +194,7 @@ export const NearbyCinemasSection = () => {
                         </button>
                     </div>
                     <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 md:text-base">
-                        Diese Filme laufen heute in deiner Nähe.
+                        Diese Filme laufen heute und morgen in deiner Nähe.
                     </p>
                 </div>
             </div>
@@ -224,7 +224,7 @@ export const NearbyCinemasSection = () => {
                             {isCinemaFilterActive ? "ausgewählt" : "gefunden"}
                         </span>
                         <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
-                            {totalShowings} Vorstellungen heute
+                            {totalShowings} Vorstellungen
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
                             <label htmlFor="nearby-radius" className="whitespace-nowrap font-semibold">
@@ -256,7 +256,7 @@ export const NearbyCinemasSection = () => {
                         <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                             <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
                                 <Film className="h-4 w-4 text-primary" />
-                                Diese Filme laufen heute in deiner Nähe
+                                Filme in deiner Nähe
                             </h3>
                             <span className="text-xs text-muted-foreground">Sortiert nach Beliebtheit</span>
                         </div>
@@ -322,7 +322,7 @@ export const NearbyCinemasSection = () => {
                                         {nextShowing && (
                                             <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-muted/40 px-2 py-1 text-[11px] text-muted-foreground sm:mt-3 sm:px-2.5 sm:py-1.5 sm:text-xs">
                                                 <Ticket className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                                Nächste Vorstellung um {formatTime(nextShowing.dateTime)}
+                                                Nächste Vorstellung um {formatShowingTime(nextShowing.dateTime)}
                                             </p>
                                         )}
                                     </article>
@@ -335,7 +335,7 @@ export const NearbyCinemasSection = () => {
 
             {nearbyCinemas.length === 0 && (
                 <p className="mt-5 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-                    In einem Radius von {radiusKm} km wurden keine Kinos mit Vorstellungen für heute gefunden.
+                    In einem Radius von {radiusKm} km wurden keine Kinos mit Vorstellungen gefunden.
                 </p>
             )}
         </section>

@@ -19,6 +19,18 @@ struct MovieDetailView: View {
         return formatter
     }()
 
+    private static func formatShowingTime(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return timeFormatter.string(from: date)
+        }
+        let day = calendar.component(.day, from: date)
+        let month = calendar.component(.month, from: date)
+        let dayStr = String(format: "%02d", day)
+        let monthStr = String(format: "%02d", month)
+        return "\(dayStr).\(monthStr). \(timeFormatter.string(from: date))"
+    }
+
     var body: some View {
         ZStack {
             AppGradient.background
@@ -119,7 +131,7 @@ struct MovieDetailView: View {
         let mergedTags = mergedTagParts(for: showing)
 
         let content = HStack(spacing: 4) {
-            Text(Self.timeFormatter.string(from: showing.dateTime))
+            Text(Self.formatShowingTime(showing.dateTime))
                 .font(.subheadline.weight(.semibold).monospacedDigit())
                 .foregroundStyle(.white)
 
