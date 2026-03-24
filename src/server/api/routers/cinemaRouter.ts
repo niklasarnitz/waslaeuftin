@@ -65,7 +65,7 @@ export const cinemaRouter = createTRPCRouter({
       }
 
       // Group showings by movie to preserve the movies[] shape for the frontend
-      const movieMap = new Map<
+      const movieMap: Record<
         number,
         {
           name: string;
@@ -73,23 +73,23 @@ export const cinemaRouter = createTRPCRouter({
           tmdbMetadata: { popularity: number | null } | null;
           showings: typeof cinema.showings;
         }
-      >();
+      > = {};
 
       for (const showing of cinema.showings) {
-        const existing = movieMap.get(showing.movie.id);
-        if (existing) {
+        const existing = movieMap[showing.movie.id];
+        if (existing !== undefined) {
           existing.showings.push(showing);
         } else {
-          movieMap.set(showing.movie.id, {
+          movieMap[showing.movie.id] = {
             name: showing.movie.name,
             coverUrl: showing.movie.coverUrl,
             tmdbMetadata: showing.movie.tmdbMetadata,
             showings: [showing],
-          });
+          };
         }
       }
 
-      const movies = Array.from(movieMap.values()).sort((a, b) =>
+      const movies = Object.values(movieMap).sort((a, b) =>
         a.name.localeCompare(b.name),
       );
 
@@ -192,7 +192,7 @@ export const cinemaRouter = createTRPCRouter({
       return cinemas
         .map((cinema) => {
           // Group showings by movie
-          const movieMap = new Map<
+          const movieMap: Record<
             number,
             {
               name: string;
@@ -200,23 +200,23 @@ export const cinemaRouter = createTRPCRouter({
               tmdbMetadata: { popularity: number | null } | null;
               showings: typeof cinema.showings;
             }
-          >();
+          > = {};
 
           for (const showing of cinema.showings) {
-            const existing = movieMap.get(showing.movie.id);
-            if (existing) {
+            const existing = movieMap[showing.movie.id];
+            if (existing !== undefined) {
               existing.showings.push(showing);
             } else {
-              movieMap.set(showing.movie.id, {
+              movieMap[showing.movie.id] = {
                 name: showing.movie.name,
                 coverUrl: showing.movie.coverUrl,
                 tmdbMetadata: showing.movie.tmdbMetadata,
                 showings: [showing],
-              });
+              };
             }
           }
 
-          const movies = Array.from(movieMap.values()).sort((a, b) =>
+          const movies = Object.values(movieMap).sort((a, b) =>
             a.name.localeCompare(b.name),
           );
 
