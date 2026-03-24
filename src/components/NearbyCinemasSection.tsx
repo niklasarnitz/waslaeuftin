@@ -20,46 +20,29 @@ type Coordinates = {
 const DEFAULT_RADIUS_KM = 20;
 const MIN_RADIUS_KM = 5;
 const MAX_RADIUS_KM = 100;
-const RADIUS_STORAGE_KEY = "nearbyRadiusKm";
+const RADIUS_COOKIE_NAME = "nearby-radius";
+const RADIUS_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
-export const NearbyCinemasSection = () => {
+export const NearbyCinemasSection = ({ initialRadius }: { initialRadius: number }) => {
     const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
     const [locationError, setLocationError] = useState<string | null>(null);
     const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
-    const [radiusKm, setRadiusKm] = useState(() => {
-        if (typeof window === "undefined") {
-            return DEFAULT_RADIUS_KM;
-        }
-
-        const storedValue = window.localStorage.getItem(RADIUS_STORAGE_KEY);
-
-        if (!storedValue) {
-            return DEFAULT_RADIUS_KM;
-        }
-
-        const parsedValue = Number(storedValue);
-
-        if (
-            Number.isFinite(parsedValue) &&
-            parsedValue >= MIN_RADIUS_KM &&
-            parsedValue <= MAX_RADIUS_KM
-        ) {
-            return parsedValue;
-        }
-
-        return DEFAULT_RADIUS_KM;
-    });
+    const [radiusKm, setRadiusKm] = useState(initialRadius);
+    const [appliedRadiusKm, setAppliedRadiusKm] = useState(initialRadius);
     const hasRequestedLocation = useRef(false);
 
-    useEffect(() => {
-        window.localStorage.setItem(RADIUS_STORAGE_KEY, String(radiusKm));
-    }, [radiusKm]);
+    const handleRadiusRelease = () => {
+        setTimeout(() => {
+            setAppliedRadiusKm(radiusKm);
+            document.cookie = `${RADIUS_COOKIE_NAME}=${radiusKm}; path=/; max-age=${RADIUS_COOKIE_MAX_AGE}; SameSite=Lax`;
+        }, 100);
+    };
 
     const nearbyQuery = api.cinemas.getNearbyCinemas.useQuery(
         {
             latitude: coordinates?.latitude ?? 0,
             longitude: coordinates?.longitude ?? 0,
-            maxDistanceKm: radiusKm,
+            maxDistanceKm: appliedRadiusKm,
         },
         {
             enabled: Boolean(coordinates),
@@ -238,6 +221,8 @@ export const NearbyCinemasSection = () => {
                                 step={5}
                                 value={radiusKm}
                                 onChange={(event) => setRadiusKm(Number(event.target.value))}
+                                onMouseUp={handleRadiusRelease}
+                                onTouchEnd={handleRadiusRelease}
                                 className="h-3 w-20 accent-primary sm:w-28"
                             />
                         </span>
@@ -335,7 +320,7 @@ export const NearbyCinemasSection = () => {
 
             {nearbyCinemas.length === 0 && (
                 <p className="mt-5 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-                    In einem Radius von {radiusKm} km wurden keine Kinos mit Vorstellungen gefunden.
+                    In einem Radius von {appliedRadiusKm} km wurden keine Kinos mit Vorstellungen gefunden.
                 </p>
             )}
         </section>

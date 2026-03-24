@@ -18,6 +18,7 @@ const createContext = cache(async () => {
 
   return createTRPCContext({
     headers: heads,
+    ip: heads.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
   });
 });
 
