@@ -27,17 +27,40 @@ const FETCH_CINEMA_AUDITORIUM_COUNT = gql`
   }
 `;
 
+const auditoriumCache = new Map<string, Promise<boolean>>();
+const MAX_CACHE_SIZE = 100;
+
 async function getCinemaHasMultipleAuditoriums(
   centerId: string,
 ): Promise<boolean> {
-  const { data } = await client.query<{
-    cinema: { auditoriums: { data: { id: string }[] } };
-  }>({
-    query: FETCH_CINEMA_AUDITORIUM_COUNT,
-    variables: { cinemaId: centerId },
-  });
+  if (auditoriumCache.has(centerId)) {
+    return auditoriumCache.get(centerId)!;
+  }
 
-  return (data?.cinema?.auditoriums?.data?.length ?? 0) > 1;
+  const promise = client
+    .query<{
+      cinema: { auditoriums: { data: { id: string }[] } };
+    }>({
+      query: FETCH_CINEMA_AUDITORIUM_COUNT,
+      variables: { cinemaId: centerId },
+    })
+    .then(({ data }) => {
+      return (data?.cinema?.auditoriums?.data?.length ?? 0) > 1;
+    })
+    .catch((error) => {
+      auditoriumCache.delete(centerId);
+      throw error;
+    });
+
+  if (auditoriumCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = auditoriumCache.keys().next().value;
+    if (firstKey) {
+      auditoriumCache.delete(firstKey);
+    }
+  }
+
+  auditoriumCache.set(centerId, promise);
+  return promise;
 }
 
 export async function getKinoHeldMoviesInner(
