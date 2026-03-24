@@ -26,12 +26,14 @@ const locationInputSchema = z.object({
   maxDistanceKm: z.number().positive().max(250).default(20),
 });
 
-const createApiCaller = () =>
-  createCaller(() =>
-    createTRPCContext({
-      headers: new Headers(),
-    }),
-  );
+const createApiCaller = (request: Request) =>
+  createCaller(() => {
+    const headers = new Headers(request.headers);
+    return createTRPCContext({
+      headers,
+      ip: headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
+    });
+  });
 
 const buildHomepageMovieData = (
   nearbyCinemas: Awaited<
@@ -189,7 +191,7 @@ const getLocationInputFromRequest = (request: Request) => {
 const handleRequest = async (request: Request) => {
   try {
     const locationInput = getLocationInputFromRequest(request);
-    const caller = createApiCaller();
+    const caller = createApiCaller(request);
 
     const nearbyCinemas = await caller.cinemas.getNearbyCinemas({
       latitude: locationInput.latitude,

@@ -24,7 +24,7 @@ import { db } from "@waslaeuftin/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: { headers: Headers; ip?: string }) => {
   return {
     db,
     ...opts,

@@ -12,6 +12,7 @@ import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
 const createContext = async (req: NextRequest) => {
   return createTRPCContext({
     headers: req.headers,
+    ip: req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
   });
 };
 
