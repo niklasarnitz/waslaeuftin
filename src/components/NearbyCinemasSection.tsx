@@ -109,7 +109,7 @@ export const NearbyCinemasSection = () => {
     };
 
     const nearbyMovies = useMemo(
-        () => groupMoviesByTitle(filteredCinemas, { sortBy: "popularity", limit: 18 }),
+        () => groupMoviesByTitle(filteredCinemas, { sortBy: "popularity" }),
         [filteredCinemas],
     );
 

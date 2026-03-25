@@ -44,7 +44,6 @@ final class HomepageViewModel: ObservableObject {
             latitude: latitude,
             longitude: longitude,
             radiusKm: radiusKm,
-            limit: 6,
             date: selectedDate
         )
 
@@ -97,7 +96,6 @@ final class HomepageViewModel: ObservableObject {
                 latitude: latitude,
                 longitude: longitude,
                 radiusKm: radiusKm,
-                limit: 6,
                 date: selectedDate
             )
             payload = response
@@ -119,7 +117,6 @@ final class HomepageViewModel: ObservableObject {
         latitude: Double,
         longitude: Double,
         radiusKm: Double,
-        limit: Int,
         date: Date
     ) -> String {
         let lat = String(format: "%.3f", latitude)
@@ -130,7 +127,7 @@ final class HomepageViewModel: ObservableObject {
         formatter.dateFormat = "yyyy-MM-dd"
         let dateString = formatter.string(from: date)
 
-        return "\(baseURLString)|lat=\(lat)|lon=\(lon)|radius=\(radius)|limit=\(limit)|date=\(dateString)"
+        return "\(baseURLString)|lat=\(lat)|lon=\(lon)|radius=\(radius)|date=\(dateString)"
     }
 
     private func loadCache(for key: String) -> HomepageResponse? {

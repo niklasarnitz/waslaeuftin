@@ -179,37 +179,6 @@ describe("groupMoviesByTitle", () => {
         expect(result[1]?.name).toBe("Apple");
     });
 
-    it("should limit the number of results when limit is provided", () => {
-        const cinemas = [
-            {
-                ...mockCinema1,
-                movies: [
-                    {
-                        name: "Movie 1",
-                        coverUrl: "1.jpg",
-                        showings: [{ id: 1, dateTime: futureDate, rawMovieName: "Movie 1" }],
-                    },
-                    {
-                        name: "Movie 2",
-                        coverUrl: "2.jpg",
-                        showings: [{ id: 2, dateTime: futureDate, rawMovieName: "Movie 2" }],
-                    },
-                    {
-                        name: "Movie 3",
-                        coverUrl: "3.jpg",
-                        showings: [{ id: 3, dateTime: futureDate, rawMovieName: "Movie 3" }],
-                    },
-                ],
-            },
-        ];
-
-        const result = groupMoviesByTitle(cinemas, { limit: 2 });
-
-        expect(result).toHaveLength(2);
-        expect(result[0]?.name).toBe("Movie 1");
-        expect(result[1]?.name).toBe("Movie 2");
-    });
-
     it("should select the correct nextShowing across all cinemas", () => {
         const cinemas = [
             {
