@@ -11,7 +11,6 @@ struct HomepageResponse: Codable {
         let latitude: Double
         let longitude: Double
         let maxDistanceKm: Double
-        let limit: Int?
     }
 
     struct Summary: Codable {

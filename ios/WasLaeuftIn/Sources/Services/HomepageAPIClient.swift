@@ -58,7 +58,6 @@ struct HomepageAPIClient {
         latitude: Double,
         longitude: Double,
         radiusKm: Double,
-        limit: Int,
         date: Date? = nil
     ) async throws -> HomepageResponse {
         guard var components = URLComponents(string: baseURLString) else {
@@ -70,7 +69,6 @@ struct HomepageAPIClient {
             URLQueryItem(name: "latitude", value: String(latitude)),
             URLQueryItem(name: "longitude", value: String(longitude)),
             URLQueryItem(name: "maxDistanceKm", value: String(Int(radiusKm))),
-            URLQueryItem(name: "limit", value: String(limit))
         ]
 
         if let date {
