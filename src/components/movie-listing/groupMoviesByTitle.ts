@@ -30,11 +30,9 @@ export function groupMoviesByTitle(
   cinemas: SourceCinema[],
   options?: {
     sortBy?: "popularity" | "name";
-    limit?: number;
   },
 ): ListingMovieCard[] {
   const sortBy = options?.sortBy ?? "name";
-  const limit = options?.limit;
   const now = new Date();
 
   const groupedMoviesMap = new Map<
@@ -136,10 +134,6 @@ export function groupMoviesByTitle(
 
       return left.name.localeCompare(right.name);
     });
-
-  if (limit) {
-    return sorted.slice(0, limit);
-  }
 
   return sorted;
 }
