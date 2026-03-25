@@ -11,6 +11,10 @@
 		1A5905F1EE9FCBDD2A5B40A3 /* NearbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E651E7DD2E525934A682E22A /* NearbyView.swift */; };
 		1A7F59A25BAF78BCA95D89C0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C74DA3C4A3A6AEF67D04CF /* ContentView.swift */; };
 		2F03C0F923243620A740BECE /* APIEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8DC818565BB355EE1B8144 /* APIEnvironment.swift */; };
+		2F1CDF292F7371EC00D6BC6E /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1CDF282F7371EC00D6BC6E /* SearchView.swift */; };
+		2F1CDF2B2F73720B00D6BC6E /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1CDF2A2F73720B00D6BC6E /* SearchViewModel.swift */; };
+		2F1CDF2D2F73721B00D6BC6E /* SearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1CDF2C2F73721B00D6BC6E /* SearchResponse.swift */; };
+		2F1CDF2F2F73722A00D6BC6E /* SearchAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1CDF2E2F73722A00D6BC6E /* SearchAPIClient.swift */; };
 		34EAB8727A47AE68EEB09491 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA7A53DDBA2344AADE7AD7E /* SettingsView.swift */; };
 		3E6818ABB1B4573BEEB93190 /* HomepageAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603FA2A28C18A3CDE59C0DAB /* HomepageAPIClient.swift */; };
 		63BA76BA21BBAA7E33768E59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D19432ADF4B62237A6724AA /* Assets.xcassets */; };
@@ -27,10 +31,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		021E8ADF7CAAD64592818879 /* waslaeuftIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "waslaeuftIn.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		021E8ADF7CAAD64592818879 /* waslaeuftIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = waslaeuftIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		11C74DA3C4A3A6AEF67D04CF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1D19432ADF4B62237A6724AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2CE24EC61BC5A1EF4330097E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		2F1CDF282F7371EC00D6BC6E /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		2F1CDF2A2F73720B00D6BC6E /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
+		2F1CDF2C2F73721B00D6BC6E /* SearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResponse.swift; sourceTree = "<group>"; };
+		2F1CDF2E2F73722A00D6BC6E /* SearchAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchAPIClient.swift; sourceTree = "<group>"; };
 		482974B1031985A54ABAD02A /* HomepageResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomepageResponse.swift; sourceTree = "<group>"; };
 		4C8DC818565BB355EE1B8144 /* APIEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEnvironment.swift; sourceTree = "<group>"; };
 		541DF739B52B096C949759B2 /* AppGradient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGradient.swift; sourceTree = "<group>"; };
@@ -51,6 +59,7 @@
 		06BCB8EE1A5B1B03C2CF3215 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				2F1CDF282F7371EC00D6BC6E /* SearchView.swift */,
 				541DF739B52B096C949759B2 /* AppGradient.swift */,
 				F1A2B3C4D5E6F7081234ABCE /* CachedAsyncImage.swift */,
 				B433F56F0CEB824065E88EF9 /* CinemaCardView.swift */,
@@ -67,6 +76,7 @@
 		14065E8E38B0648412EC86A6 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				2F1CDF2E2F73722A00D6BC6E /* SearchAPIClient.swift */,
 				603FA2A28C18A3CDE59C0DAB /* HomepageAPIClient.swift */,
 				C4A2099D001F5B356D3D55A4 /* LocationManager.swift */,
 			);
@@ -84,6 +94,8 @@
 		A0685CB2F73A7EEA6D467D39 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				2F1CDF2C2F73721B00D6BC6E /* SearchResponse.swift */,
+				2F1CDF2A2F73720B00D6BC6E /* SearchViewModel.swift */,
 				7976C380AB023CFA13CD59FC /* HomepageViewModel.swift */,
 			);
 			path = ViewModels;
@@ -186,18 +198,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F1CDF2D2F73721B00D6BC6E /* SearchResponse.swift in Sources */,
 				2F03C0F923243620A740BECE /* APIEnvironment.swift in Sources */,
 				E0980FC5FA84F6B71D76C94C /* AppGradient.swift in Sources */,
 				F1A2B3C4D5E6F7081234ABCD /* CachedAsyncImage.swift in Sources */,
 				82A7D477FC212F227E6536AF /* CinemaCardView.swift in Sources */,
 				BE5176510C406008787E8FF8 /* CinemaDetailView.swift in Sources */,
 				1A7F59A25BAF78BCA95D89C0 /* ContentView.swift in Sources */,
+				2F1CDF2B2F73720B00D6BC6E /* SearchViewModel.swift in Sources */,
+				2F1CDF292F7371EC00D6BC6E /* SearchView.swift in Sources */,
 				3E6818ABB1B4573BEEB93190 /* HomepageAPIClient.swift in Sources */,
 				029DA607EB5B94AC51E6A45B /* HomepageResponse.swift in Sources */,
 				A97B6802FC3657A572624559 /* HomepageViewModel.swift in Sources */,
 				9984763824D9998BCBB4BBE4 /* LocationManager.swift in Sources */,
 				D57914A5068053F84203612A /* MainTabView.swift in Sources */,
 				9D8DA557C835EC02B0F88D05 /* MovieCardView.swift in Sources */,
+				2F1CDF2F2F73722A00D6BC6E /* SearchAPIClient.swift in Sources */,
 				CE800CC903DB7649DC263D2C /* MovieDetailView.swift in Sources */,
 				1A5905F1EE9FCBDD2A5B40A3 /* NearbyView.swift in Sources */,
 				34EAB8727A47AE68EEB09491 /* SettingsView.swift in Sources */,
@@ -215,7 +231,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 5NP472TPJA;
 				INFOPLIST_FILE = WasLaeuftIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "waslaeuftIn";
+				INFOPLIST_KEY_CFBundleDisplayName = waslaeuftIn;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wir verwenden deinen Standort, um Kinos und Vorstellungen in deiner Naehe anzuzeigen.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -226,7 +242,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "waslaeuftIn";
+				PRODUCT_NAME = waslaeuftIn;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -362,7 +378,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = 5NP472TPJA;
 				INFOPLIST_FILE = WasLaeuftIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "waslaeuftIn";
+				INFOPLIST_KEY_CFBundleDisplayName = waslaeuftIn;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wir verwenden deinen Standort, um Kinos und Vorstellungen in deiner Naehe anzuzeigen.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -373,7 +389,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_NAME = "waslaeuftIn";
+				PRODUCT_NAME = waslaeuftIn;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
