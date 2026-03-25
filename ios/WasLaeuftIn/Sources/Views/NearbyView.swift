@@ -17,7 +17,18 @@ struct NearbyView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         if let payload = viewModel.payload {
-                            summaryBar(payload: payload)
+                            HStack {
+                                summaryBar(payload: payload)
+                                Spacer()
+                                DatePicker(
+                                    "",
+                                    selection: $viewModel.selectedDate,
+                                    displayedComponents: [.date]
+                                )
+                                .labelsHidden()
+                                .colorInvert()
+                                .colorMultiply(.white)
+                            }
 
                             if selectedTab == .highlights {
                                 LazyVStack(spacing: 12) {
@@ -60,6 +71,9 @@ struct NearbyView: View {
                 }
             }
             .onChange(of: viewModel.radiusKm) { _, _ in
+                Task { await refreshAsync() }
+            }
+            .onChange(of: viewModel.selectedDate) { _, _ in
                 Task { await refreshAsync() }
             }
             .onChange(of: viewModel.errorMessage) { _, newValue in
