@@ -11,6 +11,7 @@ import {
 } from "@waslaeuftin/types/RequestCinemaFormData";
 import { api } from "@waslaeuftin/trpc/react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function RequestCinemaPage() {
   const form = useForm<RequestCinemaFormData>({
@@ -65,7 +66,14 @@ export default function RequestCinemaPage() {
               placeholder="https://www.filmpalast-musterstadt.de"
               control={form.control}
             />
-            <Button type="submit" className="flex-1">
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Kino wünschen
             </Button>
           </div>
