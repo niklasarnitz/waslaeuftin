@@ -100,7 +100,7 @@ struct CinemaDetailView: View {
 
     @ViewBuilder
     private func showingCapsule(showing: HomepageResponse.Showing) -> some View {
-        let content = HStack(spacing: 4) {
+        let content = FlowLayout(spacing: 4) {
             Text(Self.formatShowingTime(showing.dateTime))
                 .font(.subheadline.weight(.semibold).monospacedDigit())
                 .foregroundStyle(.white)
@@ -118,15 +118,13 @@ struct CinemaDetailView: View {
             }
 
             if let tags = showing.tags, !tags.isEmpty {
-                HStack(spacing: 3) {
-                    ForEach(tags, id: \.self) { tag in
-                        Text(tag.uppercased())
-                            .font(.system(size: 9, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.cyan)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color.cyan.opacity(0.15), in: Capsule())
-                    }
+                ForEach(tags, id: \.self) { tag in
+                    Text(tag.uppercased())
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.cyan)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.cyan.opacity(0.15), in: Capsule())
                 }
             }
         }

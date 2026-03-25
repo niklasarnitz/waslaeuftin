@@ -128,16 +128,17 @@ export const cinemaRouter = createTRPCRouter({
               6371 * acos(
                 LEAST(1.0, GREATEST(-1.0,
                   cos(radians(${input.latitude}))
-                  * cos(radians(c.latitude))
-                  * cos(radians(c.longitude) - radians(${input.longitude}))
+                  * cos(radians(COALESCE(c.latitude, city.latitude)))
+                  * cos(radians(COALESCE(c.longitude, city.longitude)) - radians(${input.longitude}))
                   + sin(radians(${input.latitude}))
-                  * sin(radians(c.latitude))
+                  * sin(radians(COALESCE(c.latitude, city.latitude)))
                 ))
               )
             ) AS distance_km
           FROM "Cinema" c
-          WHERE c.latitude IS NOT NULL
-            AND c.longitude IS NOT NULL
+          JOIN "City" city ON city.id = c."cityId"
+          WHERE COALESCE(c.latitude, city.latitude) IS NOT NULL
+            AND COALESCE(c.longitude, city.longitude) IS NOT NULL
         ) sub
         WHERE sub.distance_km <= ${input.maxDistanceKm}
         ORDER BY sub.distance_km ASC

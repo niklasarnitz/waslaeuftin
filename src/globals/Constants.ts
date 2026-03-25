@@ -24,7 +24,7 @@ export const Constants = {
   ["whats-showing-in-date"]: {
     cinema: (cinema: string, date: string) => `Was läuft ${date} im ${cinema}?`,
     city: (city: string, date: string) => `Was läuft ${date} in ${city}?`,
-    favorites: (date: string) =>
+    home: (date: string) =>
       `Was läuft ${date} in deiner Nähe?`,
   },
   ["find-out-which-movies-are-showing-in"]: {

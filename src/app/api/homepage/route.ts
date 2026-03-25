@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/movieTitleNormalizer";
+import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 import { createCaller } from "@waslaeuftin/server/api/root";
 import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
 

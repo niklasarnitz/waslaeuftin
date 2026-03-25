@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import moment from "moment-timezone";
-import { getDateString } from "../../src/helpers/getDateString";
+import { getDateString } from "../../src/helpers/similarity/getDateString";
 
 describe("getDateString", () => {
   test("returns 'in nächster Zeit' when no date is provided", () => {

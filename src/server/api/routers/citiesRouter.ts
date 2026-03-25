@@ -3,7 +3,6 @@ import {
     publicProcedure,
 } from "@waslaeuftin/server/api/trpc";
 import { trackCinemaView, trackCityView } from "@waslaeuftin/server/umami";
-import { endOfDay } from "date-fns";
 import moment from "moment-timezone";
 import { z } from "zod";
 
@@ -195,93 +194,39 @@ export const citiesRouter = createTRPCRouter({
             };
         }),
 
-    getStartPageCities: publicProcedure
-        .input(z.array(z.string()))
-        .query(async ({ input, ctx }) => {
-            const today = new Date();
+    search: publicProcedure
+        .input(z.string())
+        .query(async ({ ctx, input }) => {
+            const query = input.trim();
+
+            const cityWhere = query
+                ? { name: { contains: query, mode: "insensitive" as const } }
+                : undefined;
+
+            const cinemaWhere = query
+                ? { name: { contains: query, mode: "insensitive" as const } }
+                : undefined;
 
             const cities = await ctx.db.city.findMany({
+                where: cityWhere,
+                select: { id: true, name: true, slug: true },
                 orderBy: { name: "asc" },
-                where: {
-                    slug: {
-                        in: input,
-                    },
-                },
-                include: {
-                    cinemas: {
-                        orderBy: { name: "asc" },
-                        include: {
-                            showings: {
-                                where: {
-                                    dateTime: {
-                                        gte: today,
-                                        lte: endOfDay(today),
-                                    },
-                                },
-                                orderBy: { dateTime: "asc" },
-                                include: {
-                                    movie: {
-                                        select: {
-                                            id: true,
-                                            name: true,
-                                            coverUrl: true,
-                                            tmdbMetadata: {
-                                                select: {
-                                                    popularity: true,
-                                                },
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
+                take: 5,
             });
 
-            if (cities) {
-                await Promise.all([trackCityView(cities, ctx.ip), trackCinemaView(cities.flatMap((c) => c.cinemas), ctx.ip)])
-            }
+            const cinemas = await ctx.db.cinema.findMany({
+                where: cinemaWhere,
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    city: { select: { name: true } },
+                },
+                orderBy: { name: "asc" },
+                take: 5,
+            });
 
-            return cities.map((city) => ({
-                ...city,
-                cinemas: city.cinemas.map((cinema) => {
-                    const movieMap: Record<
-                        number,
-                        {
-                            name: string;
-                            coverUrl: string | null;
-                            tmdbMetadata: { popularity: number | null } | null;
-                            showings: typeof cinema.showings;
-                        }
-                    > = {};
-
-                    for (const showing of cinema.showings) {
-                        const existing = movieMap[showing.movie.id];
-                        if (existing !== undefined) {
-                            existing.showings.push(showing);
-                        } else {
-                            movieMap[showing.movie.id] = {
-                                name: showing.movie.name,
-                                coverUrl: showing.movie.coverUrl,
-                                tmdbMetadata: showing.movie.tmdbMetadata,
-                                showings: [showing],
-                            };
-                        }
-                    }
-
-                    const movies = Object.values(movieMap)
-                        .filter((movie) => movie.showings.length > 0)
-                        .sort((a, b) => a.name.localeCompare(b.name));
-
-                    const { showings: _showings, ...cinemaWithoutShowings } = cinema;
-
-                    return {
-                        ...cinemaWithoutShowings,
-                        movies,
-                    };
-                }),
-            }));
+            return { cities, cinemas };
         }),
     getCityById: publicProcedure
         .input(z.number())

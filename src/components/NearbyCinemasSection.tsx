@@ -23,12 +23,18 @@ const MAX_RADIUS_KM = 100;
 const RADIUS_COOKIE_NAME = "nearby-radius";
 const RADIUS_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
-export const NearbyCinemasSection = ({ initialRadius }: { initialRadius: number }) => {
+const getInitialRadius = () => {
+    if (typeof document === "undefined") return DEFAULT_RADIUS_KM;
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${RADIUS_COOKIE_NAME}=([^;]*)`));
+    return match ? Number.parseInt(match[1]!, 10) || DEFAULT_RADIUS_KM : DEFAULT_RADIUS_KM;
+};
+
+export const NearbyCinemasSection = () => {
     const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
     const [locationError, setLocationError] = useState<string | null>(null);
     const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
-    const [radiusKm, setRadiusKm] = useState(initialRadius);
-    const [appliedRadiusKm, setAppliedRadiusKm] = useState(initialRadius);
+    const [radiusKm, setRadiusKm] = useState(getInitialRadius);
+    const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
     const hasRequestedLocation = useRef(false);
 
     const handleRadiusRelease = () => {
@@ -274,13 +280,13 @@ export const NearbyCinemasSection = ({ initialRadius }: { initialRadius: number 
                                         key={cinema.id}
                                         className="rounded-xl border border-border/70 bg-background/80 p-3 transition-colors hover:bg-background sm:rounded-2xl sm:p-4"
                                     >
-                                        <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center justify-between gap-4">
                                             <div className="min-w-0">
                                                 <Link href={`/cinema/${cinema.slug}`} className="text-sm font-semibold tracking-tight hover:underline sm:text-base">
                                                     {cinema.name}
                                                 </Link>
                                                 {cinema.city && (
-                                                    <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+                                                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">
                                                         <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                                                         <Link href={`/city/${cinema.city.slug}`} className="hover:underline">
                                                             {cinema.city.name}
