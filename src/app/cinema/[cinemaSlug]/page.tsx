@@ -43,9 +43,9 @@ export async function generateMetadata({
   const city = await api.cities.getCityById(cinema.cityId);
 
   return {
-    title: Constants["what-movies-are-showing-in"].cinema(
+    title: `${Constants["what-movies-are-showing-in"].cinema(
       `${cinema.name}${city ? ` in ${city.name}` : ""}`,
-    ),
+    )} | ${Constants.appName}`,
     description: Constants["find-out-which-movies-are-showing-in"].cinema,
   };
 }
@@ -71,8 +71,35 @@ export default async function CinemaPage({
     return <div>{Constants["not-found"].page}</div>;
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "MovieTheater",
+    name: cinema.name,
+    url: `https://waslaeuft.in/cinema/${cinema.slug}`,
+    event: cinema.movies.flatMap((movie) =>
+      movie.showings.map((showing) => ({
+        "@type": "ScreeningEvent",
+        name: movie.name,
+        startDate: showing.dateTime,
+        url: showing.bookingUrl || `https://waslaeuft.in/cinema/${cinema.slug}`,
+        location: {
+          "@type": "MovieTheater",
+          name: cinema.name,
+        },
+        workPresented: {
+          "@type": "Movie",
+          name: movie.name,
+        }
+      }))
+    ),
+  };
+
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
           <CinemaMovies cinema={cinema} />

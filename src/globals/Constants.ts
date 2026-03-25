@@ -1,7 +1,8 @@
 export const Constants = {
   appName: "wasläuft․in",
   home: {
-    cta: "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen.",
+    title: "Was läuft heute im Kino? - Kino-Programm in deiner Nähe",
+    cta: "Finde jetzt heraus, welche Filme heute in deiner Stadt laufen. Aktuelles Kino-Programm für deine Nähe auf wasläuft.in.",
     subtitle: "Entdecke, welche Filme heute noch in deiner Stadt laufen.",
   },
   ["not-found"]: {
@@ -9,16 +10,16 @@ export const Constants = {
   },
   error: "Fehler",
   ["what-movies-are-showing-in"]: {
-    city: (city: string) => `Welche Filme laufen in ${city}?`,
-    cinema: (cinema: string) => `Welche Filme laufen im ${cinema}?`,
+    city: (city: string) => `Kino-Programm ${city}: Was läuft heute im Kino?`,
+    cinema: (cinema: string) => `Kino-Programm ${cinema}: Was läuft heute?`,
   },
   ["what-movies-are-showing-soon-in"]: {
-    city: (city: string) => `Welche Filme laufen bald in ${city}?`,
-    cinema: (cinema: string) => `Welche Filme laufen bald im ${cinema}?`,
+    city: (city: string) => `Kino-Programm ${city}: Was läuft heute im Kino?`,
+    cinema: (cinema: string) => `Kino-Programm ${cinema}: Was läuft heute?`,
     cta: {
       city: (city: string) =>
-        `Finde jetzt heraus, welche Filme bald in ${city} laufen.`,
-      cinema: "Finde jetzt heraus, welche Filme bald in deinem Kino laufen.",
+        `Finde jetzt das aktuelle Kino-Programm für ${city} heraus. Was läuft heute im Kino?`,
+      cinema: "Finde jetzt das aktuelle Kino-Programm in deinem Kino heraus. Was läuft heute?",
     },
   },
   ["whats-showing-in-date"]: {
