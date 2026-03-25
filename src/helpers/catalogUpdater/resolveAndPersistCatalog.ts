@@ -17,16 +17,22 @@ import { fetchTmdbMovieDetails } from "../tmdb/fetchTmdbMovieDetails";
 export const resolveAndPersistCatalog = async (
     catalogs: ProviderCatalog[]
 ) => {
-    const allShowings = catalogs.flatMap((c) => c.showings);
-    const allMovies = catalogs.flatMap((c) => c.movies);
+    const rawTitlesSet = new Set<string>();
+    const allShowings: ProviderCatalog["showings"] = [];
+    const allMovies: ProviderCatalog["movies"] = [];
 
-    // Collect unique raw titles
-    const rawTitles = [
-        ...new Set([
-            ...allMovies.map((m) => m.name),
-            ...allShowings.map((s) => s.movieName),
-        ]),
-    ];
+    for (const catalog of catalogs) {
+        for (const movie of catalog.movies) {
+            allMovies.push(movie);
+            rawTitlesSet.add(movie.name);
+        }
+        for (const showing of catalog.showings) {
+            allShowings.push(showing);
+            rawTitlesSet.add(showing.movieName);
+        }
+    }
+
+    const rawTitles = Array.from(rawTitlesSet);
 
     console.info(
         `[Resolver] Resolving ${rawTitles.length} unique raw titles from ${allShowings.length} showings`
@@ -84,6 +90,8 @@ export const resolveAndPersistCatalog = async (
     const titleResolutionMap = new Map<string, ResolvedMovie>();
     // Map: canonicalKey -> ResolvedMovie (deduplicated)
     const canonicalMovieMap = new Map<string, ResolvedMovie>();
+    // Map: comparisonKey -> ResolvedMovie
+    const resolutionByComparisonKey = new Map<string, ResolvedMovie>();
 
     // Track which movies need TMDB data
     const moviesToFetchTmdbData = new Set<string>(); // raw titles
@@ -98,10 +106,7 @@ export const resolveAndPersistCatalog = async (
         const comparisonKey = normalizeForComparison(normalizedTitle);
 
         // Check if we already resolved a title with the same comparison key
-        const existingByComparison = Array.from(titleResolutionMap.values()).find(
-            (r) => normalizeForComparison(r.normalizedTitle) === comparisonKey &&
-                comparisonKey.length > 0
-        );
+        const existingByComparison = comparisonKey.length > 0 ? resolutionByComparisonKey.get(comparisonKey) : undefined;
 
         if (existingByComparison) {
             titleResolutionMap.set(rawTitle, existingByComparison);
@@ -131,6 +136,9 @@ export const resolveAndPersistCatalog = async (
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(dbMatch.canonicalKey, resolved);
+            if (comparisonKey.length > 0) {
+                resolutionByComparisonKey.set(comparisonKey, resolved);
+            }
 
             // Check if we need to fetch TMDB data for this movie
             if (!dbMatch.coverUrl || !dbMatch.tmdbMovieId) {
@@ -242,6 +250,10 @@ export const resolveAndPersistCatalog = async (
 
                 titleResolutionMap.set(rawTitle, resolved);
                 canonicalMovieMap.set(dbMatchByTmbd.canonicalKey, resolved);
+                const tmdbComparisonKey = normalizeForComparison(resolved.normalizedTitle);
+                if (tmdbComparisonKey.length > 0) {
+                    resolutionByComparisonKey.set(tmdbComparisonKey, resolved);
+                }
 
                 console.info(
                     `[Resolver]   → TMDB ID found in DB (better match): "${dbMatchByTmbd.name}"`
@@ -310,6 +322,10 @@ export const resolveAndPersistCatalog = async (
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(canonicalKey, resolved);
+            const newComparisonKey = normalizeForComparison(resolved.normalizedTitle);
+            if (newComparisonKey.length > 0) {
+                resolutionByComparisonKey.set(newComparisonKey, resolved);
+            }
 
             tmdbMatched++;
             newMoviesCreated++;
@@ -348,6 +364,9 @@ export const resolveAndPersistCatalog = async (
 
                     titleResolutionMap.set(rawTitle, resolved);
                     canonicalMovieMap.set(canonicalKey, resolved);
+                    if (comparisonKey.length > 0) {
+                        resolutionByComparisonKey.set(comparisonKey, resolved);
+                    }
                 }
 
                 console.info(
@@ -422,10 +441,29 @@ export const resolveAndPersistCatalog = async (
 
             // Automatically combine existing additional data with any tags parsed from the movie title
             const extractedTags = normalizeMovieTitle(showing.movieName).tags;
-            const combinedAdditionalData = Array.from(new Set([
-                ...(showing.showingAdditionalData ?? []),
-                ...extractedTags
-            ]));
+
+            let hasNewTags = false;
+            if (!showing.showingAdditionalData) {
+                if (extractedTags.length > 0) hasNewTags = true;
+            } else {
+                for (let j = 0; j < extractedTags.length; j++) {
+                    if (!showing.showingAdditionalData.includes(extractedTags[j]!)) {
+                        hasNewTags = true;
+                        break;
+                    }
+                }
+            }
+
+            let combinedAdditionalData;
+            if (hasNewTags) {
+                const combinedSet = new Set(showing.showingAdditionalData);
+                for (let j = 0; j < extractedTags.length; j++) {
+                    combinedSet.add(extractedTags[j]!);
+                }
+                combinedAdditionalData = Array.from(combinedSet);
+            } else {
+                combinedAdditionalData = showing.showingAdditionalData ?? [];
+            }
 
             return {
                 cinemaId: showing.cinemaId,
