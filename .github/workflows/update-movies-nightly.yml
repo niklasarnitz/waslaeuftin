@@ -31,6 +31,8 @@ jobs:
       MINIO_BUCKET: ${{ secrets.MINIO_BUCKET }}
       MINIO_MOVIE_COVERS_PREFIX: ${{ secrets.MINIO_MOVIE_COVERS_PREFIX }}
       MINIO_PUBLIC_BASE_URL: ${{ secrets.MINIO_PUBLIC_BASE_URL }}
+      UMAMI_URL: ${{ secrets.UMAMI_URL }}
+      UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
 
     steps:
       - name: Checkout
