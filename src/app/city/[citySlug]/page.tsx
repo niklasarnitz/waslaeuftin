@@ -41,7 +41,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: Constants["what-movies-are-showing-soon-in"].city(city.name),
+    title: `${Constants["what-movies-are-showing-soon-in"].city(city.name)} | ${Constants.appName}`,
     description: Constants["what-movies-are-showing-soon-in"].cta.city(
       city.name,
     ),
@@ -70,8 +70,26 @@ export default async function MoviesInCity({
     return <div>{Constants["not-found"].page}</div>;
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": city.cinemas.map((cinema, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "MovieTheater",
+        "name": cinema.name,
+        "url": `https://waslaeuft.in/cinema/${cinema.slug}`,
+      }
+    }))
+  };
+
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
           <MoviesByCinemaList city={city} date={decodedParams.date} />
