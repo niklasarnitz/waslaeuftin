@@ -7,4 +7,5 @@ export type ResolvedMovie = {
     coverUrl: string | null;
     coverStorageKey: string | null;
     coverConfidence: number | null;
+    tmdbSearchFailedOn?: Date | null;
 };
