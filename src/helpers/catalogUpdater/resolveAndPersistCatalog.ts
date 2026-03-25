@@ -45,6 +45,7 @@ export const resolveAndPersistCatalog = async (
             coverUrl: true,
             coverStorageKey: true,
             coverConfidence: true,
+            tmdbSearchFailedOn: true,
         },
     });
 
@@ -126,6 +127,7 @@ export const resolveAndPersistCatalog = async (
                 coverUrl: dbMatch.coverUrl,
                 coverStorageKey: dbMatch.coverStorageKey,
                 coverConfidence: dbMatch.coverConfidence,
+                tmdbSearchFailedOn: dbMatch.tmdbSearchFailedOn,
             };
 
             titleResolutionMap.set(rawTitle, resolved);
@@ -133,7 +135,17 @@ export const resolveAndPersistCatalog = async (
 
             // Check if we need to fetch TMDB data for this movie
             if (!dbMatch.coverUrl || !dbMatch.tmdbMovieId) {
-                moviesToFetchTmdbData.add(rawTitle);
+                const now = new Date();
+                const failedOn = dbMatch.tmdbSearchFailedOn;
+
+                // Only retry if it hasn't failed before, or if it failed more than 4 days ago
+                if (!failedOn || (now.getTime() - failedOn.getTime()) > (4 * 24 * 60 * 60 * 1000)) {
+                    moviesToFetchTmdbData.add(rawTitle);
+                } else {
+                    console.info(
+                        `[Resolver]   → Found in DB, missing TMDB data, but skipping search (failed on ${failedOn.toISOString()})`
+                    );
+                }
             }
 
             console.info(
@@ -226,6 +238,7 @@ export const resolveAndPersistCatalog = async (
                     coverUrl: dbMatchByTmbd.coverUrl,
                     coverStorageKey: dbMatchByTmbd.coverStorageKey,
                     coverConfidence: dbMatchByTmbd.coverConfidence,
+                    tmdbSearchFailedOn: null,
                 };
 
                 titleResolutionMap.set(rawTitle, resolved);
@@ -293,6 +306,7 @@ export const resolveAndPersistCatalog = async (
                 coverUrl,
                 coverStorageKey,
                 coverConfidence: match.confidence,
+                tmdbSearchFailedOn: null,
             };
 
             titleResolutionMap.set(rawTitle, resolved);
@@ -330,6 +344,7 @@ export const resolveAndPersistCatalog = async (
                         coverUrl: null,
                         coverStorageKey: null,
                         coverConfidence: null,
+                        tmdbSearchFailedOn: new Date(),
                     };
 
                     titleResolutionMap.set(rawTitle, resolved);
@@ -365,6 +380,7 @@ export const resolveAndPersistCatalog = async (
                 coverStorageKey: canonicalMovie.coverStorageKey,
                 coverConfidence: canonicalMovie.coverConfidence,
                 tmdbMovieId: canonicalMovie.tmdbMovieId,
+                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
             },
             create: {
                 canonicalKey: canonicalMovie.canonicalKey,
@@ -374,6 +390,7 @@ export const resolveAndPersistCatalog = async (
                 coverStorageKey: canonicalMovie.coverStorageKey,
                 coverConfidence: canonicalMovie.coverConfidence,
                 tmdbMovieId: canonicalMovie.tmdbMovieId,
+                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
             },
             select: { id: true, canonicalKey: true },
         });
