@@ -158,14 +158,12 @@ const buildHomepageMovieData = (
       })),
     }));
 
-  const totalShowings = nearbyCinemas.reduce((total, cinema) => {
-    return (
-      total +
-      cinema.movies.reduce((movieTotal, movie) => {
-        return movieTotal + movie.showings.length;
-      }, 0)
-    );
-  }, 0);
+  let totalShowings = 0;
+  for (const cinema of nearbyCinemas) {
+    for (const movie of cinema.movies) {
+      totalShowings += movie.showings.length;
+    }
+  }
 
   return {
     totalShowings,

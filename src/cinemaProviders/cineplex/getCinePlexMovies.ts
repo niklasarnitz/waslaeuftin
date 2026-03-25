@@ -66,13 +66,10 @@ export const getCineplexMovies = async (
         throw new Error("Could not load Cineplex screenings");
     }
 
-    const cinemasByCineplexCinemaId = cinemas.reduce(
-        (acc, cinema) => {
-            acc[cinema.cineplexCinemaId] = cinema;
-            return acc;
-        },
-        {} as Record<string, (typeof cinemas)[number]>,
-    );
+    const cinemasByCineplexCinemaId: Record<string, (typeof cinemas)[number]> = {};
+    for (const cinema of cinemas) {
+        cinemasByCineplexCinemaId[cinema.cineplexCinemaId] = cinema;
+    }
 
     const showings = data.screenedMovies
         .map((screenedMovie) => screenedMovie.movie)

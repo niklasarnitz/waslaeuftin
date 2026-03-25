@@ -37,15 +37,12 @@ export const getCineStarMovies = async (
         throw new Error("Could not load CineStar attributes");
     }
 
-    const attributes = rawAttributes
-        .filter((attribute) => !!attribute.name && attribute.name.length > 0)
-        .reduce(
-            (acc, attribute) => {
-                acc[attribute.id] = attribute;
-                return acc;
-            },
-            {} as URecord<string, CineStarAttribute>,
-        );
+    const attributes: URecord<string, CineStarAttribute> = {};
+    for (const attribute of rawAttributes) {
+        if (attribute.name && attribute.name.length > 0) {
+            attributes[attribute.id] = attribute;
+        }
+    }
 
     const { data } = await xiorInstance.get<CineStarEventType[]>(
         `https://www.cinestar.de/api/cinema/${cinestarCinemaId}/show/`,
