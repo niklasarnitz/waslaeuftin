@@ -10,7 +10,6 @@ import { TmdbMovieMatcher } from "../tmdb/TmdbMovieMatcher";
 import { UploadedCover } from "../../types/UploadedCover";
 import { uploadTmdbPosterToMinio } from "../fileStorage/uploadTmdbPosterToMinio";
 import { upsertTmdbMetadata } from "../fileStorage/upsertTmdbMetadata";
-import { normalizeMovieTitleForSearch } from "../titleNormalization/normalizeMovieTitleForSearch";
 import { normalizeForComparison } from "../titleNormalization/normalizeForComparison";
 import { fetchTmdbMovieDetails } from "../tmdb/fetchTmdbMovieDetails";
 
@@ -94,7 +93,7 @@ export const resolveAndPersistCatalog = async (
     console.info(`[Resolver] Phase 2: Matching raw titles to database movies...`);
 
     for (const [index, rawTitle] of rawTitles.entries()) {
-        const normalizedTitle = normalizeMovieTitleForSearch(rawTitle);
+        const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
         const comparisonKey = normalizeForComparison(normalizedTitle);
 
         // Check if we already resolved a title with the same comparison key
@@ -204,7 +203,7 @@ export const resolveAndPersistCatalog = async (
         }
 
         const { evaluation } = evaluationResult.value;
-        const normalizedTitle = normalizeMovieTitleForSearch(rawTitle);
+        const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
 
         console.info(
             `[Resolver] [${index + 1}/${allEvaluationResults.length}] Processing TMDB result for: "${rawTitle}"`
@@ -314,7 +313,7 @@ export const resolveAndPersistCatalog = async (
                 );
             } else {
                 // Create fallback resolution
-                const normalizedForFallback = normalizeMovieTitleForSearch(rawTitle);
+                const normalizedForFallback = normalizeMovieTitle(rawTitle).normalizedTitle;
                 const comparisonKey = normalizeForComparison(normalizedForFallback);
                 const canonicalKey = `title:${comparisonKey}`;
 
