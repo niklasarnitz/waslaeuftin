@@ -114,7 +114,11 @@ export const NearbyCinemasSection = () => {
     );
 
     const totalShowings = useMemo(() => {
-        return nearbyMovies.reduce((total, movie) => total + movie.showingsCount, 0);
+        let count = 0;
+        for (const movie of nearbyMovies) {
+            count += movie.showingsCount;
+        }
+        return count;
     }, [nearbyMovies]);
 
     const requestLocation = () => {
@@ -306,7 +310,15 @@ export const NearbyCinemasSection = () => {
                                                 {originalCinema?.movies.length ?? 0} Filme
                                             </span>
                                             <span className="rounded-full border border-border/80 px-2 py-0.5 text-foreground/80 sm:px-2.5 sm:py-1">
-                                                {originalCinema?.movies.reduce((total, movie) => total + movie.showings.length, 0) ?? 0} Vorstellungen
+                                                {(() => {
+                                                    let count = 0;
+                                                    if (originalCinema) {
+                                                        for (const movie of originalCinema.movies) {
+                                                            count += movie.showings.length;
+                                                        }
+                                                    }
+                                                    return count;
+                                                })()} Vorstellungen
                                             </span>
                                         </div>
 

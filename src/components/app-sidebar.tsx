@@ -26,7 +26,11 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
   const normalizedSearchQuery = normalize(searchQuery);
   const cities = await api.cities.getCities(normalizedSearchQuery || undefined);
-  const cinemaCount = cities.reduce((acc, city) => acc + city.cinemas.length, 0);
+
+  let cinemaCount = 0;
+  for (const city of cities) {
+    cinemaCount += city._count.cinemas;
+  }
 
   return (
     <Sidebar {...props}>
