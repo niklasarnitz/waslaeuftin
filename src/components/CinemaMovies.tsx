@@ -28,10 +28,10 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
     sortBy: "popularity",
   });
 
-  const totalShowings = groupedMovies.reduce(
-    (total, movie) => total + movie.showingsCount,
-    0,
-  );
+  let totalShowings = 0;
+  for (const movie of groupedMovies) {
+    totalShowings += movie.showingsCount;
+  }
 
   if (groupedMovies.length === 0) {
     return (

@@ -73,7 +73,11 @@ export const MoviesByCinemaList = ({
   );
 
   const totalShowings = useMemo(() => {
-    return groupedMovies.reduce((total, movie) => total + movie.showingsCount, 0);
+    let count = 0;
+    for (const movie of groupedMovies) {
+      count += movie.showingsCount;
+    }
+    return count;
   }, [groupedMovies]);
 
   if (groupedMovies.length === 0 && !isCinemaFilterActive) {
