@@ -4,7 +4,7 @@ import { Client as MinioClient } from "minio";
 
 import { env } from "@waslaeuftin/env";
 import { db } from "@waslaeuftin/server/db";
-import { normalizeMovieTitleForSearch } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitleForSearch";
+import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
 
 
@@ -164,7 +164,7 @@ const buildTmdbSearchQueries = (
     const queries = [
         normalizedTitle,
         originalTitle,
-        normalizeMovieTitleForSearch(originalTitle),
+        normalizeMovieTitle(originalTitle).normalizedTitle,
     ];
 
     const colonIndex = normalizedTitle.indexOf(":");
@@ -358,7 +358,7 @@ class TmdbMovieMatcher {
 
     async evaluate(title: string): Promise<TmdbMatchEvaluation> {
         const normalizedTitle = normalizeForComparison(
-            normalizeMovieTitleForSearch(title),
+            normalizeMovieTitle(title).normalizedTitle,
         );
         const cacheKey = normalizedTitle || normalizeForComparison(title);
 
@@ -375,7 +375,7 @@ class TmdbMovieMatcher {
 
         const queries = buildTmdbSearchQueries(
             title,
-            normalizeMovieTitleForSearch(title),
+            normalizeMovieTitle(title).normalizedTitle,
         );
         const scoredCandidates: TmdbScoredMatch[] = [];
 

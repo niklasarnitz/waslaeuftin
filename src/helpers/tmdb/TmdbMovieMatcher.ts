@@ -4,7 +4,7 @@ import { RateLimitedQueue } from "../RateLimitedQueue";
 import { scoreTmdbCandidate } from "../similarity/scoreTmdbCandidate";
 import { normalizeForComparison } from "../titleNormalization/normalizeForComparison";
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
-import { normalizeMovieTitleForSearch } from "../titleNormalization/normalizeMovieTitleForSearch";
+import { normalizeMovieTitle } from "../titleNormalization/normalizeMovieTitle";
 import { TmdbMovieSearchResponse } from "@waslaeuftin/types/TmdbMovieSearchResponse";
 
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ export class TmdbMovieMatcher {
 
     async evaluate(title: string) {
         const normalizedTitle = normalizeForComparison(
-            normalizeMovieTitleForSearch(title)
+            normalizeMovieTitle(title).normalizedTitle
         );
         const cacheKey = normalizedTitle || normalizeForComparison(title);
 
@@ -28,7 +28,7 @@ export class TmdbMovieMatcher {
 
         const queries = buildTmdbSearchQueries(
             title,
-            normalizeMovieTitleForSearch(title)
+            normalizeMovieTitle(title).normalizedTitle
         );
         const scoredCandidates: TmdbScoredMatch[] = [];
 

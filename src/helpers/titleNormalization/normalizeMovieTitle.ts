@@ -33,8 +33,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(TAG_PATTERN, " ")
         .replace(/^:\s*/, "")
         .replace(/[–—]/g, "-")
-        .replace(/\s+-\s*$/, "")
-        .replace(/-\s*$/, "")
+        .replace(/[\s,\-]+$/, "")
         .replace(/\s+/g, " ")
         .trim();
 
@@ -53,8 +52,10 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         }
     }
 
+    const finalTitle = baseTitle || title.trim();
+
     return {
-        baseTitle: baseTitle || title.trim(),
+        normalizedTitle: finalTitle.replace(/[\s,\-]+$/, ""), // Make sure no trailing commas/dashes remain even after fallbacks
         tags: uniqueTags,
     };
 };

@@ -1,5 +1,4 @@
-
 export type NormalizedMovieTitle = {
-    baseTitle: string;
+    normalizedTitle: string;
     tags: string[];
 };
