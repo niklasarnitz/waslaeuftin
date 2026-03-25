@@ -29,6 +29,11 @@ struct MainTabView: View {
                 Label("Kinos", systemImage: "building.2")
             }
 
+            SearchView(activeBaseURL: activeBaseURL)
+            .tabItem {
+                Label("Suche", systemImage: "magnifyingglass")
+            }
+
             SettingsView(
                 viewModel: viewModel,
                 apiEnvironmentRawValue: $apiEnvironmentRawValue,

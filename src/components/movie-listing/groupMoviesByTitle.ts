@@ -1,4 +1,4 @@
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/movieTitleNormalizer";
+import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 
 import type {
   ListingCinema,

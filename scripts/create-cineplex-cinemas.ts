@@ -1,5 +1,6 @@
 import { ArrayHelper } from "@ainias42/js-helper";
 import { ApolloClient, InMemoryCache, HttpLink, gql } from "@apollo/client";
+import { Countries } from "@prisma/client";
 import { db } from "@waslaeuftin/server/db";
 
 const client = new ApolloClient({
@@ -36,48 +37,38 @@ if (!data) {
 await ArrayHelper.asyncForEach(data.cinemas, async (cinema) => {
   console.log(cinema.city);
 
-  let city = await db.city.findFirst({
+  const city = await db.city.upsert({
     where: {
-      OR: [
-        {
-          name: cinema.city,
-        },
-        {
-          slug: cinema.city.toLowerCase().replace(/\s/g, "_"),
-        },
-      ],
+      name: cinema.city,
     },
+    create: {
+      name: cinema.city,
+      slug: cinema.city.toLowerCase().replace(/\s/g, "_"),
+      country: Countries.GERMANY,
+    },
+    update: {},
   });
 
-  if (!city) {
-    city = await db.city.create({
-      data: {
-        name: cinema.city,
-        slug: cinema.city.toLowerCase().replace(/\s/g, "_"),
-      },
-    });
-  }
-
-  const dbCinema = await db.cinema.findFirst({
+  await db.cinema.upsert({
     where: {
-      slug: cinema.name.toLowerCase().replace(/\s/g, "_"),
-    },
-  });
-
-  if (!dbCinema) {
-    await db.cinema.create({
-      data: {
-        name: cinema.name,
+      cityId_slug: {
+        cityId: city.id,
         slug: cinema.name.toLowerCase().replace(/\s/g, "_"),
-        city: {
-          connect: {
-            id: city.id,
-          },
-        },
-        cineplexCinemaId: cinema.id,
       },
-    });
-  }
+    },
+    create: {
+      name: cinema.name,
+      slug: cinema.name.toLowerCase().replace(/\s/g, "_"),
+      city: {
+        connect: {
+          id: city.id,
+        },
+      },
+      cineplexCinemaId: cinema.id,
+      country: Countries.GERMANY,
+    },
+    update: {},
+  });
 
   console.log(`Cinema with name ${cinema.name} created`);
 });

@@ -100,6 +100,11 @@ model CinemaxxVueCinemasMetadata {
   Cinema    Cinema[]
 }
 
+enum Countries {
+    GERMANY
+    AUSTRIA
+}
+
 model Cinema {
   id                           Int                         @id @default(autoincrement())
   name                         String
@@ -115,7 +120,9 @@ model Cinema {
   cinemaxxVueCinemasMetadataId Int?
   premiumKinoSubdomain         String?
   cineStarCinemaId             Int?
+  cineStarCinemaNumber             Int?
   cineplexCinemaId             String?
+  cineplexxAtCinemaId          String?
   myVueCinemaId                String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
@@ -124,23 +131,25 @@ model Cinema {
   kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
   showings                     Showing[]
 
+  country Countries
+
   @@index([name])
   @@index([latitude, longitude])
+
+  @@unique([cityId, slug])
 }
 
 model City {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String   @unique
   slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   cinemas   Cinema[]
+  country Countries
+
+  latitude Float?
+  longitude Float?
 
   @@index([name])
-}
-
-enum Country {
-  DE_DE
-  UK
-  IE
 }

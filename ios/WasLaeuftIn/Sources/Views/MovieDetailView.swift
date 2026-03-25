@@ -130,7 +130,9 @@ struct MovieDetailView: View {
         let destinationURL = normalizedURL(from: showing.href)
         let mergedTags = mergedTagParts(for: showing)
 
-        let content = HStack(spacing: 4) {
+        let allTagViews = mergedTags.tags.map { TagItem.known($0) } + mergedTags.otherParts.map { TagItem.other($0) }
+
+        let content = FlowLayout(spacing: 4) {
             Text(Self.formatShowingTime(showing.dateTime))
                 .font(.subheadline.weight(.semibold).monospacedDigit())
                 .foregroundStyle(.white)
@@ -141,28 +143,25 @@ struct MovieDetailView: View {
                     .foregroundStyle(.cyan)
             }
 
-            if !mergedTags.tags.isEmpty || !mergedTags.otherParts.isEmpty {
-                HStack(spacing: 3) {
-                    ForEach(mergedTags.tags, id: \.self) { tag in
-                        Text(tag.uppercased())
-                            .font(.system(size: 9, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.cyan)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color.cyan.opacity(0.15), in: Capsule())
-                    }
-
-                    ForEach(mergedTags.otherParts, id: \.self) { part in
-                        Text(part)
-                            .font(.system(size: 9, weight: .medium, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.75))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color.white.opacity(0.08), in: Capsule())
-                            .overlay(
-                                Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1)
-                            )
-                    }
+            ForEach(allTagViews) { item in
+                switch item {
+                case .known(let tag):
+                    Text(tag.uppercased())
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.cyan)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.cyan.opacity(0.15), in: Capsule())
+                case .other(let part):
+                    Text(part)
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.white.opacity(0.08), in: Capsule())
+                        .overlay(
+                            Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1)
+                        )
                 }
             }
         }
@@ -237,6 +236,20 @@ struct MovieDetailView: View {
             merged.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending },
             otherParts
         )
+    }
+}
+
+// MARK: - Tag Item
+
+private enum TagItem: Identifiable {
+    case known(String)
+    case other(String)
+
+    var id: String {
+        switch self {
+        case .known(let value): return "tag-\(value)"
+        case .other(let value): return "other-\(value)"
+        }
     }
 }
 

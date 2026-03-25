@@ -1,3 +1,4 @@
+import { Countries } from "@prisma/client";
 import { db } from "@waslaeuftin/server/db";
 import readline from "readline";
 
@@ -17,38 +18,23 @@ const readLine = async (promt: string) => {
 
 const cityName = await readLine("City Name: ");
 
-let foundCity = await db.city.findFirst({
+const foundCity = await db.city.upsert({
   where: {
     name: cityName,
   },
+  create: {
+    name: cityName,
+    slug: cityName.toLowerCase().replace(/\s/g, "_"),
+    country: Countries.GERMANY,
+  },
+  update: {},
 });
 
-if (!foundCity) {
-  foundCity = await db.city.create({
-    data: {
-      name: cityName,
-      slug: cityName.toLowerCase().replace(/\s/g, "_"),
-    },
-  });
-
-  console.log(`City with name ${cityName} created`);
-} else {
-  console.log(`City with name ${cityName} already exists`);
-}
+console.log(`City with name ${cityName} upserted`);
 
 const cinemaName = await readLine("Cinema Name: ");
 
-const foundCinema = await db.cinema.findFirst({
-  where: {
-    name: cinemaName,
-    city: {
-      name: cityName,
-    },
-  },
-});
-
-if (!foundCinema) {
-  const cinemaType = await readLine(
+const cinemaType = await readLine(
     "Cinema Type (1 kino-ticket-express, 2 kinoheld, 3 comtrada, 4 cinemaxx-vue, 5 premiumkino, 6 cinestar): ",
   );
 
@@ -59,17 +45,25 @@ if (!foundCinema) {
         "",
       );
 
-      await db.cinema.create({
-        data: {
+      await db.cinema.upsert({
+        where: {
+          cityId_slug: {
+            cityId: foundCity.id,
+            slug,
+          },
+        },
+        create: {
           name: cinemaName,
           slug,
           city: {
             connect: {
-              id: foundCity?.id,
+              id: foundCity.id,
             },
           },
           isKinoTicketsExpress: true,
+          country: Countries.GERMANY,
         },
+        update: {},
       });
 
       break;
@@ -77,13 +71,19 @@ if (!foundCinema) {
       const centerId = await readLine("Center ID: ");
       const centerShorty = await readLine("Center Shorty: ");
 
-      await db.cinema.create({
-        data: {
+      await db.cinema.upsert({
+        where: {
+          cityId_slug: {
+            cityId: foundCity.id,
+            slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          },
+        },
+        create: {
           name: cinemaName,
           slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
           city: {
             connect: {
-              id: foundCity?.id,
+              id: foundCity.id,
             },
           },
           kinoHeldCinemasMetadata: {
@@ -92,7 +92,9 @@ if (!foundCinema) {
               centerShorty,
             },
           },
+          country: Countries.GERMANY,
         },
+        update: {},
       });
       break;
 
@@ -104,13 +106,19 @@ if (!foundCinema) {
         process.exit(1);
       }
 
-      await db.cinema.create({
-        data: {
+      await db.cinema.upsert({
+        where: {
+          cityId_slug: {
+            cityId: foundCity.id,
+            slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          },
+        },
+        create: {
           name: cinemaName,
           slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
           city: {
             connect: {
-              id: foundCity?.id,
+              id: foundCity.id,
             },
           },
           cinemaxxVueCinemasMetadata: {
@@ -118,24 +126,34 @@ if (!foundCinema) {
               cinemaId: Number(cinemaId),
             },
           },
+          country: Countries.GERMANY,
         },
+        update: {},
       });
       break;
 
     case "5":
       const subdomain = await readLine("Subdomain: ");
 
-      await db.cinema.create({
-        data: {
+      await db.cinema.upsert({
+        where: {
+          cityId_slug: {
+            cityId: foundCity.id,
+            slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          },
+        },
+        create: {
           name: cinemaName,
           slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
           city: {
             connect: {
-              id: foundCity?.id,
+              id: foundCity.id,
             },
           },
           premiumKinoSubdomain: subdomain,
+          country: Countries.GERMANY,
         },
+        update: {},
       });
       break;
 
@@ -147,18 +165,26 @@ if (!foundCinema) {
         process.exit(1);
       }
 
-      await db.cinema.create({
-        data: {
+      await db.cinema.upsert({
+        where: {
+          cityId_slug: {
+            cityId: foundCity.id,
+            slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
+          },
+        },
+        create: {
           name: cinemaName,
           slug: cinemaName.toLowerCase().replace(/\s/g, "_"),
           city: {
             connect: {
-              id: foundCity?.id,
+              id: foundCity.id,
             },
           },
           isKinoTicketsExpress: true,
           cineStarCinemaId: Number(cinestarCinemaId),
+          country: Countries.GERMANY,
         },
+        update: {},
       });
       break;
 
@@ -167,7 +193,4 @@ if (!foundCinema) {
       process.exit(1);
   }
 
-  console.log(`Cinema with name ${cinemaName} created`);
-} else {
-  console.log(`Cinema with name ${cinemaName} already exists`);
-}
+console.log(`Cinema with name ${cinemaName} upserted`);
