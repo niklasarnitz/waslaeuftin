@@ -109,12 +109,13 @@ export const cinemaRouter = createTRPCRouter({
                 latitude: z.number().min(-90).max(90),
                 longitude: z.number().min(-180).max(180),
                 maxDistanceKm: z.number().positive().max(250).default(20),
+                date: z.date().optional()
             }),
         )
         .query(async ({ input, ctx }) => {
             const nowInGermany = moment.tz("Europe/Berlin");
-            const todayStart = nowInGermany.clone().startOf("day").toDate();
-            const tomorrowEnd = nowInGermany.clone().add(1, "day").endOf("day").toDate();
+            const todayStart = (input.date ? moment(input.date) : nowInGermany).clone().startOf("day").toDate();
+            const tomorrowEnd = (input.date ? moment(input.date) : nowInGermany).clone().add(1, "day").endOf("day").toDate();
 
             // Step 1: Find nearby cinema IDs + distances using raw SQL haversine
             const nearbyCinemaRows = await ctx.db.$queryRaw<
