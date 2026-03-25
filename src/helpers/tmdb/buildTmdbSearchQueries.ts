@@ -1,4 +1,4 @@
-import { normalizeMovieTitleForSearch } from "../titleNormalization/normalizeMovieTitleForSearch";
+import { normalizeMovieTitle } from "../titleNormalization/normalizeMovieTitle";
 import { sanitizeWhitespace } from "../titleNormalization/sanitizeWhitespace";
 
 export const buildTmdbSearchQueries = (
@@ -8,7 +8,7 @@ export const buildTmdbSearchQueries = (
     const queries = [
         normalizedTitle,
         originalTitle,
-        normalizeMovieTitleForSearch(originalTitle),
+        normalizeMovieTitle(originalTitle).normalizedTitle,
     ];
 
     const colonIndex = normalizedTitle.indexOf(":");
