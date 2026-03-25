@@ -190,6 +190,17 @@ const getLocationInputFromRequest = (request: Request) => {
 
 const handleRequest = async (request: Request) => {
   try {
+    const { searchParams } = new URL(request.url);
+    const dateParam = searchParams.get("date");
+    let date: Date | undefined;
+
+    if (dateParam) {
+      date = new Date(dateParam);
+      if (isNaN(date.getTime())) {
+        date = undefined;
+      }
+    }
+
     const locationInput = getLocationInputFromRequest(request);
     const caller = createApiCaller(request);
 
@@ -197,6 +208,7 @@ const handleRequest = async (request: Request) => {
       latitude: locationInput.latitude,
       longitude: locationInput.longitude,
       maxDistanceKm: locationInput.maxDistanceKm,
+      date,
     });
 
     const homepageMovieData = buildHomepageMovieData(nearbyCinemas);
