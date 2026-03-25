@@ -7,6 +7,7 @@ final class HomepageViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedTab: Tab = .highlights
     @Published var radiusKm: Double = 20
+    @Published var selectedDate: Date = Date()
 
     enum Tab: String, CaseIterable {
         case highlights = "Filme"
@@ -43,7 +44,7 @@ final class HomepageViewModel: ObservableObject {
             latitude: latitude,
             longitude: longitude,
             radiusKm: radiusKm,
-            limit: 6
+            date: selectedDate
         )
 
         if let cachedPayload = loadCache(for: key) {
@@ -95,7 +96,7 @@ final class HomepageViewModel: ObservableObject {
                 latitude: latitude,
                 longitude: longitude,
                 radiusKm: radiusKm,
-                limit: 6
+                date: selectedDate
             )
             payload = response
             errorMessage = nil
@@ -116,12 +117,17 @@ final class HomepageViewModel: ObservableObject {
         latitude: Double,
         longitude: Double,
         radiusKm: Double,
-        limit: Int
+        date: Date
     ) -> String {
         let lat = String(format: "%.3f", latitude)
         let lon = String(format: "%.3f", longitude)
         let radius = String(format: "%.1f", radiusKm)
-        return "\(baseURLString)|lat=\(lat)|lon=\(lon)|radius=\(radius)|limit=\(limit)"
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let dateString = formatter.string(from: date)
+
+        return "\(baseURLString)|lat=\(lat)|lon=\(lon)|radius=\(radius)|date=\(dateString)"
     }
 
     private func loadCache(for key: String) -> HomepageResponse? {

@@ -47,24 +47,35 @@ struct HomepageAPIClient {
         return decoder
     }()
 
+    private let dateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
     func fetchHomepage(
         baseURLString: String,
         latitude: Double,
         longitude: Double,
         radiusKm: Double,
-        limit: Int
+        date: Date? = nil
     ) async throws -> HomepageResponse {
         guard var components = URLComponents(string: baseURLString) else {
             throw HomepageAPIError.invalidURL
         }
 
         components.path = "/api/homepage"
-        components.queryItems = [
+        var queryItems = [
             URLQueryItem(name: "latitude", value: String(latitude)),
             URLQueryItem(name: "longitude", value: String(longitude)),
             URLQueryItem(name: "maxDistanceKm", value: String(Int(radiusKm))),
-            URLQueryItem(name: "limit", value: String(limit))
         ]
+
+        if let date {
+            queryItems.append(URLQueryItem(name: "date", value: dateFormatter.string(from: date)))
+        }
+
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             throw HomepageAPIError.invalidURL
