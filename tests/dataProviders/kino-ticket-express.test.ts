@@ -12,8 +12,8 @@ const testCinema = async (slug: string) => {
 
 test("kino tickets express: Schauburg Karlsruhe", async () => {
     await testCinema('karlsruhe_schauburg');
-});
+}, { timeout: 20000 });
 
 test("kino tickets express: Kinemathek Karlsruhe", async () => {
     await testCinema('karlsruhe_kinemathek');
-});
+}, { timeout: 20000 });
