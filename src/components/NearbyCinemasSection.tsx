@@ -181,6 +181,7 @@ export const NearbyCinemasSection = () => {
                             type="button"
                             onClick={requestLocation}
                             title="Standort erneut abfragen"
+                            aria-label="Standort erneut abfragen"
                             className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 sm:p-2"
                         >
                             <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
