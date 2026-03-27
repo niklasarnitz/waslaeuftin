@@ -47,6 +47,7 @@ export const UrlDatePicker = (
           <button
             key={button.label}
             type="button"
+            aria-pressed={button.isActive}
             onClick={() => {
               void updateDate(button.value);
             }}

@@ -1,0 +1,58 @@
+$ next dev --turbopack
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Environments: .env
+✓ Ready in 526ms
+
+○ Compiling / ...
+⨯ TypeError: fetch failed
+    at async createUmamiClient (src/server/umami.ts:16:5)
+    at async (src/server/umami.ts:32:45)
+  14 |     });
+  15 |
+> 16 |     await client.identify({
+     |     ^
+  17 |         userAgent: "web/serverSide"
+  18 |     })
+  19 | {
+  [cause]: Error: getaddrinfo ENOTFOUND umami.example.com
+      at ignore-listed frames {
+    errno: -3007,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'umami.example.com'
+  }
+}
+⨯ TypeError: fetch failed
+    at async createUmamiClient (src/server/umami.ts:16:5)
+    at async (src/server/umami.ts:32:45)
+  14 |     });
+  15 |
+> 16 |     await client.identify({
+     |     ^
+  17 |         userAgent: "web/serverSide"
+  18 |     })
+  19 | {
+  page: '/',
+  [cause]: Error: getaddrinfo ENOTFOUND umami.example.com
+      at ignore-listed frames {
+    errno: -3007,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'umami.example.com'
+  }
+}
+ GET / 500 in 17.9s (next.js: 16.8s, proxy.ts: 591ms, application-code: 523ms)
+[browser] Uncaught TypeError: fetch failed
+    at async createUmamiClient (src/server/umami.ts:16:5)
+    at async (src/server/umami.ts:32:45)
+  14 |     });
+  15 |
+> 16 |     await client.identify({
+     |     ^
+  17 |         userAgent: "web/serverSide"
+  18 |     })
+  19 |
+  Reload env: .env
+  Reload env: .env

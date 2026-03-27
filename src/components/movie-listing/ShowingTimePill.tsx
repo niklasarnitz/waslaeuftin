@@ -21,9 +21,13 @@ export const ShowingTimePill = ({
     <Link
       key={`${movieName}-${cinemaSlug}-${showing.id}-${showing.dateTime.toISOString()}`}
       href={showing.bookingUrl ?? "#"}
+      target={showing.bookingUrl ? "_blank" : undefined}
+      rel={showing.bookingUrl ? "noopener noreferrer" : undefined}
+      title={showing.bookingUrl ? "Tickets buchen" : undefined}
+      aria-label={`${formatShowingTime(showing.dateTime)} Uhr${showing.bookingUrl ? " - Tickets buchen (öffnet in neuem Fenster)" : ""}`}
       className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
     >
-      <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+      <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
       <span>{formatShowingTime(showing.dateTime)}</span>
       <ShowingTags
         showingId={showing.id}
