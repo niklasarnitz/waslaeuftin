@@ -62,12 +62,25 @@ const buildHomepageMovieData = (
 
   const now = new Date();
 
+  // Cache to memoize expensive string transformations inside the hot loop
+  const titleCache = new Map<string, ReturnType<typeof normalizeMovieTitle>>();
+
   nearbyCinemas.forEach((cinema) => {
     cinema.movies.forEach((movie) => {
       const showingsWithTags: NearbyShowingWithTags[] = movie.showings
         .filter((showing) => showing.dateTime.getTime() > now.getTime())
         .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
+          let tags: string[];
+          const cached = titleCache.get(showing.rawMovieName);
+
+          if (cached) {
+            tags = cached.tags;
+          } else {
+            const normalized = normalizeMovieTitle(showing.rawMovieName);
+            titleCache.set(showing.rawMovieName, normalized);
+            tags = normalized.tags;
+          }
+
           return { ...showing, tags, rawMovieName: showing.rawMovieName };
         });
 

@@ -35,6 +35,9 @@ export function groupMoviesByTitle(
   const sortBy = options?.sortBy ?? "name";
   const now = new Date();
 
+  // Cache to memoize expensive string transformations inside the hot loop
+  const titleCache = new Map<string, ReturnType<typeof normalizeMovieTitle>>();
+
   const groupedMoviesMap = new Map<
     string,
     {
@@ -52,7 +55,17 @@ export function groupMoviesByTitle(
       const showingsWithTags: ListingShowing[] = movie.showings
         .filter((showing) => showing.dateTime.getTime() > now.getTime())
         .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
+          let tags: string[];
+          const cached = titleCache.get(showing.rawMovieName);
+
+          if (cached) {
+            tags = cached.tags;
+          } else {
+            const normalized = normalizeMovieTitle(showing.rawMovieName);
+            titleCache.set(showing.rawMovieName, normalized);
+            tags = normalized.tags;
+          }
+
           return {
             id: showing.id,
             dateTime: showing.dateTime,
