@@ -49,19 +49,22 @@ export function groupMoviesByTitle(
 
   cinemas.forEach((cinema) => {
     cinema.movies.forEach((movie) => {
-      const showingsWithTags: ListingShowing[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
+      const showingsWithTags: ListingShowing[] = [];
+      const nowTime = now.getTime();
+
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
           const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return {
+          showingsWithTags.push({
             id: showing.id,
             dateTime: showing.dateTime,
             bookingUrl: showing.bookingUrl,
             rawMovieName: showing.rawMovieName,
             showingAdditionalData: showing.showingAdditionalData,
             tags,
-          };
-        });
+          });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
         return;
