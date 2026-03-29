@@ -35,6 +35,7 @@ export const NearbyCinemasSection = () => {
     const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
     const [radiusKm, setRadiusKm] = useState(getInitialRadius);
     const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
+    const [isRequestingLocation, setIsRequestingLocation] = useState(false);
     const hasRequestedLocation = useRef(false);
 
     const handleRadiusRelease = () => {
@@ -128,15 +129,18 @@ export const NearbyCinemasSection = () => {
         }
 
         setLocationError(null);
+        setIsRequestingLocation(true);
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                setIsRequestingLocation(false);
                 setCoordinates({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                 });
             },
             (error) => {
+                setIsRequestingLocation(false);
                 if (error.code === 1) {
                     setLocationError("Standortzugriff wurde blockiert. Bitte erlaube den Zugriff im Browser.");
                     return;
@@ -180,10 +184,16 @@ export const NearbyCinemasSection = () => {
                         <button
                             type="button"
                             onClick={requestLocation}
+                            disabled={isRequestingLocation}
                             title="Standort erneut abfragen"
-                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 sm:p-2"
+                            aria-label="Standort erneut abfragen"
+                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 disabled:opacity-50 sm:p-2"
                         >
-                            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            {isRequestingLocation ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+                            ) : (
+                                <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            )}
                         </button>
                     </div>
                     <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 md:text-base">
