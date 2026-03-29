@@ -33,7 +33,8 @@ export function groupMoviesByTitle(
   },
 ): ListingMovieCard[] {
   const sortBy = options?.sortBy ?? "name";
-  const now = new Date();
+  const now = Date.now();
+  const tagsCache = new Map<string, string[]>();
 
   const groupedMoviesMap = new Map<
     string,
@@ -47,24 +48,31 @@ export function groupMoviesByTitle(
     }
   >();
 
-  cinemas.forEach((cinema) => {
-    cinema.movies.forEach((movie) => {
-      const showingsWithTags: ListingShowing[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return {
+  for (const cinema of cinemas) {
+    for (const movie of cinema.movies) {
+      const showingsWithTags: ListingShowing[] = [];
+
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > now) {
+          let tags = tagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            tagsCache.set(showing.rawMovieName, tags);
+          }
+
+          showingsWithTags.push({
             id: showing.id,
             dateTime: showing.dateTime,
             bookingUrl: showing.bookingUrl,
             rawMovieName: showing.rawMovieName,
             showingAdditionalData: showing.showingAdditionalData,
             tags,
-          };
-        });
+          });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
-        return;
+        continue;
       }
 
       const nextShowing = showingsWithTags[0];
@@ -87,7 +95,7 @@ export function groupMoviesByTitle(
           nextShowing,
         });
 
-        return;
+        continue;
       }
 
       existingMovie.cinemaEntries.push({
@@ -117,8 +125,8 @@ export function groupMoviesByTitle(
       ) {
         existingMovie.nextShowing = nextShowing;
       }
-    });
-  });
+    }
+  }
 
   const sorted = Array.from(groupedMoviesMap.values())
     .filter((movie) => Boolean(movie.nextShowing))
