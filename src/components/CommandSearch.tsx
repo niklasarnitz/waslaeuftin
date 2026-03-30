@@ -144,6 +144,7 @@ export function CommandSearch() {
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Stadt oder Kino suchen…"
+                            aria-label="Stadt oder Kino suchen"
                             className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
                             autoFocus
                         />
