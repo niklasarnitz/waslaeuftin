@@ -33,7 +33,7 @@ export function groupMoviesByTitle(
   },
 ): ListingMovieCard[] {
   const sortBy = options?.sortBy ?? "name";
-  const now = new Date();
+  const nowTime = Date.now();
 
   const groupedMoviesMap = new Map<
     string,
@@ -47,24 +47,35 @@ export function groupMoviesByTitle(
     }
   >();
 
-  cinemas.forEach((cinema) => {
-    cinema.movies.forEach((movie) => {
-      const showingsWithTags: ListingShowing[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return {
+  // Cache normalized titles to avoid expensive regex/string operations on repeating movie names
+  const titleTagsCache = new Map<string, string[]>();
+
+  for (const cinema of cinemas) {
+    for (const movie of cinema.movies) {
+      const showingsWithTags: ListingShowing[] = [];
+
+      // Combine filter and map into a single loop to avoid intermediate array allocations
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
+          let tags = titleTagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            titleTagsCache.set(showing.rawMovieName, tags);
+          }
+
+          showingsWithTags.push({
             id: showing.id,
             dateTime: showing.dateTime,
             bookingUrl: showing.bookingUrl,
             rawMovieName: showing.rawMovieName,
             showingAdditionalData: showing.showingAdditionalData,
             tags,
-          };
-        });
+          });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
-        return;
+        continue;
       }
 
       const nextShowing = showingsWithTags[0];
@@ -87,7 +98,7 @@ export function groupMoviesByTitle(
           nextShowing,
         });
 
-        return;
+        continue;
       }
 
       existingMovie.cinemaEntries.push({
@@ -117,8 +128,8 @@ export function groupMoviesByTitle(
       ) {
         existingMovie.nextShowing = nextShowing;
       }
-    });
-  });
+    }
+  }
 
   const sorted = Array.from(groupedMoviesMap.values())
     .filter((movie) => Boolean(movie.nextShowing))

@@ -60,19 +60,28 @@ const buildHomepageMovieData = (
     }
   >();
 
-  const now = new Date();
+  const nowTime = Date.now();
+  // Cache normalized titles to avoid expensive regex/string operations on repeating movie names
+  const titleTagsCache = new Map<string, string[]>();
 
-  nearbyCinemas.forEach((cinema) => {
-    cinema.movies.forEach((movie) => {
-      const showingsWithTags: NearbyShowingWithTags[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return { ...showing, tags, rawMovieName: showing.rawMovieName };
-        });
+  for (const cinema of nearbyCinemas) {
+    for (const movie of cinema.movies) {
+      const showingsWithTags: NearbyShowingWithTags[] = [];
+
+      // Combine filter and map into a single loop to avoid intermediate array allocations
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
+          let tags = titleTagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            titleTagsCache.set(showing.rawMovieName, tags);
+          }
+          showingsWithTags.push({ ...showing, tags, rawMovieName: showing.rawMovieName });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
-        return;
+        continue;
       }
 
       const nextShowing = showingsWithTags[0];
@@ -95,7 +104,7 @@ const buildHomepageMovieData = (
           nextShowing,
         });
 
-        return;
+        continue;
       }
 
       existingMovie.cinemaEntries.push({
@@ -123,8 +132,8 @@ const buildHomepageMovieData = (
       ) {
         existingMovie.nextShowing = nextShowing;
       }
-    });
-  });
+    }
+  }
 
   const movies = Array.from(groupedMoviesMap.values())
     .filter((movie) => Boolean(movie.nextShowing))
