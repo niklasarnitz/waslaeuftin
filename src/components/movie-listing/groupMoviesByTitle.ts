@@ -33,7 +33,7 @@ export function groupMoviesByTitle(
   },
 ): ListingMovieCard[] {
   const sortBy = options?.sortBy ?? "name";
-  const now = new Date();
+  const nowTime = new Date().getTime();
 
   const groupedMoviesMap = new Map<
     string,
@@ -47,21 +47,31 @@ export function groupMoviesByTitle(
     }
   >();
 
+  // Memoize tags extraction to prevent expensive string/regex operations on the same titles
+  const tagsCache = new Map<string, string[]>();
+
   cinemas.forEach((cinema) => {
     cinema.movies.forEach((movie) => {
-      const showingsWithTags: ListingShowing[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return {
+      const showingsWithTags: ListingShowing[] = [];
+
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
+          let tags = tagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            tagsCache.set(showing.rawMovieName, tags);
+          }
+
+          showingsWithTags.push({
             id: showing.id,
             dateTime: showing.dateTime,
             bookingUrl: showing.bookingUrl,
             rawMovieName: showing.rawMovieName,
             showingAdditionalData: showing.showingAdditionalData,
             tags,
-          };
-        });
+          });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
         return;
