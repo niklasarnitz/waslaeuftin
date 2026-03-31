@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { cache } from "react";
 
 import { createCaller } from "@waslaeuftin/server/api/root";
-import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
+import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -18,7 +18,7 @@ const createContext = cache(async () => {
 
   return createTRPCContext({
     headers: heads,
-    ip: heads.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
+    ip: getClientIp(heads),
   });
 });
 

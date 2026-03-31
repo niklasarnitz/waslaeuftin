@@ -24,6 +24,19 @@ import { db } from "@waslaeuftin/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
+export const getClientIp = (headers: Headers): string | undefined => {
+  const forwarded = headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first && first !== "unknown") return first;
+  }
+
+  const realIp = headers.get("x-real-ip")?.trim();
+  if (realIp && realIp !== "unknown") return realIp;
+
+  return undefined;
+};
+
 export const createTRPCContext = async (opts: { headers: Headers; ip?: string }) => {
   return {
     db,

@@ -20,13 +20,17 @@ const createUmamiClient = async () => {
     return client;
 }
 
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // Run cleanup every 5 minutes
+
 const globalForUmami = globalThis as unknown as {
     umami: Awaited<ReturnType<typeof createUmamiClient>> | undefined;
     lastViews: Map<string, number>;
+    lastCleanup: number;
 };
 
 if (!globalForUmami.lastViews) {
     globalForUmami.lastViews = new Map();
+    globalForUmami.lastCleanup = Date.now();
 }
 
 const umamiClient = globalForUmami.umami ?? await createUmamiClient();
@@ -36,7 +40,26 @@ const hashIp = (ip: string) => {
     return createHash("sha256").update(ip).digest("hex");
 };
 
-const shouldTrackView = (hashedIp: string, type: "cinema" | "city", slug: string) => {
+const cleanupStaleEntries = () => {
+    const now = Date.now();
+    if (now - globalForUmami.lastCleanup < CLEANUP_INTERVAL_MS) {
+        return;
+    }
+    globalForUmami.lastCleanup = now;
+    for (const [k, v] of lastViews.entries()) {
+        if (now - v > VIEW_DEDUPLICATION_TIMEOUT_MS) {
+            lastViews.delete(k);
+        }
+    }
+};
+
+const shouldTrackView = (hashedIp: string | undefined, type: "cinema" | "city", slug: string) => {
+    cleanupStaleEntries();
+
+    if (!hashedIp) {
+        return true;
+    }
+
     const key = `${hashedIp}:${type}:${slug}`;
     const now = Date.now();
     const lastView = lastViews.get(key);
@@ -46,16 +69,6 @@ const shouldTrackView = (hashedIp: string, type: "cinema" | "city", slug: string
     }
 
     lastViews.set(key, now);
-
-    // Periodic cleanup of old entries to prevent memory leaks
-    if (lastViews.size > 10000) {
-        for (const [k, v] of lastViews.entries()) {
-            if (now - v > VIEW_DEDUPLICATION_TIMEOUT_MS) {
-                lastViews.delete(k);
-            }
-        }
-    }
-
     return true;
 };
 
@@ -64,7 +77,7 @@ export const trackCinemaView = async (cinema: Cinema | Cinema[], ip?: string) =>
     //     return;
     // }
 
-    const hashedIp = ip ? hashIp(ip) : "unknown";
+    const hashedIp = ip && ip !== "unknown" ? hashIp(ip) : undefined;
     const cinemas = Array.isArray(cinema) ? cinema : [cinema];
 
     await Promise.all(cinemas.map((c) => {
@@ -88,7 +101,7 @@ export const trackCityView = async (city: City | City[], ip?: string) => {
     //     return;
     // }
 
-    const hashedIp = ip ? hashIp(ip) : "unknown";
+    const hashedIp = ip && ip !== "unknown" ? hashIp(ip) : undefined;
     const cities = Array.isArray(city) ? city : [city];
 
     await Promise.all(cities.map((c) => {
