@@ -16,4 +16,4 @@ test('cineplex: Rundkino Dresden', async () => {
             throw error;
         }
     }
-}, 20000)
+}, { timeout: 20000 })
