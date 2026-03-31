@@ -3,7 +3,7 @@ import { type NextRequest } from "next/server";
 
 import { env } from "@waslaeuftin/env";
 import { appRouter } from "@waslaeuftin/server/api/root";
-import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
+import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -12,7 +12,7 @@ import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
 const createContext = async (req: NextRequest) => {
   return createTRPCContext({
     headers: req.headers,
-    ip: req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
+    ip: getClientIp(req.headers),
   });
 };
 

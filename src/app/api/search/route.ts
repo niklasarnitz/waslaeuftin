@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createCaller } from "@waslaeuftin/server/api/root";
-import { createTRPCContext } from "@waslaeuftin/server/api/trpc";
+import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
 
 export const GET = async (request: Request) => {
   try {
@@ -12,7 +12,7 @@ export const GET = async (request: Request) => {
     const caller = createCaller(() =>
       createTRPCContext({
         headers,
-        ip: headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown",
+        ip: getClientIp(headers),
       }),
     );
 
