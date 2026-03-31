@@ -37,12 +37,17 @@ const createApiCaller = (request: Request) =>
 
 const buildHomepageMovieData = (
   nearbyCinemas: Awaited<
-    ReturnType<ReturnType<typeof createApiCaller>["cinemas"]["getNearbyCinemas"]>
+    ReturnType<
+      ReturnType<typeof createApiCaller>["cinemas"]["getNearbyCinemas"]
+    >
   >,
 ) => {
   type NearbyCinema = (typeof nearbyCinemas)[number];
   type NearbyShowing = NearbyCinema["movies"][number]["showings"][number];
-  type NearbyShowingWithTags = NearbyShowing & { tags: string[]; rawMovieName: string };
+  type NearbyShowingWithTags = NearbyShowing & {
+    tags: string[];
+    rawMovieName: string;
+  };
 
   const groupedMoviesMap = new Map<
     string,
@@ -60,19 +65,34 @@ const buildHomepageMovieData = (
     }
   >();
 
-  const now = new Date();
+  // ⚡ Bolt: Hoist timestamp calculation out of nested loops
+  const nowTime = new Date().getTime();
+  // ⚡ Bolt: Memoize tags extraction to prevent expensive string/regex operations on the same titles
+  const tagsCache = new Map<string, string[]>();
 
-  nearbyCinemas.forEach((cinema) => {
-    cinema.movies.forEach((movie) => {
-      const showingsWithTags: NearbyShowingWithTags[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return { ...showing, tags, rawMovieName: showing.rawMovieName };
-        });
+  for (const cinema of nearbyCinemas) {
+    for (const movie of cinema.movies) {
+      // ⚡ Bolt: Combine filter and map into a single loop to avoid intermediate array allocations
+      const showingsWithTags: NearbyShowingWithTags[] = [];
+
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
+          let tags = tagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            tagsCache.set(showing.rawMovieName, tags);
+          }
+
+          showingsWithTags.push({
+            ...showing,
+            tags,
+            rawMovieName: showing.rawMovieName,
+          });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
-        return;
+        continue;
       }
 
       const nextShowing = showingsWithTags[0];
@@ -95,7 +115,7 @@ const buildHomepageMovieData = (
           nextShowing,
         });
 
-        return;
+        continue;
       }
 
       existingMovie.cinemaEntries.push({
@@ -111,7 +131,8 @@ const buildHomepageMovieData = (
 
       if (
         moviePopularity !== null &&
-        (existingMovie.tmdbPopularity === null || moviePopularity > existingMovie.tmdbPopularity)
+        (existingMovie.tmdbPopularity === null ||
+          moviePopularity > existingMovie.tmdbPopularity)
       ) {
         existingMovie.tmdbPopularity = moviePopularity;
       }
@@ -119,12 +140,13 @@ const buildHomepageMovieData = (
       if (
         nextShowing &&
         (!existingMovie.nextShowing ||
-          nextShowing.dateTime.getTime() < existingMovie.nextShowing.dateTime.getTime())
+          nextShowing.dateTime.getTime() <
+            existingMovie.nextShowing.dateTime.getTime())
       ) {
         existingMovie.nextShowing = nextShowing;
       }
-    });
-  });
+    }
+  }
 
   const movies = Array.from(groupedMoviesMap.values())
     .filter((movie) => Boolean(movie.nextShowing))
