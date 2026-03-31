@@ -9,4 +9,4 @@ test('cinestar: Cinestar Augsburg', async () => {
 
     expect(movies.length).toBeGreaterThan(0);
     expect(showings.length).toBeGreaterThan(0)
-})
+}, { timeout: 20000 })
