@@ -60,16 +60,22 @@ const buildHomepageMovieData = (
     }
   >();
 
-  const now = new Date();
+  const nowTime = new Date().getTime();
+  const tagsCache = new Map<string, string[]>();
 
   nearbyCinemas.forEach((cinema) => {
     cinema.movies.forEach((movie) => {
-      const showingsWithTags: NearbyShowingWithTags[] = movie.showings
-        .filter((showing) => showing.dateTime.getTime() > now.getTime())
-        .map((showing) => {
-          const { tags } = normalizeMovieTitle(showing.rawMovieName);
-          return { ...showing, tags, rawMovieName: showing.rawMovieName };
-        });
+      const showingsWithTags: NearbyShowingWithTags[] = [];
+      for (const showing of movie.showings) {
+        if (showing.dateTime.getTime() > nowTime) {
+          let tags = tagsCache.get(showing.rawMovieName);
+          if (!tags) {
+            tags = normalizeMovieTitle(showing.rawMovieName).tags;
+            tagsCache.set(showing.rawMovieName, tags);
+          }
+          showingsWithTags.push({ ...showing, tags, rawMovieName: showing.rawMovieName });
+        }
+      }
 
       if (showingsWithTags.length === 0) {
         return;
