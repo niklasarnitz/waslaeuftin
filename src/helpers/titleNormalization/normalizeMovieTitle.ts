@@ -9,7 +9,14 @@ import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
 import { TAG_PATTERN } from "./TAG_PATTERN";
 
 
+const cache = new Map<string, NormalizedMovieTitle>();
+const MAX_CACHE_SIZE = 5000; // Reasonable limit for movie titles
+
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
+    if (cache.has(rawTitle)) {
+        return cache.get(rawTitle)!;
+    }
+
     let title = smartReplaceUnderscores(rawTitle);
     const bracketTags = extractBracketTags(title);
 
@@ -54,8 +61,22 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
 
     const finalTitle = baseTitle || title.trim();
 
-    return {
+    const result = {
         normalizedTitle: finalTitle.replace(/[\s,\-]+$/, ""), // Make sure no trailing commas/dashes remain even after fallbacks
         tags: uniqueTags,
     };
+
+    Object.freeze(result.tags);
+    Object.freeze(result);
+
+    if (cache.size >= MAX_CACHE_SIZE) {
+        // Remove oldest entry (Map iterates in insertion order)
+        const firstKey = cache.keys().next().value;
+        if (firstKey !== undefined) {
+            cache.delete(firstKey);
+        }
+    }
+    cache.set(rawTitle, result);
+
+    return result;
 };
