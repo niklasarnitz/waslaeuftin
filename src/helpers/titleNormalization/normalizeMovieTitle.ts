@@ -10,7 +10,7 @@ import { TAG_PATTERN } from "./TAG_PATTERN";
 
 
 const cache = new Map<string, NormalizedMovieTitle>();
-const MAX_CACHE_SIZE = 5000; // Reasonable limit for movie titles
+const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
 
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
     if (cache.has(rawTitle)) {
