@@ -32,6 +32,7 @@ const getInitialRadius = () => {
 export const NearbyCinemasSection = () => {
     const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
     const [locationError, setLocationError] = useState<string | null>(null);
+    const [isLocating, setIsLocating] = useState(false);
     const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
     const [radiusKm, setRadiusKm] = useState(getInitialRadius);
     const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
@@ -128,6 +129,7 @@ export const NearbyCinemasSection = () => {
         }
 
         setLocationError(null);
+        setIsLocating(true);
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -135,14 +137,15 @@ export const NearbyCinemasSection = () => {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                 });
+                setIsLocating(false);
             },
             (error) => {
                 if (error.code === 1) {
                     setLocationError("Standortzugriff wurde blockiert. Bitte erlaube den Zugriff im Browser.");
-                    return;
+                } else {
+                    setLocationError("Standort konnte nicht gelesen werden. Bitte versuche es erneut.");
                 }
-
-                setLocationError("Standort konnte nicht gelesen werden. Bitte versuche es erneut.");
+                setIsLocating(false);
             },
             {
                 enableHighAccuracy: false,
@@ -180,11 +183,16 @@ export const NearbyCinemasSection = () => {
                         <button
                             type="button"
                             onClick={requestLocation}
+                            disabled={isLocating}
                             title="Standort erneut abfragen"
                             aria-label="Standort erneut abfragen"
-                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 sm:p-2"
+                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed sm:p-2"
                         >
-                            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            {isLocating ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+                            ) : (
+                                <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            )}
                         </button>
                     </div>
                     <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground sm:mt-2 md:text-base">
@@ -197,6 +205,13 @@ export const NearbyCinemasSection = () => {
                 <p className="mt-4 rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
                     {locationError}
                 </p>
+            )}
+
+            {isLocating && !coordinates && !locationError && (
+                <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Standort wird ermittelt...
+                </div>
             )}
 
             {nearbyQuery.isLoading && (
