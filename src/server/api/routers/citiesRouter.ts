@@ -17,7 +17,8 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (city) {
-                await trackCityView(city, ctx.ip);
+                // ⚡ Bolt: Fire-and-forget analytics tracking to prevent blocking the API response
+                void trackCityView(city, ctx.ip).catch(console.error);
             }
 
             return city;
@@ -78,7 +79,8 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (cities) {
-                await trackCityView(cities, ctx.ip)
+                // ⚡ Bolt: Fire-and-forget analytics tracking to prevent blocking the API response
+                void trackCityView(cities, ctx.ip).catch(console.error);
             }
 
             return cities;
@@ -146,10 +148,11 @@ export const citiesRouter = createTRPCRouter({
             }
 
             if (city.cinemas) {
-                await Promise.all([
+                // ⚡ Bolt: Fire-and-forget analytics tracking to prevent blocking the API response
+                void Promise.all([
                     trackCityView(city, ctx.ip),
                     trackCinemaView(city.cinemas, ctx.ip)
-                ])
+                ]).catch(console.error);
             }
 
             // Transform to preserve the movies[] shape per cinema for the frontend
@@ -238,7 +241,8 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (city) {
-                await trackCityView(city, ctx.ip)
+                // ⚡ Bolt: Fire-and-forget analytics tracking to prevent blocking the API response
+                void trackCityView(city, ctx.ip).catch(console.error);
             }
 
             return city;
