@@ -96,7 +96,7 @@ export const cinemaRouter = createTRPCRouter({
 
             const { showings: _showings, ...cinemaWithoutShowings } = cinema;
 
-            await trackCinemaView(cinema, ctx.ip);
+            void trackCinemaView(cinema, ctx.ip);
 
             return {
                 ...cinemaWithoutShowings,
@@ -194,7 +194,7 @@ export const cinemaRouter = createTRPCRouter({
                 },
             });
 
-            await trackCinemaView(cinemas, ctx.ip);
+            void trackCinemaView(cinemas, ctx.ip);
 
             return cinemas
                 .map((cinema) => {

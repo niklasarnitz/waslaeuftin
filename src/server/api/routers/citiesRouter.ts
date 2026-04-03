@@ -17,7 +17,7 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (city) {
-                await trackCityView(city, ctx.ip);
+                void trackCityView(city, ctx.ip);
             }
 
             return city;
@@ -78,7 +78,7 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (cities) {
-                await trackCityView(cities, ctx.ip)
+                void trackCityView(cities, ctx.ip)
             }
 
             return cities;
@@ -146,10 +146,8 @@ export const citiesRouter = createTRPCRouter({
             }
 
             if (city.cinemas) {
-                await Promise.all([
-                    trackCityView(city, ctx.ip),
-                    trackCinemaView(city.cinemas, ctx.ip)
-                ])
+                void trackCityView(city, ctx.ip);
+                void trackCinemaView(city.cinemas, ctx.ip);
             }
 
             // Transform to preserve the movies[] shape per cinema for the frontend
@@ -238,7 +236,7 @@ export const citiesRouter = createTRPCRouter({
             });
 
             if (city) {
-                await trackCityView(city, ctx.ip)
+                void trackCityView(city, ctx.ip)
             }
 
             return city;
