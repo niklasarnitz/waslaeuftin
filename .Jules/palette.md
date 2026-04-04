@@ -1,0 +1,3 @@
+## 2024-04-04 - Keyboard Accessibility on Interactive Elements
+**Learning:** In a project using Tailwind CSS, global outline resets often strip default focus indicators from links and buttons. Custom interactive elements like "time pills" (links styled as pills) or icon-only buttons (like a search reset "X") easily become invisible to keyboard navigation.
+**Action:** Always verify keyboard focus state for custom-styled interactive components. Apply `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1` to ensure visible focus indicators and provide descriptive `aria-label`s for dynamic elements (e.g., ticket times).

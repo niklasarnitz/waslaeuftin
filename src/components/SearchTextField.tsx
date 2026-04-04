@@ -28,7 +28,7 @@ export const SearchTextField = () => {
                     onClick={() => {
                         void setSearchQuery("");
                     }}
-                    className="absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
+                    className="absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                     aria-label="Suche zurücksetzen"
                 >
                     <X className="h-3.5 w-3.5" />
