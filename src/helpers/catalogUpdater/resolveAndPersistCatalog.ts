@@ -55,9 +55,14 @@ export const resolveAndPersistCatalog = async (
     });
 
     // Build lookup maps for database movies
-    const dbMovieByTmdbId = new Map(
-        dbMovies.filter((m) => m.tmdbMovieId).map((m) => [m.tmdbMovieId!, m])
-    );
+    // ⚡ Bolt: Using a for...of loop avoids intermediate array allocations from .filter().map()
+    const dbMovieByTmdbId = new Map<number, typeof dbMovies[0]>();
+    for (const m of dbMovies) {
+        if (m.tmdbMovieId) {
+            dbMovieByTmdbId.set(m.tmdbMovieId, m);
+        }
+    }
+
     const dbMoviesByNormalizedTitle = new Map<string, typeof dbMovies>();
     for (const movie of dbMovies) {
         const key = normalizeForComparison(movie.normalizedTitle);
