@@ -96,7 +96,8 @@ export const cinemaRouter = createTRPCRouter({
 
             const { showings: _showings, ...cinemaWithoutShowings } = cinema;
 
-            await trackCinemaView(cinema, ctx.ip);
+            // ⚡ Bolt: Fire and forget analytics to prevent blocking the response
+            void trackCinemaView(cinema, ctx.ip).catch(console.error);
 
             return {
                 ...cinemaWithoutShowings,
@@ -194,7 +195,8 @@ export const cinemaRouter = createTRPCRouter({
                 },
             });
 
-            await trackCinemaView(cinemas, ctx.ip);
+            // ⚡ Bolt: Fire and forget analytics to prevent blocking the response
+            void trackCinemaView(cinemas, ctx.ip).catch(console.error);
 
             return cinemas
                 .map((cinema) => {

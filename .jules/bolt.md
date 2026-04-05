@@ -9,3 +9,7 @@
 ## 2024-04-02 - LRU Caching for normalizeMovieTitle
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
+
+## 2025-03-27 - [Non-blocking analytics tracking to reduce request latency]
+**Learning:** Awaiting external analytics services (like Umami tracking) in critical request paths (e.g. TRPC endpoints) adds unnecessary latency directly experienced by the user. If the analytics tracking call takes 100ms or fails, the user's request is blocked by those 100ms or fails with it.
+**Action:** Always fire and forget analytics tracking calls by using `void trackingFunction(...).catch(console.error)` instead of `await trackingFunction(...)`. This minimizes response latency by decoupling the request from the slower, non-critical background operation.
