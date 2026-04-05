@@ -116,7 +116,7 @@ export function CommandSearch() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border border-input bg-background/60 px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border border-input bg-background/60 px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             >
                 <Search className="h-3.5 w-3.5" />
                 <span className="flex-1 text-left">Suchen…</span>

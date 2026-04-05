@@ -1,0 +1,3 @@
+## 2025-03-05 - Missing Focus States on Custom Interactive Elements
+**Learning:** Tailwind global outline resets often strip default browser focus indicators. This causes custom interactive elements like custom pill links (`<Link>`), icon-only buttons, and native range inputs to become completely inaccessible to keyboard users because they lack visual feedback when focused.
+**Action:** Always verify and apply explicit focus styling (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1`) to custom interactive elements for keyboard accessibility.
