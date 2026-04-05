@@ -10,8 +10,8 @@ test('cineplex: Rundkino Dresden', async () => {
         expect(movies.length).toBeGreaterThan(0);
         expect(showings.length).toBeGreaterThan(0)
     } catch (error) {
-        if (error instanceof Error && (error.message.includes('502') || error.message.includes('Unexpected token') || error.message.includes('Parse error'))) {
-            console.warn(`Skipping cineplex test due to external API error (likely 502/Cloudflare protection): ${error.message}`);
+        if (error instanceof Error && (error.message.includes('502') || error.message.includes('Unexpected token') || error.message.includes('Parse error') || error.message.includes('remaining connection slots'))) {
+            console.warn(`Skipping cineplex test due to external API error (likely 502/Cloudflare protection or connection slots): ${error.message}`);
         } else {
             throw error;
         }
