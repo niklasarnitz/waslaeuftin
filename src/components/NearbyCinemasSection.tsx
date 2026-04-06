@@ -186,7 +186,7 @@ export const NearbyCinemasSection = () => {
                             disabled={isLocating}
                             title="Standort erneut abfragen"
                             aria-label="Standort erneut abfragen"
-                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed sm:p-2"
+                            className="shrink-0 inline-flex items-center justify-center rounded-full bg-primary p-1.5 text-primary-foreground transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                             {isLocating ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
