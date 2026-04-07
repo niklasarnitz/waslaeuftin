@@ -249,7 +249,12 @@ export const NearbyCinemasSection = () => {
                                 onChange={(event) => setRadiusKm(Number(event.target.value))}
                                 onMouseUp={handleRadiusRelease}
                                 onTouchEnd={handleRadiusRelease}
-                                className="h-3 w-20 accent-primary sm:w-28"
+                                onKeyUp={(event) => {
+                                    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+                                        handleRadiusRelease();
+                                    }
+                                }}
+                                className="h-3 w-20 accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:w-28"
                             />
                         </span>
                     </div>
