@@ -9,3 +9,7 @@
 ## 2024-04-02 - LRU Caching for normalizeMovieTitle
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
+
+## 2024-04-07 - [Precompile Regex against static arrays outside loops]
+**Learning:** Instantiating a new `RegExp` continuously inside `.some()` within regex replacement loops (`.replace`) across a static array (like `METADATA_MARKERS`) introduces a massive instantiation overhead.
+**Action:** When performing regex operations using static arrays, always precompile a single, combined regular expression (`new RegExp(\`\\b(${ARRAY.join('|')})\\b\`, 'i')`) outside the function to bypass repeated instantiations and drastically improve string processing time.
