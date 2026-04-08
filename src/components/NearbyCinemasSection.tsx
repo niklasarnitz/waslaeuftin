@@ -249,6 +249,7 @@ export const NearbyCinemasSection = () => {
                                 onChange={(event) => setRadiusKm(Number(event.target.value))}
                                 onMouseUp={handleRadiusRelease}
                                 onTouchEnd={handleRadiusRelease}
+                                onKeyUp={handleRadiusRelease}
                                 className="h-3 w-20 accent-primary sm:w-28"
                             />
                         </span>
