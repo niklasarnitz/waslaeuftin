@@ -1,4 +1,4 @@
-import { METADATA_MARKERS } from "./METADATA_MARKERS";
+import { METADATA_PATTERN } from "./METADATA_MARKERS";
 import { normalizeForTagCheck } from "./normalizeForTagCheck";
 
 export const extractBracketTags = (title: string): string[] => {
@@ -8,8 +8,7 @@ export const extractBracketTags = (title: string): string[] => {
         const normalized = normalizeForTagCheck(section);
         if (normalized.length === 0) return "";
 
-        const isMetadata = METADATA_MARKERS.some((marker) => new RegExp(`\\b${marker}\\b`, "i").test(normalized)
-        );
+        const isMetadata = METADATA_PATTERN.test(normalized);
 
         if (isMetadata) {
             const parts = section

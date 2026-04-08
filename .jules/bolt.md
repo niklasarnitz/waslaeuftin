@@ -9,3 +9,6 @@
 ## 2024-04-02 - LRU Caching for normalizeMovieTitle
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
+## 2024-04-08 - Regex Instantiation Overhead Inside Loops
+**Learning:** Instantiating `new RegExp()` inside hot loop iterations (e.g. iterating over `METADATA_MARKERS` inside `some()`, which was called for every movie title normalization) causes a massive instantiation overhead.
+**Action:** When matching against a static array of string markers, always combine them into a single, precompiled regular expression (e.g. `new RegExp("\\b(?:${MARKERS.join('|')})\\b", 'i')`) outside the loop.

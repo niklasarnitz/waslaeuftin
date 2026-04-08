@@ -6,3 +6,5 @@ export const METADATA_MARKERS = [
     "ukrainisch", "ukrainische fassung", "ukr", "arab", "vietnam", "span", "mehrspr", "turk", "engl",
     "montagsfilm", "malteser film cafe"
 ];
+
+export const METADATA_PATTERN = new RegExp(`\\b(?:${METADATA_MARKERS.join("|")})\\b`, "i");
