@@ -9,3 +9,6 @@
 ## 2024-04-02 - LRU Caching for normalizeMovieTitle
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
+## 2025-03-26 - [Precompiled Regex for repeated matching]
+**Learning:** Instantiating a new `RegExp` object inside a `.some()` loop across an array of patterns (e.g., `METADATA_MARKERS`) inside a highly frequently called function (like title normalization during catalog matching) causes massive instantiation overhead and CPU usage.
+**Action:** Always precompile static pattern arrays into a single combined regular expression (`new RegExp('\\b(a|b|c)\\b', 'i')`) outside the function or loop to dramatically reduce execution time.
