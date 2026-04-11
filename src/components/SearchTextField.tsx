@@ -30,6 +30,7 @@ export const SearchTextField = () => {
                     }}
                     className="absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
                     aria-label="Suche zurücksetzen"
+                    title="Suche zurücksetzen"
                 >
                     <X className="h-3.5 w-3.5" />
                 </button>
