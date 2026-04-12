@@ -8,6 +8,7 @@ import { normalizeForTagCheck } from "./normalizeForTagCheck";
 import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
 import { TAG_PATTERN } from "./TAG_PATTERN";
 
+const COMPILED_METADATA_REGEX = new RegExp(`\\b(${METADATA_MARKERS.join('|')})\\b`, "i");
 
 const cache = new Map<string, NormalizedMovieTitle>();
 const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
@@ -24,8 +25,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(/\(([^)]*)\)/g, (_full, section: string) => {
             const normalized = normalizeForTagCheck(section);
             if (normalized.length === 0) return " ";
-            const isMetadata = METADATA_MARKERS.some((marker) => new RegExp(`\\b${marker}\\b`, "i").test(normalized)
-            );
+            const isMetadata = COMPILED_METADATA_REGEX.test(normalized);
             return isMetadata ? " " : _full;
         })
         .trim();
