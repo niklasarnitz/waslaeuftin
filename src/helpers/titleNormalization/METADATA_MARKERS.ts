@@ -6,3 +6,6 @@ export const METADATA_MARKERS = [
     "ukrainisch", "ukrainische fassung", "ukr", "arab", "vietnam", "span", "mehrspr", "turk", "engl",
     "montagsfilm", "malteser film cafe"
 ];
+
+// Precompiled regex for performance to avoid O(N) array iteration with dynamic regex creation.
+export const METADATA_MARKERS_REGEX = new RegExp(`\\b(${METADATA_MARKERS.join('|')})\\b`, 'i');
