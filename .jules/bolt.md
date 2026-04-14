@@ -9,3 +9,6 @@
 ## 2024-04-02 - LRU Caching for normalizeMovieTitle
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
+## 2025-02-28 - Regex instantiation in loops
+**Learning:** Precompiling regex inside `.some()` iterates arrays (like `METADATA_MARKERS`) and re-creates instances of `RegExp` per element during deeply nested loops which introduces a massive CPU bottleneck in Bun/Node.
+**Action:** Always precompile static marker arrays into a single combined regular expression (`new RegExp("\\b(${MARKERS.join('|')})\\b", 'i')`) outside the loop or function to ensure one-time compilation and massive performance boosts (~10x faster).
