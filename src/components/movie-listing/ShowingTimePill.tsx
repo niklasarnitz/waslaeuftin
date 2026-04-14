@@ -21,10 +21,15 @@ export const ShowingTimePill = ({
     <Link
       key={`${movieName}-${cinemaSlug}-${showing.id}-${showing.dateTime.toISOString()}`}
       href={showing.bookingUrl ?? "#"}
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10"
+      title={`Tickets für ${movieName} um ${formatShowingTime(showing.dateTime)} Uhr buchen`}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/80 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
     >
-      <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-      <span>{formatShowingTime(showing.dateTime)}</span>
+      <Clock3 aria-hidden="true" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+      <span>
+        <span className="sr-only">Tickets für {movieName} um </span>
+        {formatShowingTime(showing.dateTime)}
+        <span className="sr-only"> Uhr buchen</span>
+      </span>
       <ShowingTags
         showingId={showing.id}
         titleTags={showing.tags}
