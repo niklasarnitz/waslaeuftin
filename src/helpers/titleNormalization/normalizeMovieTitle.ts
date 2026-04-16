@@ -12,6 +12,8 @@ import { TAG_PATTERN } from "./TAG_PATTERN";
 const cache = new Map<string, NormalizedMovieTitle>();
 const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
 
+const METADATA_REGEX = new RegExp(`\\b(${METADATA_MARKERS.join('|')})\\b`, "i");
+
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
     if (cache.has(rawTitle)) {
         return cache.get(rawTitle)!;
@@ -24,8 +26,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(/\(([^)]*)\)/g, (_full, section: string) => {
             const normalized = normalizeForTagCheck(section);
             if (normalized.length === 0) return " ";
-            const isMetadata = METADATA_MARKERS.some((marker) => new RegExp(`\\b${marker}\\b`, "i").test(normalized)
-            );
+            const isMetadata = METADATA_REGEX.test(normalized);
             return isMetadata ? " " : _full;
         })
         .trim();
