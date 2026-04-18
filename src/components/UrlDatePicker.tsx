@@ -50,7 +50,8 @@ export const UrlDatePicker = (
             onClick={() => {
               void updateDate(button.value);
             }}
-            className={`h-8 flex-1 rounded-md px-3 text-xs font-semibold transition-colors sm:flex-none ${
+            aria-pressed={button.isActive}
+            className={`h-8 flex-1 rounded-md px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:flex-none ${
               button.isActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-background"

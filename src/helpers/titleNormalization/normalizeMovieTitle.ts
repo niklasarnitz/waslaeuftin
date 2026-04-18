@@ -2,14 +2,21 @@ import { canonicalizeTag } from "./canonicalizeTag";
 import { extractBracketTags } from "./extractBracketTags";
 import { extractEventAffixes } from "./extractEventAffixes";
 import { extractStandaloneTags } from "./extractStandaloneTags";
-import { METADATA_MARKERS } from "./METADATA_MARKERS";
+import { METADATA_REGEX } from "./METADATA_MARKERS";
 import { NormalizedMovieTitle } from "./NormalizedMovieTitle";
 import { normalizeForTagCheck } from "./normalizeForTagCheck";
 import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
 import { TAG_PATTERN } from "./TAG_PATTERN";
 
 
+const cache = new Map<string, NormalizedMovieTitle>();
+const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
+
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
+    if (cache.has(rawTitle)) {
+        return cache.get(rawTitle)!;
+    }
+
     let title = smartReplaceUnderscores(rawTitle);
     const bracketTags = extractBracketTags(title);
 
@@ -17,8 +24,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(/\(([^)]*)\)/g, (_full, section: string) => {
             const normalized = normalizeForTagCheck(section);
             if (normalized.length === 0) return " ";
-            const isMetadata = METADATA_MARKERS.some((marker) => new RegExp(`\\b${marker}\\b`, "i").test(normalized)
-            );
+            const isMetadata = METADATA_REGEX.test(normalized);
             return isMetadata ? " " : _full;
         })
         .trim();
@@ -54,8 +60,22 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
 
     const finalTitle = baseTitle || title.trim();
 
-    return {
+    const result = {
         normalizedTitle: finalTitle.replace(/[\s,\-]+$/, ""), // Make sure no trailing commas/dashes remain even after fallbacks
         tags: uniqueTags,
     };
+
+    Object.freeze(result.tags);
+    Object.freeze(result);
+
+    if (cache.size >= MAX_CACHE_SIZE) {
+        // Remove oldest entry (Map iterates in insertion order)
+        const firstKey = cache.keys().next().value;
+        if (firstKey !== undefined) {
+            cache.delete(firstKey);
+        }
+    }
+    cache.set(rawTitle, result);
+
+    return result;
 };
