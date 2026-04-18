@@ -9,3 +9,7 @@
 ## 2025-04-16 - Add robust aria-labels and decorative icons in `ShowingTimePill`
 **Learning:** Found that time pill links only announced the raw clock time to screen readers (e.g., "14:30") and had no focus styling when navigating via keyboard. Additionally, the decorative `Clock3` icon lacked `aria-hidden="true"`, leading to potential double or messy announcements.
 **Action:** When creating semantic links that rely on visual context (like a time pill underneath a movie title), ensure you build a comprehensive `aria-label` (e.g., "Tickets für [Movie] um [Time] Uhr buchen") and hide decorative icons using `aria-hidden="true"`. Also always verify focus states as global resets can strip them.
+
+## 2024-04-18 - Added Accessibility Enhancements to Command Search
+**Learning:** Found that custom search dropdowns using raw `<button>` elements (instead of pre-styled accessible components like Shadcn's Command menu) often miss focus indicators and screen-reader optimizations. Added standard `focus-visible` ring and `aria-hidden` attributes to these custom interactive elements.
+**Action:** Always verify custom interactive dropdown items for proper `focus-visible` focus styling during keyboard navigation. Purely decorative icons nested inside actionable buttons should receive `aria-hidden="true"`.
