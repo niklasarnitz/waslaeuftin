@@ -31,7 +31,7 @@ export const CinemaFilterBar = ({
             type="button"
             onClick={() => onToggle(cinema.slug)}
             aria-pressed={isSelected}
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors sm:px-3 sm:py-1 sm:text-xs ${
+            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:px-3 sm:py-1 sm:text-xs ${
               isSelected
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border/80 bg-background/80 text-foreground hover:border-primary/50"
@@ -45,7 +45,7 @@ export const CinemaFilterBar = ({
         <button
           type="button"
           onClick={onClear}
-          className="rounded-full border border-border/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground sm:px-3 sm:py-1 sm:text-xs"
+          className="rounded-full border border-border/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:px-3 sm:py-1 sm:text-xs"
         >
           Filter zurücksetzen
         </button>
