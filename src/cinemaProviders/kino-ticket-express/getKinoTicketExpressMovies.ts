@@ -5,6 +5,21 @@ import moment from "moment-timezone";
 import xior from "xior";
 import { isMovie } from "@waslaeuftin/types/guards/isMovie";
 
+const BERLIN_TIMEZONE = "Europe/Berlin";
+
+export const parseKinoTicketsExpressDateTime = (
+    value: string,
+    format: string,
+): Date => {
+    const parsedDateTime = moment.tz(value, format, BERLIN_TIMEZONE);
+
+    if (!parsedDateTime.isValid()) {
+        throw new Error(`Invalid KinoTickets Express showtime datetime: ${value}`);
+    }
+
+    return parsedDateTime.toDate();
+};
+
 export const getKinoTicketsExpressMovies = async (
     cinemaId: number,
     slug: string,
@@ -80,10 +95,10 @@ export const getKinoTicketsExpressMovies = async (
                 if (dateStr && timeStr) {
                     try {
                         const [day, month] = dateStr.split(".");
-                        const dateTime = moment(
+                        const dateTime = parseKinoTicketsExpressDateTime(
                             `${new Date().getFullYear()}-${month}-${day}-${timeStr}`,
                             "YYYY-MM-DD-HH:mm",
-                        ).toDate();
+                        );
 
                         const bookingUrl = container$(a).attr("href");
                         if (bookingUrl) {
@@ -142,10 +157,10 @@ export const getKinoTicketsExpressMovies = async (
                                     if (day && month) {
                                         // Create date with current year
                                         const currentYear = new Date().getFullYear();
-                                        const dateTime = moment(
+                                        const dateTime = parseKinoTicketsExpressDateTime(
                                             `${currentYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${timeText}`,
                                             "YYYY-MM-DD HH:mm",
-                                        ).toDate();
+                                        );
 
                                         showings.push({
                                             dateTime,
