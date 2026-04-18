@@ -2,7 +2,7 @@ import { canonicalizeTag } from "./canonicalizeTag";
 import { extractBracketTags } from "./extractBracketTags";
 import { extractEventAffixes } from "./extractEventAffixes";
 import { extractStandaloneTags } from "./extractStandaloneTags";
-import { METADATA_MARKERS } from "./METADATA_MARKERS";
+import { METADATA_REGEX } from "./METADATA_MARKERS";
 import { NormalizedMovieTitle } from "./NormalizedMovieTitle";
 import { normalizeForTagCheck } from "./normalizeForTagCheck";
 import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
@@ -24,8 +24,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(/\(([^)]*)\)/g, (_full, section: string) => {
             const normalized = normalizeForTagCheck(section);
             if (normalized.length === 0) return " ";
-            const isMetadata = METADATA_MARKERS.some((marker) => new RegExp(`\\b${marker}\\b`, "i").test(normalized)
-            );
+            const isMetadata = METADATA_REGEX.test(normalized);
             return isMetadata ? " " : _full;
         })
         .trim();
