@@ -43,12 +43,11 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
         .replace(/\s+/g, " ")
         .trim();
 
-    const allTags = [...bracketTags, ...affixTags, ...standaloneTags];
     const uniqueTags: string[] = [];
     const seen = new Set<string>();
 
-    for (const tag of allTags) {
-        if (!tag) continue;
+    const processTag = (tag: string | undefined) => {
+        if (!tag) return;
         const canonical = canonicalizeTag(tag);
         const key = canonical.toLowerCase();
 
@@ -56,7 +55,11 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
             seen.add(key);
             uniqueTags.push(canonical);
         }
-    }
+    };
+
+    for (const tag of bracketTags) processTag(tag);
+    for (const tag of affixTags) processTag(tag);
+    for (const tag of standaloneTags) processTag(tag);
 
     const finalTitle = baseTitle || title.trim();
 

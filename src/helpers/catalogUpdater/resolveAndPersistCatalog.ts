@@ -421,62 +421,67 @@ export const resolveAndPersistCatalog = async (
     );
 
     // Create all showings
-    const showingData = allShowings
-        .map((showing) => {
-            const resolved = titleResolutionMap.get(showing.movieName);
-            if (!resolved) {
-                console.warn(
-                    `[Resolver] No resolution for showing movie name: "${showing.movieName}"`
-                );
-                return null;
-            }
+    const showingData: {
+        cinemaId: number;
+        movieId: number;
+        rawMovieName: string;
+        dateTime: Date;
+        bookingUrl: string | null;
+        showingAdditionalData: string[];
+    }[] = [];
 
-            const movieId = movieIdByCanonicalKey.get(resolved.canonicalKey);
-            if (!movieId) {
-                console.warn(
-                    `[Resolver] No movie ID for canonical key: "${resolved.canonicalKey}"`
-                );
-                return null;
-            }
+    for (const showing of allShowings) {
+        const resolved = titleResolutionMap.get(showing.movieName);
+        if (!resolved) {
+            console.warn(
+                `[Resolver] No resolution for showing movie name: "${showing.movieName}"`
+            );
+            continue;
+        }
 
-            // Automatically combine existing additional data with any tags parsed from the movie title
-            const extractedTags = normalizeMovieTitle(showing.movieName).tags;
+        const movieId = movieIdByCanonicalKey.get(resolved.canonicalKey);
+        if (!movieId) {
+            console.warn(
+                `[Resolver] No movie ID for canonical key: "${resolved.canonicalKey}"`
+            );
+            continue;
+        }
 
-            let hasNewTags = false;
-            if (!showing.showingAdditionalData) {
-                if (extractedTags.length > 0) hasNewTags = true;
-            } else {
-                for (let j = 0; j < extractedTags.length; j++) {
-                    if (!showing.showingAdditionalData.includes(extractedTags[j]!)) {
-                        hasNewTags = true;
-                        break;
-                    }
+        // Automatically combine existing additional data with any tags parsed from the movie title
+        const extractedTags = normalizeMovieTitle(showing.movieName).tags;
+
+        let hasNewTags = false;
+        if (!showing.showingAdditionalData) {
+            if (extractedTags.length > 0) hasNewTags = true;
+        } else {
+            for (let j = 0; j < extractedTags.length; j++) {
+                if (!showing.showingAdditionalData.includes(extractedTags[j]!)) {
+                    hasNewTags = true;
+                    break;
                 }
             }
+        }
 
-            let combinedAdditionalData;
-            if (hasNewTags) {
-                const combinedSet = new Set(showing.showingAdditionalData);
-                for (let j = 0; j < extractedTags.length; j++) {
-                    combinedSet.add(extractedTags[j]!);
-                }
-                combinedAdditionalData = Array.from(combinedSet);
-            } else {
-                combinedAdditionalData = showing.showingAdditionalData ?? [];
+        let combinedAdditionalData;
+        if (hasNewTags) {
+            const combinedSet = new Set(showing.showingAdditionalData);
+            for (let j = 0; j < extractedTags.length; j++) {
+                combinedSet.add(extractedTags[j]!);
             }
+            combinedAdditionalData = Array.from(combinedSet);
+        } else {
+            combinedAdditionalData = showing.showingAdditionalData ?? [];
+        }
 
-            return {
-                cinemaId: showing.cinemaId,
-                movieId,
-                rawMovieName: showing.movieName,
-                dateTime: showing.dateTime,
-                bookingUrl: showing.bookingUrl ?? null,
-                showingAdditionalData: combinedAdditionalData,
-            };
-        })
-        .filter(
-            (s): s is NonNullable<typeof s> => s !== null
-        );
+        showingData.push({
+            cinemaId: showing.cinemaId,
+            movieId,
+            rawMovieName: showing.movieName,
+            dateTime: showing.dateTime,
+            bookingUrl: showing.bookingUrl ?? null,
+            showingAdditionalData: combinedAdditionalData,
+        });
+    }
 
     // createMany in batches of 1000, skipping duplicates
     const BATCH_SIZE = 1000;

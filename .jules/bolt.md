@@ -13,3 +13,7 @@
 ## 2024-04-17 - Precompile Regex for Array Marker Matching
 **Learning:** Iterating over an array with `.some()` and instantiating a new `RegExp` for each element inside a loop (e.g. `MARKERS.some(marker => new RegExp(marker).test(str))`) introduces massive overhead. Combining them into a single pre-compiled regex (`new RegExp(`\\b(${MARKERS.join('|')})\\b`, 'i')`) is ~10x faster in V8/Bun environments.
 **Action:** Always combine static arrays of string markers into a single pre-compiled regular expression outside of loops instead of iterating and testing them individually.
+
+## 2024-04-18 - [Avoid spread operator and intermediate mapping for array processing]
+**Learning:** In V8/Bun, using the spread operator to combine arrays (`[...a, ...b, ...c]`) inside frequently called functions (like `normalizeMovieTitle`) or chaining `.map().filter()` inside loops (like `resolveAndPersistCatalog`) causes excessive intermediate allocations, increasing GC pressure and execution time.
+**Action:** Replace `[...a, ...b, ...c]` with sequential `for...of` iteration over the source arrays. Replace `.map().filter()` chains with a single `for...of` loop where elements are conditionally pushed directly into the target array.
