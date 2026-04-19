@@ -13,3 +13,7 @@
 ## 2024-04-17 - Precompile Regex for Array Marker Matching
 **Learning:** Iterating over an array with `.some()` and instantiating a new `RegExp` for each element inside a loop (e.g. `MARKERS.some(marker => new RegExp(marker).test(str))`) introduces massive overhead. Combining them into a single pre-compiled regex (`new RegExp(`\\b(${MARKERS.join('|')})\\b`, 'i')`) is ~10x faster in V8/Bun environments.
 **Action:** Always combine static arrays of string markers into a single pre-compiled regular expression outside of loops instead of iterating and testing them individually.
+
+## 2024-05-18 - [Optimize Array Operations in Loops]
+**Learning:** Chaining array methods like `.filter().map()` or `.map().filter()` creates intermediate array allocations. When iterating over thousands of items in hot loops (e.g., matching database movies or processing large catalogs in Node/Bun), this causes significant garbage collection overhead and memory pressure, directly impacting performance.
+**Action:** Replace chained array mapping/filtering operations with a single, sequential `for...of` loop when building lookup maps or constructing large new arrays in data-heavy pipeline code.
