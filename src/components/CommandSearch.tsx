@@ -116,9 +116,9 @@ export function CommandSearch() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border border-input bg-background/60 px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border border-input bg-background/60 px-3 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             >
-                <Search className="h-3.5 w-3.5" />
+                <Search aria-hidden="true" className="h-3.5 w-3.5" />
                 <span className="flex-1 text-left">Suchen…</span>
                 <kbd className="pointer-events-none hidden h-5 select-none items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
                     <span className="text-xs">⌘</span>K
@@ -138,7 +138,7 @@ export function CommandSearch() {
                 <DialogContent className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg [&>button:last-child]:hidden">
                     <DialogTitle className="sr-only">Suche</DialogTitle>
                     <div className="flex items-center border-b px-3">
-                        <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <Search aria-hidden="true" className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
                         <Input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
@@ -174,7 +174,7 @@ export function CommandSearch() {
                                             data-active={flatIndex === activeIndex}
                                             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm data-[active=true]:bg-accent"
                                         >
-                                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                                            <MapPin aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                                             {item.name}
                                         </button>
                                     );
@@ -199,7 +199,7 @@ export function CommandSearch() {
                                             data-active={flatIndex === activeIndex}
                                             className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm data-[active=true]:bg-accent"
                                         >
-                                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                                            <Building2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                                             <span>{item.name}</span>
                                             <span className="ml-auto text-xs text-muted-foreground">
                                                 {item.subtitle}
