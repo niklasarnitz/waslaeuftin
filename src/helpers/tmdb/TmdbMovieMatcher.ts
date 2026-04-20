@@ -78,9 +78,12 @@ export class TmdbMovieMatcher {
             }
         }
 
-        const bestCandidate = Array.from(byTmdbId.values()).sort(
-            (left, right) => right.confidence - left.confidence
-        )[0] ?? null;
+        let bestCandidate: TmdbScoredMatch | null = null;
+        for (const candidate of byTmdbId.values()) {
+            if (!bestCandidate || candidate.confidence > bestCandidate.confidence) {
+                bestCandidate = candidate;
+            }
+        }
 
         const acceptedCandidate = bestCandidate &&
             bestCandidate.confidence >= env.TMDB_MIN_CONFIDENCE_SCORE &&
