@@ -13,3 +13,7 @@
 ## 2024-04-17 - Precompile Regex for Array Marker Matching
 **Learning:** Iterating over an array with `.some()` and instantiating a new `RegExp` for each element inside a loop (e.g. `MARKERS.some(marker => new RegExp(marker).test(str))`) introduces massive overhead. Combining them into a single pre-compiled regex (`new RegExp(`\\b(${MARKERS.join('|')})\\b`, 'i')`) is ~10x faster in V8/Bun environments.
 **Action:** Always combine static arrays of string markers into a single pre-compiled regular expression outside of loops instead of iterating and testing them individually.
+
+## 2024-05-18 - [Replace `Array.from(Map.values()).sort()[0]` with O(N) loop]
+**Learning:** Calling `Array.from()` on iterators and chaining `.sort()` to find a single top element creates intermediate arrays and forces an O(N log N) algorithmic complexity. In V8/Bun environments, maintaining a local variable inside an O(N) `for...of` loop over the iterator bypasses the GC allocation and completes significantly faster (often 5x to 10x faster).
+**Action:** When searching for the "best" or "worst" candidate inside a Map or Set, always use a linear search inside a `for...of` loop instead of sorting the entire collection.

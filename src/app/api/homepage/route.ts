@@ -148,37 +148,42 @@ const buildHomepageMovieData = (
     }
   }
 
-  const movies = Array.from(groupedMoviesMap.values())
-    .filter((movie) => Boolean(movie.nextShowing))
-    .sort((left, right) => {
-      const leftPopularity = left.tmdbPopularity ?? 0;
-      const rightPopularity = right.tmdbPopularity ?? 0;
+  const moviesArray = [];
+  for (const movie of groupedMoviesMap.values()) {
+    if (movie.nextShowing) {
+      moviesArray.push(movie);
+    }
+  }
 
-      if (leftPopularity !== rightPopularity) {
-        return rightPopularity - leftPopularity;
-      }
+  moviesArray.sort((left, right) => {
+    const leftPopularity = left.tmdbPopularity ?? 0;
+    const rightPopularity = right.tmdbPopularity ?? 0;
 
-      return left.name.localeCompare(right.name);
-    })
-    .slice(0, 18)
-    .map((movie) => ({
-      name: movie.name,
-      coverUrl: movie.coverUrl,
-      tmdbPopularity: movie.tmdbPopularity,
-      showingsCount: movie.showingsCount,
-      nextShowing: movie.nextShowing,
-      cinemas: movie.cinemaEntries.map((entry) => ({
-        cinema: {
-          id: entry.cinema.id,
-          name: entry.cinema.name,
-          slug: entry.cinema.slug,
-          distanceKm: entry.cinema.distanceKm,
-          city: entry.cinema.city,
-        },
-        showings: entry.showings,
-        nextShowing: entry.nextShowing,
-      })),
-    }));
+    if (leftPopularity !== rightPopularity) {
+      return rightPopularity - leftPopularity;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+
+  const movies = moviesArray.slice(0, 18).map((movie) => ({
+    name: movie.name,
+    coverUrl: movie.coverUrl,
+    tmdbPopularity: movie.tmdbPopularity,
+    showingsCount: movie.showingsCount,
+    nextShowing: movie.nextShowing,
+    cinemas: movie.cinemaEntries.map((entry) => ({
+      cinema: {
+        id: entry.cinema.id,
+        name: entry.cinema.name,
+        slug: entry.cinema.slug,
+        distanceKm: entry.cinema.distanceKm,
+        city: entry.cinema.city,
+      },
+      showings: entry.showings,
+      nextShowing: entry.nextShowing,
+    })),
+  }));
 
   let totalShowings = 0;
   for (const cinema of nearbyCinemas) {
