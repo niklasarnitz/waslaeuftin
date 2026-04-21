@@ -73,10 +73,6 @@ const shouldTrackView = (hashedIp: string | undefined, type: "cinema" | "city", 
 };
 
 export const trackCinemaView = async (cinema: Cinema | Cinema[], ip?: string) => {
-    // if (env.NODE_ENV !== "production") {
-    //     return;
-    // }
-
     const hashedIp = ip && ip !== "unknown" ? hashIp(ip) : undefined;
     const cinemas = Array.isArray(cinema) ? cinema : [cinema];
 
@@ -97,10 +93,6 @@ export const trackCinemaView = async (cinema: Cinema | Cinema[], ip?: string) =>
 };
 
 export const trackCityView = async (city: City | City[], ip?: string) => {
-    // if (env.NODE_ENV !== "production") {
-    //     return;
-    // }
-
     const hashedIp = ip && ip !== "unknown" ? hashIp(ip) : undefined;
     const cities = Array.isArray(city) ? city : [city];
 
