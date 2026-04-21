@@ -4,6 +4,7 @@ import { Constants } from "@waslaeuftin/globals/Constants";
 import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
 import { getPathName } from "@waslaeuftin/helpers/getPathName";
 import { NearbyCinemasSection } from "@waslaeuftin/components/NearbyCinemasSection";
+import { safeJsonLd } from "@waslaeuftin/helpers/safeJsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function Home({
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
