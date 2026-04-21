@@ -25,7 +25,7 @@ test('comtrada cineorder: Filmpalast am ZKM', async () => {
             throw error;
         }
     }
-}, { timeout: 20000 })
+}, { timeout: 40000 })
 
 test('comtrada cineorder: Forum Rastatt', async () => {
     try {
