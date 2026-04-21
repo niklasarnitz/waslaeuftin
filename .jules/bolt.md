@@ -10,6 +10,9 @@
 **Learning:** Returning references to module-level cache entries without `Object.freeze` causes downstream mutation bugs, and missing max-size bounds will leak memory in the long-running script environment.
 **Action:** Always freeze return values from caches and set a `MAX_CACHE_SIZE` for unbounded maps in Node/Bun.
 
+## 2025-04-03 - [Non-Blocking Analytics Tracking]
+**Learning:** Analytics tracking calls to external services (like Umami) can add unnecessary latency to API responses if they are awaited.
+**Action:** Always use the `void` operator with a `.catch()` block for 'fire and forget' analytics operations (e.g. `trackCinemaView(...).catch(console.error)`) to ensure they do not block the main request flow, minimize API latency, and prevent UnhandledPromiseRejections.
 ## 2024-04-17 - Precompile Regex for Array Marker Matching
 **Learning:** Iterating over an array with `.some()` and instantiating a new `RegExp` for each element inside a loop (e.g. `MARKERS.some(marker => new RegExp(marker).test(str))`) introduces massive overhead. Combining them into a single pre-compiled regex (`new RegExp(`\\b(${MARKERS.join('|')})\\b`, 'i')`) is ~10x faster in V8/Bun environments.
 **Action:** Always combine static arrays of string markers into a single pre-compiled regular expression outside of loops instead of iterating and testing them individually.
