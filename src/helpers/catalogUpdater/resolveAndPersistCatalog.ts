@@ -13,6 +13,25 @@ import { upsertTmdbMetadata } from "../fileStorage/upsertTmdbMetadata";
 import { normalizeForComparison } from "../titleNormalization/normalizeForComparison";
 import { fetchTmdbMovieDetails } from "../tmdb/fetchTmdbMovieDetails";
 
+const createResolvedMovie = (params: {
+    canonicalKey: string;
+    name: string;
+    normalizedTitle: string;
+    tmdbMovieId?: number | null;
+    coverUrl?: string | null;
+    coverStorageKey?: string | null;
+    coverConfidence?: number | null;
+    tmdbSearchFailedOn?: Date | null;
+}): ResolvedMovie => ({
+    canonicalKey: params.canonicalKey,
+    name: params.name,
+    normalizedTitle: params.normalizedTitle,
+    tmdbMovieId: params.tmdbMovieId ?? null,
+    coverUrl: params.coverUrl ?? null,
+    coverStorageKey: params.coverStorageKey ?? null,
+    coverConfidence: params.coverConfidence ?? null,
+    tmdbSearchFailedOn: params.tmdbSearchFailedOn ?? null,
+});
 
 export const resolveAndPersistCatalog = async (
     catalogs: ProviderCatalog[]
@@ -127,16 +146,7 @@ export const resolveAndPersistCatalog = async (
 
         if (dbMatch) {
             // Found in database
-            const resolved: ResolvedMovie = {
-                canonicalKey: dbMatch.canonicalKey,
-                name: dbMatch.name,
-                normalizedTitle: dbMatch.normalizedTitle,
-                tmdbMovieId: dbMatch.tmdbMovieId,
-                coverUrl: dbMatch.coverUrl,
-                coverStorageKey: dbMatch.coverStorageKey,
-                coverConfidence: dbMatch.coverConfidence,
-                tmdbSearchFailedOn: dbMatch.tmdbSearchFailedOn,
-            };
+            const resolved = createResolvedMovie(dbMatch);
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(dbMatch.canonicalKey, resolved);
@@ -241,16 +251,10 @@ export const resolveAndPersistCatalog = async (
 
             if (dbMatchByTmbd) {
                 // TMDB ID already exists in database
-                const resolved: ResolvedMovie = {
-                    canonicalKey: dbMatchByTmbd.canonicalKey,
-                    name: dbMatchByTmbd.name,
-                    normalizedTitle: dbMatchByTmbd.normalizedTitle,
-                    tmdbMovieId: dbMatchByTmbd.tmdbMovieId,
-                    coverUrl: dbMatchByTmbd.coverUrl,
-                    coverStorageKey: dbMatchByTmbd.coverStorageKey,
-                    coverConfidence: dbMatchByTmbd.coverConfidence,
+                const resolved = createResolvedMovie({
+                    ...dbMatchByTmbd,
                     tmdbSearchFailedOn: null,
-                };
+                });
 
                 titleResolutionMap.set(rawTitle, resolved);
                 canonicalMovieMap.set(dbMatchByTmbd.canonicalKey, resolved);
@@ -313,7 +317,7 @@ export const resolveAndPersistCatalog = async (
                 }
             }
 
-            const resolved: ResolvedMovie = {
+            const resolved = createResolvedMovie({
                 canonicalKey,
                 name: match.title,
                 normalizedTitle,
@@ -321,8 +325,7 @@ export const resolveAndPersistCatalog = async (
                 coverUrl,
                 coverStorageKey,
                 coverConfidence: match.confidence,
-                tmdbSearchFailedOn: null,
-            };
+            });
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(canonicalKey, resolved);
@@ -355,16 +358,12 @@ export const resolveAndPersistCatalog = async (
                 if (existing) {
                     titleResolutionMap.set(rawTitle, existing);
                 } else {
-                    const resolved: ResolvedMovie = {
+                    const resolved = createResolvedMovie({
                         canonicalKey,
                         name: normalizedForFallback || rawTitle,
                         normalizedTitle: normalizedForFallback || rawTitle,
-                        tmdbMovieId: null,
-                        coverUrl: null,
-                        coverStorageKey: null,
-                        coverConfidence: null,
                         tmdbSearchFailedOn: new Date(),
-                    };
+                    });
 
                     titleResolutionMap.set(rawTitle, resolved);
                     canonicalMovieMap.set(canonicalKey, resolved);
