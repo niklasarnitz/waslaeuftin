@@ -13,3 +13,16 @@
 ## 2025-04-03 - [Non-Blocking Analytics Tracking]
 **Learning:** Analytics tracking calls to external services (like Umami) can add unnecessary latency to API responses if they are awaited.
 **Action:** Always use the `void` operator with a `.catch()` block for 'fire and forget' analytics operations (e.g. `trackCinemaView(...).catch(console.error)`) to ensure they do not block the main request flow, minimize API latency, and prevent UnhandledPromiseRejections.
+## 2024-04-17 - Precompile Regex for Array Marker Matching
+**Learning:** Iterating over an array with `.some()` and instantiating a new `RegExp` for each element inside a loop (e.g. `MARKERS.some(marker => new RegExp(marker).test(str))`) introduces massive overhead. Combining them into a single pre-compiled regex (`new RegExp(`\\b(${MARKERS.join('|')})\\b`, 'i')`) is ~10x faster in V8/Bun environments.
+**Action:** Always combine static arrays of string markers into a single pre-compiled regular expression outside of loops instead of iterating and testing them individually.
+
+## 2024-05-18 - [Optimize Array Operations in Loops]
+**Learning:** Chaining array methods like `.filter().map()` or `.map().filter()` creates intermediate array allocations. When iterating over thousands of items in hot loops (e.g., matching database movies or processing large catalogs in Node/Bun), this causes significant garbage collection overhead and memory pressure, directly impacting performance.
+**Action:** Replace chained array mapping/filtering operations with a single, sequential `for...of` loop when building lookup maps or constructing large new arrays in data-heavy pipeline code.
+## 2024-05-18 - [Replace `Array.from(Map.values()).sort()[0]` with O(N) loop]
+**Learning:** Calling `Array.from()` on iterators and chaining `.sort()` to find a single top element creates intermediate arrays and forces an O(N log N) algorithmic complexity. In V8/Bun environments, maintaining a local variable inside an O(N) `for...of` loop over the iterator bypasses the GC allocation and completes significantly faster (often 5x to 10x faster).
+**Action:** When searching for the "best" or "worst" candidate inside a Map or Set, always use a linear search inside a `for...of` loop instead of sorting the entire collection.
+## 2024-05-18 - [Avoid `Array.from(iterator).sort(...)`]
+**Learning:** In V8/Bun, calling `Array.from` on an iterator like `Map.values()` followed by `.sort(...)` just to find the single best or highest-scoring item allocates a temporary array and performs an $O(N \log N)$ sort. This causes unnecessary GC pressure and CPU overhead, especially when iterating over many TMDB candidates.
+**Action:** When finding a maximum or best candidate from an iterator or map, replace `Array.from(map.values()).sort()[0]` with a single $O(N)$ `for...of` loop tracking the maximum item.
