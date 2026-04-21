@@ -390,10 +390,14 @@ export const resolveAndPersistCatalog = async (
     console.info(`[Resolver] Phase 4: Writing to database...`);
 
     // Upsert all canonical movies
+    // ⚡ Bolt Optimization: Switched from sequential await loop to a batched
+    // `db.$transaction()` to parallelize database I/O for movie upserts.
+    // This reduces latency by preventing N+1 sequential database roundtrips.
     const movieIdByCanonicalKey = new Map<string, number>();
+    const canonicalMoviesList = Array.from(canonicalMovieMap.values());
 
-    for (const canonicalMovie of canonicalMovieMap.values()) {
-        const movie = await db.movie.upsert({
+    const upsertPromises = canonicalMoviesList.map((canonicalMovie) =>
+        db.movie.upsert({
             where: { canonicalKey: canonicalMovie.canonicalKey },
             update: {
                 name: canonicalMovie.name,
@@ -415,8 +419,12 @@ export const resolveAndPersistCatalog = async (
                 tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
             },
             select: { id: true, canonicalKey: true },
-        });
+        })
+    );
 
+    const upsertedMovies = await db.$transaction(upsertPromises);
+
+    for (const movie of upsertedMovies) {
         movieIdByCanonicalKey.set(movie.canonicalKey, movie.id);
     }
 
