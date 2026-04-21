@@ -13,16 +13,9 @@ import { upsertTmdbMetadata } from "../fileStorage/upsertTmdbMetadata";
 import { normalizeForComparison } from "../titleNormalization/normalizeForComparison";
 import { fetchTmdbMovieDetails } from "../tmdb/fetchTmdbMovieDetails";
 
-const createResolvedMovie = (params: {
-    canonicalKey: string;
-    name: string;
-    normalizedTitle: string;
-    tmdbMovieId?: number | null;
-    coverUrl?: string | null;
-    coverStorageKey?: string | null;
-    coverConfidence?: number | null;
-    tmdbSearchFailedOn?: Date | null;
-}): ResolvedMovie => ({
+type CreateResolvedMovieParams = Pick<ResolvedMovie, 'canonicalKey' | 'name' | 'normalizedTitle'> & Partial<ResolvedMovie>;
+
+const createResolvedMovie = (params: CreateResolvedMovieParams): ResolvedMovie => ({
     canonicalKey: params.canonicalKey,
     name: params.name,
     normalizedTitle: params.normalizedTitle,
