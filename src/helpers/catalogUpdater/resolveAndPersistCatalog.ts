@@ -429,7 +429,7 @@ export const resolveAndPersistCatalog = async (
     // This eliminates intermediate array allocations, reducing garbage collection
     // overhead and improving performance by ~35% when processing thousands of showings.
     const showingData: {
-        cinemaId: string;
+        cinemaId: number;
         movieId: number;
         rawMovieName: string;
         dateTime: Date;
