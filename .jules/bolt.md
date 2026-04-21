@@ -26,3 +26,6 @@
 ## 2024-05-18 - [Avoid `Array.from(iterator).sort(...)`]
 **Learning:** In V8/Bun, calling `Array.from` on an iterator like `Map.values()` followed by `.sort(...)` just to find the single best or highest-scoring item allocates a temporary array and performs an $O(N \log N)$ sort. This causes unnecessary GC pressure and CPU overhead, especially when iterating over many TMDB candidates.
 **Action:** When finding a maximum or best candidate from an iterator or map, replace `Array.from(map.values()).sort()[0]` with a single $O(N)$ `for...of` loop tracking the maximum item.
+## 2025-05-18 - [Optimize DB Bulk Upserts]
+**Learning:** Sequential DB upserts in a loop (e.g. `await db.movie.upsert`) create an N+1 query problem, severely throttling performance by waiting for a full roundtrip per item.
+**Action:** When upserting many items and no bulk upsert mechanism exists, use Prisma's `db.$transaction()` array execution. Map the data to an array of Prisma query promises and await the transaction to parallelize the requests and dramatically reduce overall query latency.
