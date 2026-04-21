@@ -130,20 +130,25 @@ export function groupMoviesByTitle(
     });
   });
 
-  const sorted = Array.from(groupedMoviesMap.values())
-    .filter((movie) => Boolean(movie.nextShowing))
-    .sort((left, right) => {
-      if (sortBy === "popularity") {
-        const leftPopularity = left.tmdbPopularity ?? 0;
-        const rightPopularity = right.tmdbPopularity ?? 0;
+  const sorted = [];
+  for (const movie of groupedMoviesMap.values()) {
+    if (movie.nextShowing) {
+      sorted.push(movie);
+    }
+  }
 
-        if (leftPopularity !== rightPopularity) {
-          return rightPopularity - leftPopularity;
-        }
+  sorted.sort((left, right) => {
+    if (sortBy === "popularity") {
+      const leftPopularity = left.tmdbPopularity ?? 0;
+      const rightPopularity = right.tmdbPopularity ?? 0;
+
+      if (leftPopularity !== rightPopularity) {
+        return rightPopularity - leftPopularity;
       }
+    }
 
-      return left.name.localeCompare(right.name);
-    });
+    return left.name.localeCompare(right.name);
+  });
 
   return sorted;
 }

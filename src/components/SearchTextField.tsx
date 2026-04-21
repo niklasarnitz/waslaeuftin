@@ -13,7 +13,7 @@ export const SearchTextField = () => {
 
     return (
         <div className="group relative flex w-full flex-1 flex-row items-center">
-            <Search className="pointer-events-none absolute left-3 h-4 w-4 text-sidebar-foreground/60 transition-colors group-focus-within:text-primary" />
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 h-4 w-4 text-sidebar-foreground/60 transition-colors group-focus-within:text-primary" />
             <Input
                 value={searchQuery ?? undefined}
                 onChange={(event) => {
@@ -28,10 +28,10 @@ export const SearchTextField = () => {
                     onClick={() => {
                         void setSearchQuery("");
                     }}
-                    className="absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
+                    className="absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                     aria-label="Suche zurücksetzen"
                 >
-                    <X className="h-3.5 w-3.5" />
+                    <X aria-hidden="true" className="h-3.5 w-3.5" />
                 </button>
             )}
         </div>
