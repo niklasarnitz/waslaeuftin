@@ -17,3 +17,6 @@
 ## 2024-05-18 - [Replace `Array.from(Map.values()).sort()[0]` with O(N) loop]
 **Learning:** Calling `Array.from()` on iterators and chaining `.sort()` to find a single top element creates intermediate arrays and forces an O(N log N) algorithmic complexity. In V8/Bun environments, maintaining a local variable inside an O(N) `for...of` loop over the iterator bypasses the GC allocation and completes significantly faster (often 5x to 10x faster).
 **Action:** When searching for the "best" or "worst" candidate inside a Map or Set, always use a linear search inside a `for...of` loop instead of sorting the entire collection.
+## 2024-05-18 - [Avoid `Array.from(iterator).sort(...)`]
+**Learning:** In V8/Bun, calling `Array.from` on an iterator like `Map.values()` followed by `.sort(...)` just to find the single best or highest-scoring item allocates a temporary array and performs an $O(N \log N)$ sort. This causes unnecessary GC pressure and CPU overhead, especially when iterating over many TMDB candidates.
+**Action:** When finding a maximum or best candidate from an iterator or map, replace `Array.from(map.values()).sort()[0]` with a single $O(N)$ `for...of` loop tracking the maximum item.

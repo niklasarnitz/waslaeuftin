@@ -16,8 +16,9 @@ export class TmdbMovieMatcher {
     private readonly rateLimitQueue = new RateLimitedQueue(3, 334); // 3 concurrent requests, ~334ms between requests
 
     async evaluate(title: string) {
+        const normalizedMovieTitleForSearch = normalizeMovieTitle(title).normalizedTitle;
         const normalizedTitle = normalizeForComparison(
-            normalizeMovieTitle(title).normalizedTitle
+            normalizedMovieTitleForSearch
         );
         const cacheKey = normalizedTitle || normalizeForComparison(title);
 
@@ -28,7 +29,7 @@ export class TmdbMovieMatcher {
 
         const queries = buildTmdbSearchQueries(
             title,
-            normalizeMovieTitle(title).normalizedTitle
+            normalizedMovieTitleForSearch
         );
         const scoredCandidates: TmdbScoredMatch[] = [];
 
