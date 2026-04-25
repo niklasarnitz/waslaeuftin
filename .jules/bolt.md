@@ -29,3 +29,7 @@
 ## 2025-05-18 - [Optimize DB Bulk Upserts]
 **Learning:** Sequential DB upserts in a loop (e.g. `await db.movie.upsert`) create an N+1 query problem, severely throttling performance by waiting for a full roundtrip per item.
 **Action:** When upserting many items and no bulk upsert mechanism exists, use Prisma's `db.$transaction()` array execution. Map the data to an array of Prisma query promises and await the transaction to parallelize the requests and dramatically reduce overall query latency.
+
+## 2024-05-18 - [V8/Bun Avoid flatMap.sort for minimum finding]
+**Learning:** In Bun/V8, algorithms that extract a minimum element from nested collections using `.flatMap().sort()[0]` incur an unexpectedly high performance penalty due to excessive intermediate array allocations and O(N log N) sorting logic for large N.
+**Action:** Always replace `.flatMap().sort()[0]` or `.flatMap().sort((a,b)=>a-b)[0]` patterns with a nested O(N) linear search using `for...of` loops and a tracking variable, especially in render loops like component lists.
