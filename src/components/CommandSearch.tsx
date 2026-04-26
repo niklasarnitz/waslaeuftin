@@ -120,11 +120,12 @@ export function CommandSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="border-input bg-background/60 text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border px-3 text-sm shadow-sm transition-colors"
+        aria-haspopup="dialog"
+        className="border-input bg-background/60 text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
       >
         <Search aria-hidden="true" className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Suchen…</span>
-        <kbd className="bg-muted text-muted-foreground pointer-events-none hidden h-5 items-center gap-0.5 rounded border px-1.5 font-mono text-[10px] font-medium select-none sm:inline-flex">
+        <kbd aria-hidden="true" className="bg-muted text-muted-foreground pointer-events-none hidden h-5 items-center gap-0.5 rounded border px-1.5 font-mono text-[10px] font-medium select-none sm:inline-flex">
           <span className="text-xs">⌘</span>K
         </kbd>
       </button>
@@ -153,11 +154,15 @@ export function CommandSearch() {
               placeholder="Stadt oder Kino suchen…"
               aria-label="Stadt oder Kino suchen"
               className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              role="combobox"
+              aria-expanded={open}
+              aria-controls="cmd-listbox"
+              aria-activedescendant={items.length > 0 ? `cmd-item-${activeIndex}` : undefined}
               autoFocus
             />
           </div>
 
-          <div ref={listRef} className="max-h-72 overflow-y-auto">
+          <div ref={listRef} id="cmd-listbox" role="listbox" aria-label="Suchergebnisse" className="max-h-72 overflow-y-auto">
             {isFetching && (
               <div className="flex items-center justify-center py-6">
                 <Loader2
@@ -187,10 +192,13 @@ export function CommandSearch() {
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
                       type="button"
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
-                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
+                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:outline-none"
                     >
                       <MapPin
                         aria-hidden="true"
@@ -215,10 +223,13 @@ export function CommandSearch() {
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
                       type="button"
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
-                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
+                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:outline-none"
                     >
                       <Building2
                         aria-hidden="true"
