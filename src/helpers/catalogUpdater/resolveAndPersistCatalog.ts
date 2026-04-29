@@ -387,34 +387,42 @@ export const resolveAndPersistCatalog = async (
     // This reduces latency by preventing N+1 sequential database roundtrips.
     const movieIdByCanonicalKey = new Map<string, number>();
     const canonicalMoviesList = Array.from(canonicalMovieMap.values());
+    const upsertedMovies: { id: number; canonicalKey: string }[] = [];
+    const BATCH_SIZE_UPSERT = 50;
 
-    const upsertPromises = canonicalMoviesList.map((canonicalMovie) =>
-        db.movie.upsert({
-            where: { canonicalKey: canonicalMovie.canonicalKey },
-            update: {
-                name: canonicalMovie.name,
-                normalizedTitle: canonicalMovie.normalizedTitle,
-                coverUrl: canonicalMovie.coverUrl,
-                coverStorageKey: canonicalMovie.coverStorageKey,
-                coverConfidence: canonicalMovie.coverConfidence,
-                tmdbMovieId: canonicalMovie.tmdbMovieId,
-                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
-            },
-            create: {
-                canonicalKey: canonicalMovie.canonicalKey,
-                name: canonicalMovie.name,
-                normalizedTitle: canonicalMovie.normalizedTitle,
-                coverUrl: canonicalMovie.coverUrl,
-                coverStorageKey: canonicalMovie.coverStorageKey,
-                coverConfidence: canonicalMovie.coverConfidence,
-                tmdbMovieId: canonicalMovie.tmdbMovieId,
-                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
-            },
-            select: { id: true, canonicalKey: true },
-        })
-    );
+    for (let i = 0; i < canonicalMoviesList.length; i += BATCH_SIZE_UPSERT) {
+        const batch = canonicalMoviesList.slice(i, i + BATCH_SIZE_UPSERT);
+        const upsertPromises = batch.map((canonicalMovie) =>
+            db.movie.upsert({
+                where: { canonicalKey: canonicalMovie.canonicalKey },
+                update: {
+                    name: canonicalMovie.name,
+                    normalizedTitle: canonicalMovie.normalizedTitle,
+                    coverUrl: canonicalMovie.coverUrl,
+                    coverStorageKey: canonicalMovie.coverStorageKey,
+                    coverConfidence: canonicalMovie.coverConfidence,
+                    tmdbMovieId: canonicalMovie.tmdbMovieId,
+                    tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
+                },
+                create: {
+                    canonicalKey: canonicalMovie.canonicalKey,
+                    name: canonicalMovie.name,
+                    normalizedTitle: canonicalMovie.normalizedTitle,
+                    coverUrl: canonicalMovie.coverUrl,
+                    coverStorageKey: canonicalMovie.coverStorageKey,
+                    coverConfidence: canonicalMovie.coverConfidence,
+                    tmdbMovieId: canonicalMovie.tmdbMovieId,
+                    tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
+                },
+                select: { id: true, canonicalKey: true },
+            })
+        );
 
-    const upsertedMovies = await db.$transaction(upsertPromises);
+        const batchResult = await db.$transaction(upsertPromises);
+        for (const movie of batchResult) {
+            upsertedMovies.push(movie);
+        }
+    }
 
     for (const movie of upsertedMovies) {
         movieIdByCanonicalKey.set(movie.canonicalKey, movie.id);
