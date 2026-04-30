@@ -9,3 +9,7 @@
 ## 2025-04-16 - Add robust aria-labels and decorative icons in `ShowingTimePill`
 **Learning:** Found that time pill links only announced the raw clock time to screen readers (e.g., "14:30") and had no focus styling when navigating via keyboard. Additionally, the decorative `Clock3` icon lacked `aria-hidden="true"`, leading to potential double or messy announcements.
 **Action:** When creating semantic links that rely on visual context (like a time pill underneath a movie title), ensure you build a comprehensive `aria-label` (e.g., "Tickets für [Movie] um [Time] Uhr buchen") and hide decorative icons using `aria-hidden="true"`. Also always verify focus states as global resets can strip them.
+
+## 2025-05-24 - Implement ARIA combobox pattern in custom command menus
+**Learning:** Custom command menus (like CommandSearch) often rely entirely on React state (`activeIndex`) and custom keydown listeners (`ArrowDown`/`ArrowUp`) for navigation, while native screen reader announcements lag behind. Additionally, default focus rings on trigger buttons can be stripped by Tailwind resets.
+**Action:** When building custom search dialogs, fully implement the ARIA combobox pattern on the input (`role="combobox"`, `aria-controls`, `aria-activedescendant`) and list (`role="listbox"`, `role="option"`, `aria-selected`). Sync custom arrow-key navigation with native Tab focus by adding `onFocus={() => setActiveIndex(flatIndex)}` to the options, and ensure the trigger button has explicit `focus-visible` styling.
