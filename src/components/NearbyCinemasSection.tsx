@@ -292,9 +292,21 @@ export const NearbyCinemasSection = () => {
                         <div className="mt-3 grid gap-2 sm:gap-3 sm:grid-cols-2">
                             {filteredCinemas.map((cinema) => {
                                 const originalCinema = nearbyCinemas.find((c) => c.id === cinema.id);
-                                const nextShowing = originalCinema?.movies
-                                    .flatMap((movie) => movie.showings)
-                                    .sort((left, right) => left.dateTime.getTime() - right.dateTime.getTime())[0];
+                                const nextShowing = (() => {
+                                    if (!originalCinema) return undefined;
+                                    // ⚡ Bolt Optimization: Replaced O(N log N) flatMap().sort()[0] with an O(N) loop
+                                    // This avoids creating intermediate arrays and sorting the entire list just to find the single earliest showing,
+                                    // reducing GC pressure and speeding up the React render cycle.
+                                    let minShowing: typeof originalCinema.movies[0]["showings"][0] | undefined = undefined;
+                                    for (const movie of originalCinema.movies) {
+                                        for (const showing of movie.showings) {
+                                            if (!minShowing || showing.dateTime.getTime() < minShowing.dateTime.getTime()) {
+                                                minShowing = showing;
+                                            }
+                                        }
+                                    }
+                                    return minShowing;
+                                })();
 
                                 return (
                                     <article
