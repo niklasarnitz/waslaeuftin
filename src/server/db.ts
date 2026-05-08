@@ -9,6 +9,12 @@ const createPrismaClient = () =>
   new PrismaClient({
     adapter,
     log: env.NODE_ENV === "development" ? ["error", "warn", "info"] : ["error"],
+    transactionOptions: {
+      // Default is 5000ms which is too short for batched upserts under load
+      // (e.g. catalog updater). Bump both maxWait and timeout.
+      maxWait: 30_000,
+      timeout: 60_000,
+    },
   });
 
 const globalForPrisma = globalThis as unknown as {
