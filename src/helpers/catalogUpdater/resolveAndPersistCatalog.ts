@@ -381,14 +381,14 @@ export const resolveAndPersistCatalog = async (
     // ─── Phase 4: Persist to database ────────────────────────────────────────
     console.info(`[Resolver] Phase 4: Writing to database...`);
 
-    // Upsert all canonical movies
-    // ⚡ Bolt Optimization: Switched from sequential await loop to a batched
-    // `db.$transaction()` to parallelize database I/O for movie upserts.
-    // This reduces latency by preventing N+1 sequential database roundtrips.
+    // Upsert all canonical movies. Keep these outside a transaction: each upsert
+    // is idempotent, and the inserted IDs are only used for the later createMany.
+    // A batch transaction adds a timeout failure mode under load without giving
+    // us useful atomicity across the catalog update.
     const movieIdByCanonicalKey = new Map<string, number>();
     const canonicalMoviesList = Array.from(canonicalMovieMap.values());
     const upsertedMovies: { id: number; canonicalKey: string }[] = [];
-    const BATCH_SIZE_UPSERT = 50;
+    const BATCH_SIZE_UPSERT = 10;
 
     for (let i = 0; i < canonicalMoviesList.length; i += BATCH_SIZE_UPSERT) {
         const batch = canonicalMoviesList.slice(i, i + BATCH_SIZE_UPSERT);
@@ -418,7 +418,7 @@ export const resolveAndPersistCatalog = async (
             })
         );
 
-        const batchResult = await db.$transaction(upsertPromises);
+        const batchResult = await Promise.all(upsertPromises);
         for (const movie of batchResult) {
             upsertedMovies.push(movie);
         }
