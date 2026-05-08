@@ -13,6 +13,18 @@ import { upsertTmdbMetadata } from "../fileStorage/upsertTmdbMetadata";
 import { normalizeForComparison } from "../titleNormalization/normalizeForComparison";
 import { fetchTmdbMovieDetails } from "../tmdb/fetchTmdbMovieDetails";
 
+type CreateResolvedMovieParams = Pick<ResolvedMovie, 'canonicalKey' | 'name' | 'normalizedTitle'> & Partial<ResolvedMovie>;
+
+const createResolvedMovie = (params: CreateResolvedMovieParams): ResolvedMovie => ({
+    canonicalKey: params.canonicalKey,
+    name: params.name,
+    normalizedTitle: params.normalizedTitle,
+    tmdbMovieId: params.tmdbMovieId ?? null,
+    coverUrl: params.coverUrl ?? null,
+    coverStorageKey: params.coverStorageKey ?? null,
+    coverConfidence: params.coverConfidence ?? null,
+    tmdbSearchFailedOn: params.tmdbSearchFailedOn ?? null,
+});
 
 export const resolveAndPersistCatalog = async (
     catalogs: ProviderCatalog[]
@@ -127,16 +139,7 @@ export const resolveAndPersistCatalog = async (
 
         if (dbMatch) {
             // Found in database
-            const resolved: ResolvedMovie = {
-                canonicalKey: dbMatch.canonicalKey,
-                name: dbMatch.name,
-                normalizedTitle: dbMatch.normalizedTitle,
-                tmdbMovieId: dbMatch.tmdbMovieId,
-                coverUrl: dbMatch.coverUrl,
-                coverStorageKey: dbMatch.coverStorageKey,
-                coverConfidence: dbMatch.coverConfidence,
-                tmdbSearchFailedOn: dbMatch.tmdbSearchFailedOn,
-            };
+            const resolved = createResolvedMovie(dbMatch);
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(dbMatch.canonicalKey, resolved);
@@ -241,16 +244,10 @@ export const resolveAndPersistCatalog = async (
 
             if (dbMatchByTmbd) {
                 // TMDB ID already exists in database
-                const resolved: ResolvedMovie = {
-                    canonicalKey: dbMatchByTmbd.canonicalKey,
-                    name: dbMatchByTmbd.name,
-                    normalizedTitle: dbMatchByTmbd.normalizedTitle,
-                    tmdbMovieId: dbMatchByTmbd.tmdbMovieId,
-                    coverUrl: dbMatchByTmbd.coverUrl,
-                    coverStorageKey: dbMatchByTmbd.coverStorageKey,
-                    coverConfidence: dbMatchByTmbd.coverConfidence,
+                const resolved = createResolvedMovie({
+                    ...dbMatchByTmbd,
                     tmdbSearchFailedOn: null,
-                };
+                });
 
                 titleResolutionMap.set(rawTitle, resolved);
                 canonicalMovieMap.set(dbMatchByTmbd.canonicalKey, resolved);
@@ -313,7 +310,7 @@ export const resolveAndPersistCatalog = async (
                 }
             }
 
-            const resolved: ResolvedMovie = {
+            const resolved = createResolvedMovie({
                 canonicalKey,
                 name: match.title,
                 normalizedTitle,
@@ -321,8 +318,7 @@ export const resolveAndPersistCatalog = async (
                 coverUrl,
                 coverStorageKey,
                 coverConfidence: match.confidence,
-                tmdbSearchFailedOn: null,
-            };
+            });
 
             titleResolutionMap.set(rawTitle, resolved);
             canonicalMovieMap.set(canonicalKey, resolved);
@@ -355,16 +351,12 @@ export const resolveAndPersistCatalog = async (
                 if (existing) {
                     titleResolutionMap.set(rawTitle, existing);
                 } else {
-                    const resolved: ResolvedMovie = {
+                    const resolved = createResolvedMovie({
                         canonicalKey,
                         name: normalizedForFallback || rawTitle,
                         normalizedTitle: normalizedForFallback || rawTitle,
-                        tmdbMovieId: null,
-                        coverUrl: null,
-                        coverStorageKey: null,
-                        coverConfidence: null,
                         tmdbSearchFailedOn: new Date(),
-                    };
+                    });
 
                     titleResolutionMap.set(rawTitle, resolved);
                     canonicalMovieMap.set(canonicalKey, resolved);
@@ -390,33 +382,49 @@ export const resolveAndPersistCatalog = async (
     console.info(`[Resolver] Phase 4: Writing to database...`);
 
     // Upsert all canonical movies
+    // ⚡ Bolt Optimization: Switched from sequential await loop to a batched
+    // `db.$transaction()` to parallelize database I/O for movie upserts.
+    // This reduces latency by preventing N+1 sequential database roundtrips.
     const movieIdByCanonicalKey = new Map<string, number>();
+    const canonicalMoviesList = Array.from(canonicalMovieMap.values());
+    const upsertedMovies: { id: number; canonicalKey: string }[] = [];
+    const BATCH_SIZE_UPSERT = 50;
 
-    for (const canonicalMovie of canonicalMovieMap.values()) {
-        const movie = await db.movie.upsert({
-            where: { canonicalKey: canonicalMovie.canonicalKey },
-            update: {
-                name: canonicalMovie.name,
-                normalizedTitle: canonicalMovie.normalizedTitle,
-                coverUrl: canonicalMovie.coverUrl,
-                coverStorageKey: canonicalMovie.coverStorageKey,
-                coverConfidence: canonicalMovie.coverConfidence,
-                tmdbMovieId: canonicalMovie.tmdbMovieId,
-                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
-            },
-            create: {
-                canonicalKey: canonicalMovie.canonicalKey,
-                name: canonicalMovie.name,
-                normalizedTitle: canonicalMovie.normalizedTitle,
-                coverUrl: canonicalMovie.coverUrl,
-                coverStorageKey: canonicalMovie.coverStorageKey,
-                coverConfidence: canonicalMovie.coverConfidence,
-                tmdbMovieId: canonicalMovie.tmdbMovieId,
-                tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
-            },
-            select: { id: true, canonicalKey: true },
-        });
+    for (let i = 0; i < canonicalMoviesList.length; i += BATCH_SIZE_UPSERT) {
+        const batch = canonicalMoviesList.slice(i, i + BATCH_SIZE_UPSERT);
+        const upsertPromises = batch.map((canonicalMovie) =>
+            db.movie.upsert({
+                where: { canonicalKey: canonicalMovie.canonicalKey },
+                update: {
+                    name: canonicalMovie.name,
+                    normalizedTitle: canonicalMovie.normalizedTitle,
+                    coverUrl: canonicalMovie.coverUrl,
+                    coverStorageKey: canonicalMovie.coverStorageKey,
+                    coverConfidence: canonicalMovie.coverConfidence,
+                    tmdbMovieId: canonicalMovie.tmdbMovieId,
+                    tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
+                },
+                create: {
+                    canonicalKey: canonicalMovie.canonicalKey,
+                    name: canonicalMovie.name,
+                    normalizedTitle: canonicalMovie.normalizedTitle,
+                    coverUrl: canonicalMovie.coverUrl,
+                    coverStorageKey: canonicalMovie.coverStorageKey,
+                    coverConfidence: canonicalMovie.coverConfidence,
+                    tmdbMovieId: canonicalMovie.tmdbMovieId,
+                    tmdbSearchFailedOn: canonicalMovie.tmdbSearchFailedOn,
+                },
+                select: { id: true, canonicalKey: true },
+            })
+        );
 
+        const batchResult = await db.$transaction(upsertPromises);
+        for (const movie of batchResult) {
+            upsertedMovies.push(movie);
+        }
+    }
+
+    for (const movie of upsertedMovies) {
         movieIdByCanonicalKey.set(movie.canonicalKey, movie.id);
     }
 
