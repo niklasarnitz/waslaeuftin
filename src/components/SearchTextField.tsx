@@ -21,6 +21,7 @@ export const SearchTextField = () => {
                 }}
                 placeholder="Stadt oder Kino suchen"
                 className="h-10 flex-1 rounded-xl border-sidebar-border bg-sidebar px-9 text-sm shadow-none focus-visible:ring-2"
+                aria-label="Stadt oder Kino suchen"
             />
             {Boolean(searchQuery) && (
                 <button
