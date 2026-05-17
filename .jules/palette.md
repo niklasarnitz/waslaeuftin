@@ -9,3 +9,7 @@
 ## 2025-04-16 - Add robust aria-labels and decorative icons in `ShowingTimePill`
 **Learning:** Found that time pill links only announced the raw clock time to screen readers (e.g., "14:30") and had no focus styling when navigating via keyboard. Additionally, the decorative `Clock3` icon lacked `aria-hidden="true"`, leading to potential double or messy announcements.
 **Action:** When creating semantic links that rely on visual context (like a time pill underneath a movie title), ensure you build a comprehensive `aria-label` (e.g., "Tickets für [Movie] um [Time] Uhr buchen") and hide decorative icons using `aria-hidden="true"`. Also always verify focus states as global resets can strip them.
+
+## 2025-05-17 - Add WAI-ARIA combobox pattern for custom search dialogs
+**Learning:** Found that the Command Search dialog used standard buttons for results, lacking semantic meaning for screen readers inside an interactive search list. While standard inputs provide focus behavior, complex interactions like ArrowKey navigation over search results need explicit active descendant tracking for screen readers to announce options synchronously with visual state.
+**Action:** When implementing custom search dialogs/autocomplete, fully utilize the WAI-ARIA combobox pattern (`role="combobox"`, `aria-controls`, `aria-activedescendant` on the input; `role="listbox"`, `role="option"`, `aria-selected` on the results). Ensure to sync custom arrow-key state with native Tab navigation by attaching `onFocus` handlers.
