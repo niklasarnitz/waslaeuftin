@@ -7,7 +7,7 @@ import { getPremiumKinoMovies } from "@waslaeuftin/cinemaProviders/premiumkino/g
 import { expect, test } from "bun:test";
 
 test('premiumkino: Astor Film Lounge', async () => {
-    const { movies, showings } = await getPremiumKinoMovies(-1, "berlin");
+    const { movies, showings } = await getPremiumKinoMovies(-1, "muenchen");
 
     console.info(`Got ${movies.length} movies with ${showings.length} showings for Astor Film Lounge`)
 
