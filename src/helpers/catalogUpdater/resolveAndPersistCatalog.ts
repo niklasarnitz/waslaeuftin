@@ -112,6 +112,41 @@ export const resolveAndPersistCatalog = async (
     // Track which movies need TMDB data
     const moviesToFetchTmdbData = new Set<string>(); // raw titles
 
+    const useFallbackResolution = (rawTitle: string): ResolvedMovie => {
+        const normalizedForFallback = normalizeMovieTitle(rawTitle).normalizedTitle;
+        const comparisonKey = normalizeForComparison(normalizedForFallback);
+        const canonicalKey = `title:${comparisonKey}`;
+
+        const existingByCanonicalKey = canonicalMovieMap.get(canonicalKey);
+        if (existingByCanonicalKey) {
+            titleResolutionMap.set(rawTitle, existingByCanonicalKey);
+            return existingByCanonicalKey;
+        }
+
+        const existingByComparisonKey = comparisonKey.length > 0
+            ? resolutionByComparisonKey.get(comparisonKey)
+            : undefined;
+        if (existingByComparisonKey) {
+            titleResolutionMap.set(rawTitle, existingByComparisonKey);
+            return existingByComparisonKey;
+        }
+
+        const resolved = createResolvedMovie({
+            canonicalKey,
+            name: normalizedForFallback || rawTitle,
+            normalizedTitle: normalizedForFallback || rawTitle,
+            tmdbSearchFailedOn: new Date(),
+        });
+
+        titleResolutionMap.set(rawTitle, resolved);
+        canonicalMovieMap.set(canonicalKey, resolved);
+        if (comparisonKey.length > 0) {
+            resolutionByComparisonKey.set(comparisonKey, resolved);
+        }
+
+        return resolved;
+    };
+
     let tmdbMatched = 0;
     let tmdbUnmatched = 0;
 
@@ -213,18 +248,13 @@ export const resolveAndPersistCatalog = async (
     // Phase 3b: Process evaluation results sequentially (for poster uploads, etc.)
     for (const [index, evaluationResult] of allEvaluationResults.entries()) {
         const rawTitle = rawTitlesArray[index]!;
-        const existingResolution = titleResolutionMap.get(rawTitle);
-
-        if (!existingResolution) {
-            console.warn(`[Resolver] No resolution found for "${rawTitle}"`);
-            continue;
-        }
 
         if (evaluationResult.status === "rejected") {
             console.warn(
                 `[Resolver] [${index + 1}/${allEvaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
                 evaluationResult.reason
             );
+            useFallbackResolution(rawTitle);
             tmdbUnmatched++;
             continue;
         }
@@ -342,28 +372,7 @@ export const resolveAndPersistCatalog = async (
                     `[Resolver]   → No TMDB match, using fallback: "${existingResolution.name}"`
                 );
             } else {
-                // Create fallback resolution
-                const normalizedForFallback = normalizeMovieTitle(rawTitle).normalizedTitle;
-                const comparisonKey = normalizeForComparison(normalizedForFallback);
-                const canonicalKey = `title:${comparisonKey}`;
-
-                const existing = canonicalMovieMap.get(canonicalKey);
-                if (existing) {
-                    titleResolutionMap.set(rawTitle, existing);
-                } else {
-                    const resolved = createResolvedMovie({
-                        canonicalKey,
-                        name: normalizedForFallback || rawTitle,
-                        normalizedTitle: normalizedForFallback || rawTitle,
-                        tmdbSearchFailedOn: new Date(),
-                    });
-
-                    titleResolutionMap.set(rawTitle, resolved);
-                    canonicalMovieMap.set(canonicalKey, resolved);
-                    if (comparisonKey.length > 0) {
-                        resolutionByComparisonKey.set(comparisonKey, resolved);
-                    }
-                }
+                useFallbackResolution(rawTitle);
 
                 console.info(
                     `[Resolver]   → No TMDB match, using fallback: "${titleResolutionMap.get(rawTitle)?.name}"`
