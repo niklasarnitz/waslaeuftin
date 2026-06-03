@@ -124,6 +124,7 @@ model Cinema {
   cineStarCinemaNumber             Int?
   cineplexCinemaId             String?
   cineplexxAtCinemaId          String?
+  cinfinityCinemaId            String?
   myVueCinemaId                String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
@@ -136,6 +137,7 @@ model Cinema {
 
   @@index([name])
   @@index([latitude, longitude])
+  @@index([cinfinityCinemaId])
 
   @@unique([cityId, slug])
 }

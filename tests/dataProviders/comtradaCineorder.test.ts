@@ -1,14 +1,12 @@
-import { getCineplexMovies } from "@waslaeuftin/cinemaProviders/cineplex/getCinePlexMovies";
-import { getCineStarMovies } from "@waslaeuftin/cinemaProviders/cinestar/getCineStarMovies";
 import { getComtradaCineOrderMovies } from "@waslaeuftin/cinemaProviders/comtrada/cineorder/getComtradaCineOrderMovies";
 import { expect, test } from "bun:test";
 
 test('comtrada cineorder: Filmpalast am ZKM', async () => {
     try {
         const { movies, showings } = await getComtradaCineOrderMovies(-1, {
-            backendUrl: "https://ts.kinopolis.de",
-            centerShorty: "ka",
-            centerId: "19210000014PLXMQDD",
+            backendUrl: "https://iframe.cineorder.filmpalast.net",
+            centerShorty: "zkm",
+            centerId: "6F000000014BHGWDVI",
             createdAt: new Date(),
             updatedAt: new Date(),
             id: -2
