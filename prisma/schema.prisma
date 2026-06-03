@@ -15,11 +15,11 @@ model Showing {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @default(now()) @updatedAt
 
-  cinemaId              Int
-  movieId               Int
+  cinemaId Int
+  movieId  Int
 
-  cinema                Cinema   @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
-  movie                 Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
+  movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([cinemaId, movieId, dateTime])
   @@index([cinemaId, dateTime])
@@ -28,20 +28,20 @@ model Showing {
 }
 
 model Movie {
-  id              Int           @id @default(autoincrement())
-  name            String
-  normalizedTitle String
-  canonicalKey    String        @unique
-  coverUrl        String?
-  coverStorageKey String?
-  coverConfidence Float?
-  tmdbMovieId     Int?          @unique
+  id                 Int       @id @default(autoincrement())
+  name               String
+  normalizedTitle    String
+  canonicalKey       String    @unique
+  coverUrl           String?
+  coverStorageKey    String?
+  coverConfidence    Float?
+  tmdbMovieId        Int?      @unique
   tmdbSearchFailedOn DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @default(now()) @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
 
-  tmdbMetadata    TmdbMetadata? @relation(fields: [tmdbMovieId], references: [tmdbId], onDelete: SetNull)
-  showings        Showing[]
+  tmdbMetadata TmdbMetadata? @relation(fields: [tmdbMovieId], references: [tmdbId], onDelete: SetNull)
+  showings     Showing[]
 
   @@index([name])
   @@index([normalizedTitle])
@@ -58,8 +58,8 @@ model TmdbMetadata {
   backdropPath     String?
   releaseDate      String?
   runtime          Int?
-  budget           Int?
-  revenue          Int?
+  budget           BigInt?
+  revenue          BigInt?
   popularity       Float?
   voteAverage      Float?
   voteCount        Int?
@@ -102,8 +102,8 @@ model CinemaxxVueCinemasMetadata {
 }
 
 enum Countries {
-    GERMANY
-    AUSTRIA
+  GERMANY
+  AUSTRIA
 }
 
 model Cinema {
@@ -121,7 +121,7 @@ model Cinema {
   cinemaxxVueCinemasMetadataId Int?
   premiumKinoSubdomain         String?
   cineStarCinemaId             Int?
-  cineStarCinemaNumber             Int?
+  cineStarCinemaNumber         Int?
   cineplexCinemaId             String?
   cineplexxAtCinemaId          String?
   cinfinityCinemaId            String?
@@ -135,23 +135,22 @@ model Cinema {
 
   country Countries
 
+  @@unique([cityId, slug])
   @@index([name])
   @@index([latitude, longitude])
   @@index([cinfinityCinemaId])
-
-  @@unique([cityId, slug])
 }
 
 model City {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   cinemas   Cinema[]
-  country Countries
+  country   Countries
 
-  latitude Float?
+  latitude  Float?
   longitude Float?
 
   @@index([name])

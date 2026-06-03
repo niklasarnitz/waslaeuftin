@@ -7,7 +7,6 @@ import { db } from "@waslaeuftin/server/db";
 import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
 
-
 type TmdbMovieSearchResponse = {
     results: TmdbMovieSearchResult[];
 };
@@ -215,6 +214,8 @@ const fetchTmdbMovieDetails = async (
 
 const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
     const genresString = details.genres.map((g) => g.name).join(", ");
+    const budget = BigInt(details.budget);
+    const revenue = BigInt(details.revenue);
 
     await db.tmdbMetadata.upsert({
         where: { tmdbId: details.id },
@@ -229,8 +230,8 @@ const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
             backdropPath: details.backdrop_path,
             releaseDate: details.release_date,
             runtime: details.runtime,
-            budget: details.budget,
-            revenue: details.revenue,
+            budget,
+            revenue,
             popularity: details.popularity,
             voteAverage: details.vote_average,
             voteCount: details.vote_count,
@@ -251,8 +252,8 @@ const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
             backdropPath: details.backdrop_path,
             releaseDate: details.release_date,
             runtime: details.runtime,
-            budget: details.budget,
-            revenue: details.revenue,
+            budget,
+            revenue,
             popularity: details.popularity,
             voteAverage: details.vote_average,
             voteCount: details.vote_count,
@@ -302,9 +303,14 @@ const scoreTmdbCandidate = (
     result: TmdbMovieSearchResult,
 ) => {
     const candidateTitle = normalizeForComparison(result.title);
-    const candidateOriginalTitle = normalizeForComparison(result.original_title);
+    const candidateOriginalTitle = normalizeForComparison(
+        result.original_title,
+    );
 
-    const titleDice = getDiceSimilarity(requestedNormalizedTitle, candidateTitle);
+    const titleDice = getDiceSimilarity(
+        requestedNormalizedTitle,
+        candidateTitle,
+    );
     const originalTitleDice = getDiceSimilarity(
         requestedNormalizedTitle,
         candidateOriginalTitle,
@@ -322,11 +328,13 @@ const scoreTmdbCandidate = (
     const bestTokenOverlap = Math.max(titleOverlap, originalTitleOverlap);
 
     const candidateForInclusion =
-        titleDice >= originalTitleDice ? candidateTitle : candidateOriginalTitle;
+        titleDice >= originalTitleDice
+            ? candidateTitle
+            : candidateOriginalTitle;
 
     const inclusionBoost =
         candidateForInclusion.includes(requestedNormalizedTitle) ||
-            requestedNormalizedTitle.includes(candidateForInclusion)
+        requestedNormalizedTitle.includes(candidateForInclusion)
             ? 0.08
             : 0;
 
@@ -336,7 +344,9 @@ const scoreTmdbCandidate = (
     const requestedYear = extractYear(requestedNormalizedTitle);
     const releaseYear = extractYear(result.release_date ?? "");
     const releaseYearBoost =
-        requestedYear && releaseYear && requestedYear === releaseYear ? 0.06 : 0;
+        requestedYear && releaseYear && requestedYear === releaseYear
+            ? 0.06
+            : 0;
 
     const popularityBoost = Math.min(result.popularity / 150, 1) * 0.06;
     const posterPenalty = result.poster_path ? 0 : -0.2;
@@ -380,7 +390,9 @@ class TmdbMovieMatcher {
         const scoredCandidates: TmdbScoredMatch[] = [];
 
         for (const query of queries) {
-            const searchUrl = new URL("https://api.themoviedb.org/3/search/movie");
+            const searchUrl = new URL(
+                "https://api.themoviedb.org/3/search/movie",
+            );
             searchUrl.searchParams.set("api_key", env.TMDB_API_KEY);
             searchUrl.searchParams.set("query", query);
             searchUrl.searchParams.set("language", "de-DE");
@@ -432,8 +444,8 @@ class TmdbMovieMatcher {
 
         const acceptedCandidate =
             bestCandidate &&
-                bestCandidate.confidence >= env.TMDB_MIN_CONFIDENCE_SCORE &&
-                Boolean(bestCandidate.posterPath)
+            bestCandidate.confidence >= env.TMDB_MIN_CONFIDENCE_SCORE &&
+            Boolean(bestCandidate.posterPath)
                 ? bestCandidate
                 : null;
 

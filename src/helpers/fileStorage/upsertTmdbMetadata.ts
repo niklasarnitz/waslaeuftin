@@ -3,6 +3,8 @@ import { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsRes
 
 export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
     const genresString = details.genres.map((g) => g.name).join(", ");
+    const budget = BigInt(details.budget);
+    const revenue = BigInt(details.revenue);
 
     await db.tmdbMetadata.upsert({
         where: { tmdbId: details.id },
@@ -17,8 +19,8 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
             backdropPath: details.backdrop_path,
             releaseDate: details.release_date,
             runtime: details.runtime,
-            budget: details.budget,
-            revenue: details.revenue,
+            budget,
+            revenue,
             popularity: details.popularity,
             voteAverage: details.vote_average,
             voteCount: details.vote_count,
@@ -39,8 +41,8 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
             backdropPath: details.backdrop_path,
             releaseDate: details.release_date,
             runtime: details.runtime,
-            budget: details.budget,
-            revenue: details.revenue,
+            budget,
+            revenue,
             popularity: details.popularity,
             voteAverage: details.vote_average,
             voteCount: details.vote_count,
