@@ -1,0 +1,3 @@
+ALTER TABLE "TmdbMetadata"
+    ALTER COLUMN "budget" TYPE BIGINT,
+    ALTER COLUMN "revenue" TYPE BIGINT;
