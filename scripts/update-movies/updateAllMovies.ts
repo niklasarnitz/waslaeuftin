@@ -1,5 +1,6 @@
 import { db } from "@waslaeuftin/server/db";
 import { fetchCineStarCatalog } from "./fetchCineStarCatalog";
+import { fetchCinfinityCatalog } from "./fetchCinfinityCatalog";
 import { fetchCineplexCatalog } from "./fetchCineplexCatalog";
 import { fetchComtradaCineOrderCatalog } from "./fetchComtradaCineOrderCatalog";
 import { fetchKinoHeldCatalog } from "./fetchKinoHeldCatalog";
@@ -16,6 +17,7 @@ type ProviderFetcher = {
 
 const providerFetchers: ProviderFetcher[] = [
     { name: "CineStar", fetch: fetchCineStarCatalog },
+    { name: "Cinfinity", fetch: fetchCinfinityCatalog },
     { name: "Cineplex", fetch: fetchCineplexCatalog },
     { name: "ComtradaCineOrder", fetch: fetchComtradaCineOrderCatalog },
     { name: "KinoHeld", fetch: fetchKinoHeldCatalog },
