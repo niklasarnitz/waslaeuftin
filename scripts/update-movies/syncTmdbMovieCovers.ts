@@ -650,11 +650,14 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
             uploadedPosterCache,
         );
 
+        let tmdbMetadataStored = false;
+
         try {
             const details = await fetchTmdbMovieDetails(
                 evaluation.acceptedCandidate.tmdbMovieId,
             );
             await upsertTmdbMetadata(details);
+            tmdbMetadataStored = true;
         } catch (error) {
             console.warn(
                 `[TMDB Cover Sync]   → Warning: Could not fetch/store TMDB metadata for movie ${evaluation.acceptedCandidate.tmdbMovieId}:`,
@@ -668,7 +671,9 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
                 coverUrl: uploadedCover.publicUrl,
                 coverStorageKey: uploadedCover.objectKey,
                 coverConfidence: evaluation.acceptedCandidate.confidence,
-                tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId,
+                ...(tmdbMetadataStored
+                    ? { tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId }
+                    : {}),
             },
         });
 

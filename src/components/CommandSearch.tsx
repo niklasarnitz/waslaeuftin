@@ -55,11 +55,6 @@ export function CommandSearch() {
     return result;
   }, [data]);
 
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [items]);
-
   const navigate = useCallback(
     (href: string) => {
       setOpen(false);
@@ -148,7 +143,10 @@ export function CommandSearch() {
             />
             <Input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveIndex(0);
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Stadt oder Kino suchen…"
               aria-label="Stadt oder Kino suchen"

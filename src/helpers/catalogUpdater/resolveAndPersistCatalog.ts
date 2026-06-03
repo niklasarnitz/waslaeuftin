@@ -112,7 +112,7 @@ export const resolveAndPersistCatalog = async (
     // Track which movies need TMDB data
     const moviesToFetchTmdbData = new Set<string>(); // raw titles
 
-    const useFallbackResolution = (rawTitle: string): ResolvedMovie => {
+    const resolveWithFallback = (rawTitle: string): ResolvedMovie => {
         const normalizedForFallback = normalizeMovieTitle(rawTitle).normalizedTitle;
         const comparisonKey = normalizeForComparison(normalizedForFallback);
         const canonicalKey = `title:${comparisonKey}`;
@@ -254,7 +254,7 @@ export const resolveAndPersistCatalog = async (
                 `[Resolver] [${index + 1}/${allEvaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
                 evaluationResult.reason
             );
-            useFallbackResolution(rawTitle);
+            resolveWithFallback(rawTitle);
             tmdbUnmatched++;
             continue;
         }
@@ -310,10 +310,12 @@ export const resolveAndPersistCatalog = async (
             // Fetch details & upload cover
             let coverUrl: string | null = null;
             let coverStorageKey: string | null = null;
+            let tmdbMetadataStored = false;
 
             try {
                 const details = await fetchTmdbMovieDetails(match.tmdbMovieId);
                 await upsertTmdbMetadata(details);
+                tmdbMetadataStored = true;
             } catch (error) {
                 console.warn(
                     `[Resolver]   → Warning: Could not fetch/store TMDB metadata for ${match.tmdbMovieId}:`,
@@ -344,7 +346,7 @@ export const resolveAndPersistCatalog = async (
                 canonicalKey,
                 name: match.title,
                 normalizedTitle,
-                tmdbMovieId: match.tmdbMovieId,
+                tmdbMovieId: tmdbMetadataStored ? match.tmdbMovieId : null,
                 coverUrl,
                 coverStorageKey,
                 coverConfidence: match.confidence,
@@ -372,7 +374,7 @@ export const resolveAndPersistCatalog = async (
                     `[Resolver]   → No TMDB match, using fallback: "${existingResolution.name}"`
                 );
             } else {
-                useFallbackResolution(rawTitle);
+                resolveWithFallback(rawTitle);
 
                 console.info(
                     `[Resolver]   → No TMDB match, using fallback: "${titleResolutionMap.get(rawTitle)?.name}"`
