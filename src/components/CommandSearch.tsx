@@ -9,7 +9,7 @@ import {
 } from "@waslaeuftin/components/ui/dialog";
 import { Input } from "@waslaeuftin/components/ui/input";
 import { api } from "@waslaeuftin/trpc/react";
-import { Building2, Loader2, MapPin, Search } from "lucide-react";
+import { Building2, Loader2, MapPin, Search, X } from "lucide-react";
 import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
 
 type SearchItem = {
@@ -25,6 +25,7 @@ export function CommandSearch() {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const { data, isFetching } = api.cities.search.useQuery(query, {
@@ -136,12 +137,13 @@ export function CommandSearch() {
       >
         <DialogContent className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg [&>button:last-child]:hidden">
           <DialogTitle className="sr-only">Suche</DialogTitle>
-          <div className="flex items-center border-b px-3">
+          <div className="relative flex items-center border-b px-3">
             <Search
               aria-hidden="true"
               className="text-muted-foreground mr-2 h-4 w-4 shrink-0"
             />
             <Input
+              ref={inputRef}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -150,12 +152,37 @@ export function CommandSearch() {
               onKeyDown={handleKeyDown}
               placeholder="Stadt oder Kino suchen…"
               aria-label="Stadt oder Kino suchen"
-              className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              role="combobox"
+              aria-expanded={true}
+              aria-controls="search-listbox"
+              aria-activedescendant={
+                items.length > 0 ? `cmd-item-${activeIndex}` : undefined
+              }
+              className="h-12 border-0 bg-transparent px-0 pr-8 shadow-none focus-visible:ring-0"
               autoFocus
             />
+            {query.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setActiveIndex(0);
+                  inputRef.current?.focus();
+                }}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+                aria-label="Suche zurücksetzen"
+              >
+                <X aria-hidden="true" className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
-          <div ref={listRef} className="max-h-72 overflow-y-auto">
+          <div
+            ref={listRef}
+            id="search-listbox"
+            role="listbox"
+            className="max-h-72 overflow-y-auto"
+          >
             {isFetching && (
               <div className="flex items-center justify-center py-6">
                 <Loader2
@@ -184,9 +211,12 @@ export function CommandSearch() {
                     <button
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       type="button"
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
                       className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
                     >
@@ -212,9 +242,12 @@ export function CommandSearch() {
                     <button
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       type="button"
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
                       className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
                     >
