@@ -9,3 +9,7 @@
 ## 2025-04-16 - Add robust aria-labels and decorative icons in `ShowingTimePill`
 **Learning:** Found that time pill links only announced the raw clock time to screen readers (e.g., "14:30") and had no focus styling when navigating via keyboard. Additionally, the decorative `Clock3` icon lacked `aria-hidden="true"`, leading to potential double or messy announcements.
 **Action:** When creating semantic links that rely on visual context (like a time pill underneath a movie title), ensure you build a comprehensive `aria-label` (e.g., "Tickets für [Movie] um [Time] Uhr buchen") and hide decorative icons using `aria-hidden="true"`. Also always verify focus states as global resets can strip them.
+
+## 2024-06-01 - [ARIA Combobox Pattern for CommandSearch]
+**Learning:** Custom command palettes and search dialogs (like `CommandSearch.tsx`) need full ARIA combobox implementations to be accessible. Simply having a list of buttons under an input isn't enough for screen readers. Using `role="combobox"` with `aria-controls`, `aria-expanded`, and `aria-activedescendant` on the input, paired with `role="listbox"` and `role="option"` with `aria-selected` on the results, bridges the gap between custom visual keyboard navigation and screen reader focus tracking.
+**Action:** When building or enhancing custom autocomplete/search dialogs, ensure the full combobox pattern is implemented, including `onFocus` handlers on options to sync native focus with custom arrow-key navigation state.
