@@ -152,10 +152,21 @@ export function CommandSearch() {
               aria-label="Stadt oder Kino suchen"
               className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
               autoFocus
+              role="combobox"
+              aria-expanded={open}
+              aria-controls="cmd-list"
+              aria-activedescendant={
+                items.length > 0 ? `cmd-item-${activeIndex}` : undefined
+              }
             />
           </div>
 
-          <div ref={listRef} className="max-h-72 overflow-y-auto">
+          <div
+            ref={listRef}
+            id="cmd-list"
+            role="listbox"
+            className="max-h-72 overflow-y-auto"
+          >
             {isFetching && (
               <div className="flex items-center justify-center py-6">
                 <Loader2
@@ -184,9 +195,12 @@ export function CommandSearch() {
                     <button
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       type="button"
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
                       className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
                     >
@@ -212,9 +226,12 @@ export function CommandSearch() {
                     <button
                       key={item.id}
                       id={`cmd-item-${flatIndex}`}
+                      role="option"
+                      aria-selected={flatIndex === activeIndex}
                       type="button"
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
                       className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm"
                     >
