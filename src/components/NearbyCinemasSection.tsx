@@ -291,16 +291,14 @@ export const NearbyCinemasSection = () => {
 
                         <div className="mt-3 grid gap-2 sm:gap-3 sm:grid-cols-2">
                             {filteredCinemas.map((cinema) => {
-                                const originalCinema = nearbyCinemas.find((c) => c.id === cinema.id);
+                                // ⚡ Bolt: Removed redundant nearbyCinemas.find() since cinema object already contains movies
 
                                 // ⚡ Bolt: Replace flatMap().sort()[0] with O(N) loop to avoid intermediate array allocations and O(N log N) sorting
-                                let nextShowing: NonNullable<typeof originalCinema>["movies"][number]["showings"][number] | undefined = undefined;
-                                if (originalCinema) {
-                                    for (const movie of originalCinema.movies) {
-                                        for (const showing of movie.showings) {
-                                            if (!nextShowing || showing.dateTime.getTime() < nextShowing.dateTime.getTime()) {
-                                                nextShowing = showing;
-                                            }
+                                let nextShowing: typeof cinema.movies[number]["showings"][number] | undefined = undefined;
+                                for (const movie of cinema.movies) {
+                                    for (const showing of movie.showings) {
+                                        if (!nextShowing || showing.dateTime.getTime() < nextShowing.dateTime.getTime()) {
+                                            nextShowing = showing;
                                         }
                                     }
                                 }
@@ -333,15 +331,13 @@ export const NearbyCinemasSection = () => {
 
                                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] sm:mt-3 sm:gap-2 sm:text-xs">
                                             <span className="rounded-full border border-border/80 px-2 py-0.5 text-foreground/80 sm:px-2.5 sm:py-1">
-                                                {originalCinema?.movies.length ?? 0} Filme
+                                                {cinema.movies.length} Filme
                                             </span>
                                             <span className="rounded-full border border-border/80 px-2 py-0.5 text-foreground/80 sm:px-2.5 sm:py-1">
                                                 {(() => {
                                                     let count = 0;
-                                                    if (originalCinema) {
-                                                        for (const movie of originalCinema.movies) {
-                                                            count += movie.showings.length;
-                                                        }
+                                                    for (const movie of cinema.movies) {
+                                                        count += movie.showings.length;
                                                     }
                                                     return count;
                                                 })()} Vorstellungen
