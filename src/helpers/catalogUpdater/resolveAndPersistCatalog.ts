@@ -240,7 +240,7 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     }>[] = [];
 
     console.info(
-        `[Resolver] Executing ${rawTitlesArray.length} TMDB evaluations in batches (max 10 per batch)...`,
+        `[Resolver] Executing ${rawTitlesArray.length} TMDB evaluations in batches (max ${TMDB_BATCH_SIZE} per batch)...`,
     );
 
     for (let i = 0; i < rawTitlesArray.length; i += TMDB_BATCH_SIZE) {
@@ -260,7 +260,86 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
         allEvaluationResults.push(...batchResults);
     }
 
-    // Phase 3b: Process evaluation results sequentially (for poster uploads, etc.)
+    // Phase 3b: Pre-fetch TMDB details and upload posters concurrently in batches
+    type TmdbMatchResult = NonNullable<Awaited<ReturnType<TmdbMovieMatcher['evaluate']>>['acceptedCandidate']>;
+    const tmdbDataToFetch = new Map<number, TmdbMatchResult>();
+
+    for (const [index, evaluationResult] of allEvaluationResults.entries()) {
+        if (evaluationResult.status === "fulfilled" && evaluationResult.value.evaluation.acceptedCandidate) {
+            const match = evaluationResult.value.evaluation.acceptedCandidate;
+            const canonicalKey = `tmdb:${match.tmdbMovieId}`;
+
+            if (!dbMovieByTmdbId.has(match.tmdbMovieId) && !canonicalMovieMap.has(canonicalKey) && !tmdbDataToFetch.has(match.tmdbMovieId)) {
+                tmdbDataToFetch.set(match.tmdbMovieId, match);
+            }
+        }
+    }
+
+    const fetchedTmdbData = new Map<number, {
+        coverUrl: string | null;
+        coverStorageKey: string | null;
+        tmdbMetadataStored: boolean;
+    }>();
+
+    if (tmdbDataToFetch.size > 0) {
+        console.info(
+            `[Resolver] Phase 3b: Pre-fetching details and covers for ${tmdbDataToFetch.size} unique TMDB matches in batches...`,
+        );
+
+        const tmdbDataArray = Array.from(tmdbDataToFetch.values());
+        for (let i = 0; i < tmdbDataArray.length; i += TMDB_BATCH_SIZE) {
+            const batch = tmdbDataArray.slice(i, i + TMDB_BATCH_SIZE);
+            const batchProgress = `${Math.min(i + TMDB_BATCH_SIZE, tmdbDataArray.length)}/${tmdbDataArray.length}`;
+            console.info(`[Resolver] TMDB Data Batch progress: ${batchProgress}`);
+
+            const promises = batch.map(async (match) => {
+                let coverUrl: string | null = null;
+                let coverStorageKey: string | null = null;
+                let tmdbMetadataStored = false;
+
+                try {
+                    const details = await fetchTmdbMovieDetails(match.tmdbMovieId);
+                    await upsertTmdbMetadata(details);
+                    tmdbMetadataStored = true;
+                } catch (error) {
+                    console.warn(
+                        `[Resolver]   → Warning: Could not fetch/store TMDB metadata for ${match.tmdbMovieId}:`,
+                        error,
+                    );
+                }
+
+                if (match.posterPath) {
+                    try {
+                        const uploaded = await uploadTmdbPosterToMinio(
+                            minioClient,
+                            match.title,
+                            match,
+                            normalizedPrefix,
+                            uploadedPosterCache,
+                        );
+                        coverUrl = uploaded.publicUrl;
+                        coverStorageKey = uploaded.objectKey;
+                    } catch (error) {
+                        console.warn(
+                            `[Resolver]   → Warning: Could not upload poster for ${match.tmdbMovieId}:`,
+                            error,
+                        );
+                    }
+                }
+
+                return { tmdbMovieId: match.tmdbMovieId, result: { coverUrl, coverStorageKey, tmdbMetadataStored } };
+            });
+
+            const batchResults = await Promise.allSettled(promises);
+            for (const result of batchResults) {
+                if (result.status === "fulfilled") {
+                    fetchedTmdbData.set(result.value.tmdbMovieId, result.value.result);
+                }
+            }
+        }
+    }
+
+    // Phase 3c: Process evaluation results to create resolved movies
     for (const [index, evaluationResult] of allEvaluationResults.entries()) {
         const rawTitle = rawTitlesArray[index]!;
 
@@ -324,40 +403,11 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
                 continue;
             }
 
-            // Fetch details & upload cover
-            let coverUrl: string | null = null;
-            let coverStorageKey: string | null = null;
-            let tmdbMetadataStored = false;
-
-            try {
-                const details = await fetchTmdbMovieDetails(match.tmdbMovieId);
-                await upsertTmdbMetadata(details);
-                tmdbMetadataStored = true;
-            } catch (error) {
-                console.warn(
-                    `[Resolver]   → Warning: Could not fetch/store TMDB metadata for ${match.tmdbMovieId}:`,
-                    error,
-                );
-            }
-
-            if (match.posterPath) {
-                try {
-                    const uploaded = await uploadTmdbPosterToMinio(
-                        minioClient,
-                        match.title,
-                        match,
-                        normalizedPrefix,
-                        uploadedPosterCache,
-                    );
-                    coverUrl = uploaded.publicUrl;
-                    coverStorageKey = uploaded.objectKey;
-                } catch (error) {
-                    console.warn(
-                        `[Resolver]   → Warning: Could not upload poster for ${match.tmdbMovieId}:`,
-                        error,
-                    );
-                }
-            }
+            // Read pre-fetched details & cover
+            const preFetched = fetchedTmdbData.get(match.tmdbMovieId);
+            const coverUrl = preFetched?.coverUrl ?? null;
+            const coverStorageKey = preFetched?.coverStorageKey ?? null;
+            const tmdbMetadataStored = preFetched?.tmdbMetadataStored ?? false;
 
             const resolved = createResolvedMovie({
                 canonicalKey,
