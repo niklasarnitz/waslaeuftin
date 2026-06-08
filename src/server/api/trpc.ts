@@ -10,6 +10,7 @@ import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { env } from "@waslaeuftin/env";
 import { db } from "@waslaeuftin/server/db";
 
 /**
@@ -25,10 +26,20 @@ import { db } from "@waslaeuftin/server/db";
  * @see https://trpc.io/docs/server/context
  */
 export const getClientIp = (headers: Headers): string | undefined => {
+  if (env.TRUSTED_PROXIES_COUNT === 0) {
+    return undefined;
+  }
+
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first && first !== "unknown") return first;
+    const ips = forwarded
+      .split(",")
+      .map((ip) => ip.trim())
+      .filter((ip) => ip && ip !== "unknown");
+    if (ips.length > 0) {
+      const index = Math.max(0, ips.length - env.TRUSTED_PROXIES_COUNT);
+      return ips[index];
+    }
   }
 
   const realIp = headers.get("x-real-ip")?.trim();

@@ -32,6 +32,7 @@ export const env = createEnv({
         MINIO_PUBLIC_BASE_URL: z.string().url(),
         UMAMI_URL: z.url(),
         UMAMI_WEBSITE_ID: z.string(),
+        TRUSTED_PROXIES_COUNT: z.coerce.number().min(0).default(1),
     },
     client: {},
     runtimeEnv: {
@@ -51,7 +52,8 @@ export const env = createEnv({
         MINIO_MOVIE_COVERS_PREFIX: process.env.MINIO_MOVIE_COVERS_PREFIX,
         MINIO_PUBLIC_BASE_URL: process.env.MINIO_PUBLIC_BASE_URL,
         UMAMI_URL: process.env.UMAMI_URL,
-        UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID
+        UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID,
+        TRUSTED_PROXIES_COUNT: process.env.TRUSTED_PROXIES_COUNT
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,
