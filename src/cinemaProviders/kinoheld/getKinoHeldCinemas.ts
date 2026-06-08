@@ -30,10 +30,6 @@ async function getKinoHeldCinemasInner(
     throw new Error("Could not load KinoHeld cinemas");
   }
 
-  console.log(
-    "Currently at page " + page + " of " + data.cinemas.paginatorInfo.lastPage,
-  );
-
   const newData = allData.concat(data.cinemas.data);
   if (data.cinemas.paginatorInfo.hasMorePages) {
     return await getKinoHeldCinemasInner(page + 1, newData);
