@@ -4,7 +4,7 @@ export class RateLimitedQueue {
     private activeRequests = 0;
     private readonly maxConcurrent: number;
     private readonly minDelayMs: number;
-    private lastRequestTime = 0;
+    private expectedNextRequestTime = 0;
 
     constructor(maxConcurrent: number = 3, minDelayMs: number = 334) {
         this.maxConcurrent = maxConcurrent;
@@ -18,14 +18,17 @@ export class RateLimitedQueue {
 
         this.activeRequests++;
 
-        try {
-            // Enforce minimum delay between requests
-            const timeSinceLastRequest = Date.now() - this.lastRequestTime;
-            if (timeSinceLastRequest < this.minDelayMs) {
-                await sleep(this.minDelayMs - timeSinceLastRequest);
-            }
+        // Enforce minimum delay between requests atomically
+        const now = Date.now();
+        const targetTime = Math.max(now, this.expectedNextRequestTime);
+        this.expectedNextRequestTime = targetTime + this.minDelayMs;
 
-            this.lastRequestTime = Date.now();
+        const delay = targetTime - now;
+        if (delay > 0) {
+            await sleep(delay);
+        }
+
+        try {
             return await fn();
         } finally {
             this.activeRequests--;
