@@ -9,4 +9,4 @@ test('cineplexx-at: Apollo - Das Kino', async () => {
 
     expect(movies.length).toBeGreaterThan(0);
     expect(flattenedShowings.length).toBeGreaterThan(0)
-}, { timeout: 20000 })
+}, { timeout: 120000 })

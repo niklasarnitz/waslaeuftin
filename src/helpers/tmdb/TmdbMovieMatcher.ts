@@ -33,8 +33,8 @@ export class TmdbMovieMatcher {
         );
         const scoredCandidates: TmdbScoredMatch[] = [];
 
-        for (const query of queries) {
-            const result = await this.rateLimitQueue.run(async () => {
+        const searchPromises = queries.map((query) =>
+            this.rateLimitQueue.run(async () => {
                 const searchUrl = new URL("https://api.themoviedb.org/3/search/movie");
                 searchUrl.searchParams.set("api_key", env.TMDB_API_KEY);
                 searchUrl.searchParams.set("query", query);
@@ -52,9 +52,14 @@ export class TmdbMovieMatcher {
                     );
                 }
 
-                return (await searchResponse.json()) as TmdbMovieSearchResponse;
-            });
+                const result = (await searchResponse.json()) as TmdbMovieSearchResponse;
+                return { query, result };
+            })
+        );
 
+        const results = await Promise.all(searchPromises);
+
+        for (const { query, result } of results) {
             const topResults = result.results.slice(0, 7);
 
             for (const movieResult of topResults) {
