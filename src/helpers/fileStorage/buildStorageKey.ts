@@ -11,7 +11,7 @@ export const buildStorageKey = (
         /[^a-z0-9]/gi,
         ""
     );
-    const posterHash = createHash("sha1")
+    const posterHash = createHash("sha256")
         .update(match.posterPath ?? `${match.tmdbMovieId}`)
         .digest("hex")
         .slice(0, 12);
