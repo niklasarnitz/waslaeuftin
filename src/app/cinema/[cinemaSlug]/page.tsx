@@ -6,7 +6,7 @@ import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { api } from "@waslaeuftin/trpc/server";
 import moment from "moment-timezone";
 import { type Metadata } from "next";
-import { safeJsonLd } from "@waslaeuftin/helpers/safeJsonLd";
+import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
 
 type CinemaPageProps = {
   params: Promise<{ cinemaSlug?: string }>;
@@ -97,10 +97,7 @@ export default async function CinemaPage({
 
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
           <CinemaMovies cinema={cinema} />

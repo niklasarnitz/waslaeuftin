@@ -6,7 +6,7 @@ import { type Metadata } from "next";
 import { Constants } from "@waslaeuftin/globals/Constants";
 import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
 import { getPathName } from "@waslaeuftin/helpers/getPathName";
-import { safeJsonLd } from "@waslaeuftin/helpers/safeJsonLd";
+import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
 
 type MoviesInCityProps = {
   params: Promise<{ citySlug?: string }>;
@@ -87,10 +87,7 @@ export default async function MoviesInCity({
 
   return (
     <SiteWrapper pathname={pathname} searchParams={decodedParams}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
           <MoviesByCinemaList city={city} date={decodedParams.date} />
