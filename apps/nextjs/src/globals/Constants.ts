@@ -19,14 +19,14 @@ export const Constants = {
     cta: {
       city: (city: string) =>
         `Finde jetzt das aktuelle Kino-Programm für ${city} heraus. Was läuft heute im Kino?`,
-      cinema: "Finde jetzt das aktuelle Kino-Programm in deinem Kino heraus. Was läuft heute?",
+      cinema:
+        "Finde jetzt das aktuelle Kino-Programm in deinem Kino heraus. Was läuft heute?",
     },
   },
   ["whats-showing-in-date"]: {
     cinema: (cinema: string, date: string) => `Was läuft ${date} im ${cinema}?`,
     city: (city: string, date: string) => `Was läuft ${date} in ${city}?`,
-    home: (date: string) =>
-      `Was läuft ${date} in deiner Nähe?`,
+    home: (date: string) => `Was läuft ${date} in deiner Nähe?`,
   },
   ["find-out-which-movies-are-showing-in"]: {
     city: (city: string) =>

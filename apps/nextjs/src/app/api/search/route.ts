@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { createCaller } from "@waslaeuftin/server/api/root";
-import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
+import {
+  createCaller,
+  createTRPCContext,
+  getClientIp,
+} from "@waslaeuftin/api/server";
 
 export const GET = async (request: Request) => {
   try {
@@ -21,9 +24,6 @@ export const GET = async (request: Request) => {
     return NextResponse.json(results);
   } catch (error) {
     console.error("Search API error", error);
-    return NextResponse.json(
-      { message: "Search failed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Search failed" }, { status: 500 });
   }
 };

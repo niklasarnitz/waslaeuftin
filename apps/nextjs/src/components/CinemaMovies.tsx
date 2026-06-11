@@ -1,14 +1,12 @@
 import { Film } from "lucide-react";
+
+import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types";
+import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
+import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { type api } from "@waslaeuftin/trpc/server";
 
-import { MovieCard } from "./movie-listing/MovieCard";
-import { groupMoviesByTitle } from "./movie-listing/groupMoviesByTitle";
-import type { ListingCinema } from "./movie-listing/types";
-
 export type CinemaMoviesProps = {
-  cinema: NonNullable<
-    Awaited<ReturnType<typeof api.cinemas.getCinemaBySlug>>
-  >;
+  cinema: NonNullable<Awaited<ReturnType<typeof api.cinemas.getCinemaBySlug>>>;
 };
 
 export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
@@ -35,7 +33,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
 
   if (groupedMovies.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+      <div className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-sm">
         Für den ausgewählten Tag wurden keine Vorstellungen gefunden.
       </div>
     );
@@ -43,11 +41,11 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
-        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
+        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {groupedMovies.length} Filme
         </span>
-        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {totalShowings} Vorstellungen heute
         </span>
       </div>
@@ -55,17 +53,21 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
       <div className="mt-4">
         <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
-            <Film className="h-4 w-4 text-primary" />
+            <Film className="text-primary h-4 w-4" />
             Filme im {cinema.name}
           </h3>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             Sortiert nach Beliebtheit
           </span>
         </div>
 
         <div className="space-y-3">
-          {groupedMovies.map((movie) => (
-            <MovieCard key={movie.name} movie={movie} />
+          {groupedMovies.map((movie, index) => (
+            <MovieCard
+              key={movie.name}
+              movie={movie}
+              eagerCover={index === 0}
+            />
           ))}
         </div>
       </div>

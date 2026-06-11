@@ -1,4 +1,5 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
+
 import { getBigramSet } from "@waslaeuftin/helpers/similarity/getBigramSet";
 
 describe("getBigramSet", () => {
@@ -22,7 +23,7 @@ describe("getBigramSet", () => {
   });
 
   test("Multiple duplicate bigrams", () => {
-      // "aaaa" -> "aa", "aa", "aa", but set removes duplicates
-      expect(getBigramSet("aaaa")).toEqual(new Set(["aa"]));
+    // "aaaa" -> "aa", "aa", "aa", but set removes duplicates
+    expect(getBigramSet("aaaa")).toEqual(new Set(["aa"]));
   });
 });

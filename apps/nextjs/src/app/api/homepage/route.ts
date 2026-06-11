@@ -1,30 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  createCaller,
+  createTRPCContext,
+  getClientIp,
+} from "@waslaeuftin/api/server";
 import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
-import { createCaller } from "@waslaeuftin/server/api/root";
-import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
-
-const rawLocationInputSchema = z
-  .object({
-    latitude: z.coerce.number().optional(),
-    longitude: z.coerce.number().optional(),
-    lat: z.coerce.number().optional(),
-    lng: z.coerce.number().optional(),
-    maxDistanceKm: z.coerce.number().optional(),
-    radiusKm: z.coerce.number().optional(),
-  })
-  .transform((value) => ({
-    latitude: value.latitude ?? value.lat,
-    longitude: value.longitude ?? value.lng,
-    maxDistanceKm: value.maxDistanceKm ?? value.radiusKm ?? 20,
-  }));
-
-const locationInputSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  maxDistanceKm: z.number().positive().max(250).default(20),
-});
+import {
+  LocationInputSchema,
+  RawLocationInputSchema,
+} from "@waslaeuftin/validators";
 
 const createApiCaller = (request: Request) =>
   createCaller(() => {
@@ -156,13 +142,6 @@ const buildHomepageMovieData = (
   }
 
   moviesArray.sort((left, right) => {
-    const leftPopularity = left.tmdbPopularity ?? 0;
-    const rightPopularity = right.tmdbPopularity ?? 0;
-
-    if (leftPopularity !== rightPopularity) {
-      return rightPopularity - leftPopularity;
-    }
-
     return left.name.localeCompare(right.name);
   });
 
@@ -201,8 +180,8 @@ const buildHomepageMovieData = (
 const getLocationInputFromRequest = (request: Request) => {
   const { searchParams } = new URL(request.url);
 
-  return locationInputSchema.parse(
-    rawLocationInputSchema.parse({
+  return LocationInputSchema.parse(
+    RawLocationInputSchema.parse({
       latitude: searchParams.get("latitude") ?? undefined,
       longitude: searchParams.get("longitude") ?? undefined,
       lat: searchParams.get("lat") ?? undefined,
@@ -254,7 +233,7 @@ const handleRequest = async (request: Request) => {
       return NextResponse.json(
         {
           message: "Invalid location input",
-          errors: error.flatten(),
+          errors: z.treeifyError(error),
         },
         {
           status: 400,

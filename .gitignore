@@ -13,10 +13,6 @@ coverage
 out/
 next-env.d.ts
 
-# nitro
-.nitro/
-.output/
-
 # expo
 .expo/
 expo-env.d.ts
@@ -50,6 +46,3 @@ dist/
 
 # turbo
 .turbo
-
-# tanstack
-.tanstack

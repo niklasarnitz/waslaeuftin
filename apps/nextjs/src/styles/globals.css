@@ -95,8 +95,16 @@ h6 {
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 8% -12%, hsl(210 90% 54% / 0.12), transparent 34%),
-      radial-gradient(circle at 94% 4%, hsl(193 72% 47% / 0.1), transparent 28%),
+      radial-gradient(
+        circle at 8% -12%,
+        hsl(210 90% 54% / 0.12),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 94% 4%,
+        hsl(193 72% 47% / 0.1),
+        transparent 28%
+      ),
       linear-gradient(125deg, hsl(0 0% 100% / 0.08) 0%, transparent 42%),
       linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
     background-attachment: fixed;

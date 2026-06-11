@@ -1,12 +1,6 @@
 import { useMemo } from "react";
 
-const KNOWN_TAGS = new Set([
-  "imax",
-  "omu",
-  "omu spezial",
-  "d-box",
-  "atmos",
-]);
+const KNOWN_TAGS = new Set(["imax", "omu", "omu spezial", "d-box", "atmos"]);
 
 const isKnownTag = (value: string) => KNOWN_TAGS.has(value.toLowerCase());
 
@@ -67,7 +61,7 @@ export const ShowingTags = ({
       {tags.map((tag) => (
         <span
           key={`tag-${showingId}-${tag}`}
-          className="whitespace-nowrap rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-primary"
+          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold whitespace-nowrap uppercase"
         >
           {tag}
         </span>
@@ -75,7 +69,7 @@ export const ShowingTags = ({
       {otherParts.map((part, index) => (
         <span
           key={`other-${showingId}-${part}-${index}`}
-          className="whitespace-nowrap rounded-full border border-border/80 bg-white px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground dark:bg-muted/50"
+          className="border-border/80 text-muted-foreground dark:bg-muted/50 rounded-full border bg-white px-1.5 py-0.5 text-[10px] leading-none font-medium whitespace-nowrap"
         >
           {part}
         </span>

@@ -1,15 +1,12 @@
 "use client";
 
+import type { DayButton } from "react-day-picker";
 import * as React from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import {
-  DayPicker,
-  getDefaultClassNames,
-  type DayButton,
-} from "react-day-picker";
+import { DayPicker, getDefaultClassNames } from "react-day-picker";
 
-import { cn } from "@waslaeuftin/lib/utils";
 import { Button, buttonVariants } from "@waslaeuftin/components/ui/button";
+import { cn } from "@waslaeuftin/lib/utils";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -58,7 +55,7 @@ function Calendar({
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "w-8 flex-1 rounded-md text-[0.8rem] font-normal text-muted-foreground",
+          "text-muted-foreground w-8 flex-1 rounded-md text-[0.8rem] font-normal",
           defaultClassNames.weekday,
         ),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
@@ -68,7 +65,7 @@ function Calendar({
           defaultClassNames.day,
         ),
         today: cn(
-          "rounded-md bg-accent text-accent-foreground",
+          "bg-accent text-accent-foreground rounded-md",
           defaultClassNames.today,
         ),
         outside: cn(
@@ -93,10 +90,7 @@ function Calendar({
             );
           }
           return (
-            <ChevronRightIcon
-              className={cn("h-4 w-4", className)}
-              {...props}
-            />
+            <ChevronRightIcon className={cn("h-4 w-4", className)} {...props} />
           );
         },
         DayButton: CalendarDayButton,

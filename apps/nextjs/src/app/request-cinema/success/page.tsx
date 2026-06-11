@@ -1,9 +1,10 @@
 "use client";
 
-import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+
+import { LoadingSpinner } from "@waslaeuftin/components/LoadingSpinner";
 
 export default function DidCreateMovieRequest() {
   return (

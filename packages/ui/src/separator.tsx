@@ -2,7 +2,7 @@
 
 import { Separator as SeparatorPrimitive } from "radix-ui";
 
-import { cn } from "@acme/ui";
+import { cn } from "@waslaeuftin/ui";
 
 export function Separator({
   className,

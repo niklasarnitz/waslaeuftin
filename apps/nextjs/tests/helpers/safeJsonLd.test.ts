@@ -1,5 +1,6 @@
-import { expect, test, describe } from "bun:test";
-import { safeJsonLd } from "../../src/helpers/safeJsonLd";
+import { describe, expect, test } from "bun:test";
+
+import { safeJsonLd } from "@waslaeuftin/helpers/safeJsonLd";
 
 describe("safeJsonLd", () => {
   test("escapes HTML sensitive characters correctly", () => {

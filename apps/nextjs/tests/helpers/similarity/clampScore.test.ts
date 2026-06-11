@@ -1,5 +1,6 @@
-import { expect, test, describe } from "bun:test";
-import { clampScore } from "../../../src/helpers/similarity/clampScore";
+import { describe, expect, test } from "bun:test";
+
+import { clampScore } from "@waslaeuftin/helpers/similarity/clampScore";
 
 describe("clampScore", () => {
   test("returns the value if it is strictly between 0 and 1", () => {

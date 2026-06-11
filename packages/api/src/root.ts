@@ -1,11 +1,17 @@
-import { authRouter } from "./router/auth";
-import { postRouter } from "./router/post";
-import { createTRPCRouter } from "./trpc";
+import { cinemaRouter } from "@waslaeuftin/api/internal/router/cinema";
+import { citiesRouter } from "@waslaeuftin/api/internal/router/cities";
+import { githubRouter } from "@waslaeuftin/api/internal/router/github";
+import {
+  createCallerFactory,
+  createTRPCRouter,
+} from "@waslaeuftin/api/internal/trpc";
 
 export const appRouter = createTRPCRouter({
-  auth: authRouter,
-  post: postRouter,
+  cities: citiesRouter,
+  github: githubRouter,
+  cinemas: cinemaRouter,
 });
 
-// export type definition of API
 export type AppRouter = typeof appRouter;
+
+export const createCaller = createCallerFactory(appRouter);

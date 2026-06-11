@@ -2,15 +2,16 @@
 
 import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
+import moment from "moment-timezone";
+
+import { Button } from "@waslaeuftin/components/ui/button";
+import { Calendar } from "@waslaeuftin/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@waslaeuftin/components/ui/popover";
-import { Button } from "@waslaeuftin/components/ui/button";
 import { cn } from "@waslaeuftin/lib/utils";
-import { Calendar } from "@waslaeuftin/components/ui/calendar";
-import moment from "moment-timezone";
 
 export type DatePickerProps = {
   value?: Date;
@@ -24,7 +25,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
         <Button
           variant={"outline"}
           className={cn(
-            "h-10 w-full justify-start rounded-lg border-border/80 bg-background text-left font-medium shadow-sm sm:w-[220px]",
+            "border-border/80 bg-background h-10 w-full justify-start rounded-lg text-left font-medium shadow-sm sm:w-[220px]",
             !value && "text-muted-foreground",
           )}
         >
@@ -36,12 +37,12 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto rounded-lg border-border/80 p-0 shadow-lg">
+      <PopoverContent className="border-border/80 w-auto rounded-lg p-0 shadow-lg">
         <Calendar
           mode="single"
           selected={value}
           onSelect={onChange}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>

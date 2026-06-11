@@ -1,11 +1,10 @@
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
-
 import type {
   ListingCinema,
   ListingCinemaEntry,
   ListingMovieCard,
   ListingShowing,
-} from "./types";
+} from "@waslaeuftin/components/movie-listing/types";
+import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 
 type SourceShowing = {
   id: number;

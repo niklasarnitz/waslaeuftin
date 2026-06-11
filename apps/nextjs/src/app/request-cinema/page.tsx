@@ -1,17 +1,16 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+
+import type { RequestCinemaFormData } from "@waslaeuftin/validators";
 import { InputFormField } from "@waslaeuftin/components/input-form-field";
 import { Button } from "@waslaeuftin/components/ui/button";
 import { Form } from "@waslaeuftin/components/ui/form";
-import {
-  type RequestCinemaFormData,
-  RequestCinemaSchema,
-} from "@waslaeuftin/types/RequestCinemaFormData";
 import { api } from "@waslaeuftin/trpc/react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { RequestCinemaSchema } from "@waslaeuftin/validators";
 
 export default function RequestCinemaPage() {
   const form = useForm<RequestCinemaFormData>({
@@ -28,9 +27,7 @@ export default function RequestCinemaPage() {
       const issue = await createMovieRequest(data);
 
       if (issue) {
-        router.push(
-          `/request-cinema/success?issue-number=${issue.data.number}`,
-        );
+        router.push(`/request-cinema/success?issue-number=${issue.number}`);
       }
     } catch (error) {
       console.error(error);

@@ -3,7 +3,7 @@ export default function Legal() {
     <div className="flex flex-col items-center justify-center space-y-4 p-4">
       <div className="text-3xl font-bold">Rechtliche Informationen</div>
 
-      <div className="max-w-3xl rounded-xl border border-border/70 bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+      <div className="border-border/70 bg-muted/40 text-muted-foreground max-w-3xl rounded-xl border px-4 py-3 text-center text-sm">
         Hinweis zu Filmcovern: Die Rechte an Filmcovern, Postern und sonstigem
         Bildmaterial liegen bei den jeweiligen Filmstudios bzw. Rechteinhabern.
       </div>

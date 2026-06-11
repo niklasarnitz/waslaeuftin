@@ -1,4 +1,5 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
+
 import { getTokenOverlapScore } from "@waslaeuftin/helpers/similarity/getTokenOverlapScore";
 
 describe("getTokenOverlapScore", () => {

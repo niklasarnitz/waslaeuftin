@@ -1,12 +1,13 @@
-import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
-import { api } from "@waslaeuftin/trpc/server";
-import moment from "moment-timezone";
-import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { type Metadata } from "next";
-import { Constants } from "@waslaeuftin/globals/Constants";
+import moment from "moment-timezone";
+
+import { MoviesByCinemaList } from "@waslaeuftin/components/MoviesByCinemaList";
 import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
-import { getPathName } from "@waslaeuftin/helpers/getPathName";
 import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
+import { Constants } from "@waslaeuftin/globals/Constants";
+import { getPathName } from "@waslaeuftin/helpers/getPathName";
+import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
+import { api } from "@waslaeuftin/trpc/server";
 
 type MoviesInCityProps = {
   params: Promise<{ citySlug?: string }>;
@@ -74,15 +75,15 @@ export default async function MoviesInCity({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "itemListElement": city.cinemas.map((cinema, index) => ({
+    itemListElement: city.cinemas.map((cinema, index) => ({
       "@type": "ListItem",
-      "position": index + 1,
-      "item": {
+      position: index + 1,
+      item: {
         "@type": "MovieTheater",
-        "name": cinema.name,
-        "url": `https://waslaeuft.in/cinema/${cinema.slug}`,
-      }
-    }))
+        name: cinema.name,
+        url: `https://waslaeuft.in/cinema/${cinema.slug}`,
+      },
+    })),
   };
 
   return (

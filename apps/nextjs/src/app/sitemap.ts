@@ -1,6 +1,7 @@
-import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
-import { db } from "@waslaeuftin/server/db";
 import { type MetadataRoute } from "next";
+
+import { db } from "@waslaeuftin/db/client";
+import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {

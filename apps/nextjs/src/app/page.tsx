@@ -1,10 +1,10 @@
 import { type Metadata } from "next";
 
-import { Constants } from "@waslaeuftin/globals/Constants";
-import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
-import { getPathName } from "@waslaeuftin/helpers/getPathName";
 import { NearbyCinemasSection } from "@waslaeuftin/components/NearbyCinemasSection";
+import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
 import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
+import { Constants } from "@waslaeuftin/globals/Constants";
+import { getPathName } from "@waslaeuftin/helpers/getPathName";
 
 export const dynamic = "force-dynamic";
 

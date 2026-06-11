@@ -1,14 +1,13 @@
 "use client";
 
-import { Film } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Film } from "lucide-react";
 
+import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types";
+import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
+import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
+import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { type api } from "@waslaeuftin/trpc/server";
-
-import { CinemaFilterBar } from "./movie-listing/CinemaFilterBar";
-import { MovieCard } from "./movie-listing/MovieCard";
-import { groupMoviesByTitle } from "./movie-listing/groupMoviesByTitle";
-import type { ListingCinema } from "./movie-listing/types";
 
 type CityMoviesAndShowings = NonNullable<
   Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>
@@ -82,7 +81,7 @@ export const MoviesByCinemaList = ({
 
   if (groupedMovies.length === 0 && !isCinemaFilterActive) {
     return (
-      <div className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+      <div className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-sm">
         Für den ausgewählten Tag wurden keine Vorstellungen gefunden.
       </div>
     );
@@ -90,23 +89,27 @@ export const MoviesByCinemaList = ({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs">
-        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
+        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {groupedMovies.length} Filme
         </span>
-        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {filteredCinemas.length}{" "}
           {filteredCinemas.length === 1 ? "Kino" : "Kinos"}{" "}
           {isCinemaFilterActive ? "ausgewählt" : "verfügbar"}
         </span>
-        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 sm:px-2.5 sm:py-1">
+        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {totalShowings} Vorstellungen
         </span>
       </div>
 
       <div className="mt-2.5 sm:mt-3">
         <CinemaFilterBar
-          options={normalizedCinemas.map(({ id, slug, name }) => ({ id, slug, name }))}
+          options={normalizedCinemas.map(({ id, slug, name }) => ({
+            id,
+            slug,
+            name,
+          }))}
           selectedSlugs={effectiveSelectedCinemaSlugs}
           onToggle={toggleCinemaFilter}
           onClear={() => setSelectedCinemaSlugs([])}
@@ -116,21 +119,28 @@ export const MoviesByCinemaList = ({
       <div className="mt-4">
         <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
-            <Film className="h-4 w-4 text-primary" />
+            <Film className="text-primary h-4 w-4" />
             Filme in {city.name}
           </h3>
-          <span className="text-xs text-muted-foreground">Sortiert nach Beliebtheit</span>
+          <span className="text-muted-foreground text-xs">
+            Sortiert nach Beliebtheit
+          </span>
         </div>
 
         <div className="space-y-3">
-          {groupedMovies.map((movie) => (
-            <MovieCard key={movie.name} movie={movie} />
+          {groupedMovies.map((movie, index) => (
+            <MovieCard
+              key={movie.name}
+              movie={movie}
+              eagerCover={index === 0}
+            />
           ))}
         </div>
 
         {groupedMovies.length === 0 && (
-          <p className="rounded-xl border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
-            In den ausgewählten Kinos sind aktuell keine Filme mit restlichen Vorstellungen verfügbar.
+          <p className="border-border text-muted-foreground rounded-xl border border-dashed px-3 py-2 text-sm">
+            In den ausgewählten Kinos sind aktuell keine Filme mit restlichen
+            Vorstellungen verfügbar.
           </p>
         )}
       </div>

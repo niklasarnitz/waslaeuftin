@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
-import { formatDistance } from "./formatters";
-import { ShowingTimePill } from "./ShowingTimePill";
-import type { ListingCinemaEntry } from "./types";
+import type { ListingCinemaEntry } from "@waslaeuftin/components/movie-listing/types";
+import { formatDistance } from "@waslaeuftin/components/movie-listing/formatters";
+import { ShowingTimePill } from "@waslaeuftin/components/movie-listing/ShowingTimePill";
 
 type CinemaShowingsCardProps = {
   cinemaEntry: ListingCinemaEntry;
@@ -17,8 +17,8 @@ export const CinemaShowingsCard = ({
   maxShowings = 5,
 }: CinemaShowingsCardProps) => {
   return (
-    <div className="rounded-lg border border-border/70 bg-background/70 p-2.5 sm:rounded-xl sm:p-3">
-      <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
+    <div className="border-border/70 bg-background/70 rounded-lg border p-2.5 sm:rounded-xl sm:p-3">
+      <div className="text-muted-foreground mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs sm:text-sm">
         <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
         <Link
           href={cinemaEntry.cinema.href}

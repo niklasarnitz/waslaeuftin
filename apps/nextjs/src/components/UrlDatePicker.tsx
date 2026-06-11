@@ -1,9 +1,10 @@
 "use client";
 
-import { DatePicker } from "@waslaeuftin/components/ui/date-picker";
+import { useCallback } from "react";
 import moment from "moment-timezone";
 import { useQueryState } from "nuqs";
-import { useCallback } from "react";
+
+import { DatePicker } from "@waslaeuftin/components/ui/date-picker";
 
 export const UrlDatePicker = (
   props: { citySlug: string } | { cinemaSlug: string },
@@ -36,13 +37,14 @@ export const UrlDatePicker = (
     {
       label: "Morgen",
       value: moment().add(1, "day").toDate(),
-      isActive: Boolean(date) && moment(date).isSame(moment().add(1, "day"), "day"),
+      isActive:
+        Boolean(date) && moment(date).isSame(moment().add(1, "day"), "day"),
     },
   ];
 
   return (
     <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-      <div className="inline-flex w-full gap-1 rounded-lg border border-border/80 bg-muted/50 p-1 sm:w-auto">
+      <div className="border-border/80 bg-muted/50 inline-flex w-full gap-1 rounded-lg border p-1 sm:w-auto">
         {quickDateButtons.map((button) => (
           <button
             key={button.label}
@@ -51,7 +53,7 @@ export const UrlDatePicker = (
               void updateDate(button.value);
             }}
             aria-pressed={button.isActive}
-            className={`h-8 flex-1 rounded-md px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:flex-none ${
+            className={`focus-visible:ring-ring h-8 flex-1 rounded-md px-3 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none sm:flex-none ${
               button.isActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-background"

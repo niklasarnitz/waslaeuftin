@@ -1,6 +1,6 @@
 "use client";
 
-import type { CinemaFilterOption } from "./types";
+import type { CinemaFilterOption } from "@waslaeuftin/components/movie-listing/types";
 
 type CinemaFilterBarProps = {
   options: CinemaFilterOption[];
@@ -19,7 +19,7 @@ export const CinemaFilterBar = ({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/60 sm:text-xs">
+      <span className="text-foreground/60 text-[11px] font-semibold tracking-[0.14em] uppercase sm:text-xs">
         Nach Kino filtern
       </span>
       {options.map((cinema) => {
@@ -31,7 +31,7 @@ export const CinemaFilterBar = ({
             type="button"
             onClick={() => onToggle(cinema.slug)}
             aria-pressed={isSelected}
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:px-3 sm:py-1 sm:text-xs ${
+            className={`focus-visible:ring-ring rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none sm:px-3 sm:py-1 sm:text-xs ${
               isSelected
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border/80 bg-background/80 text-foreground hover:border-primary/50"
@@ -45,7 +45,7 @@ export const CinemaFilterBar = ({
         <button
           type="button"
           onClick={onClear}
-          className="rounded-full border border-border/80 px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:px-3 sm:py-1 sm:text-xs"
+          className="border-border/80 text-muted-foreground hover:border-primary/50 hover:text-foreground focus-visible:ring-ring rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none sm:px-3 sm:py-1 sm:text-xs"
         >
           Filter zurücksetzen
         </button>

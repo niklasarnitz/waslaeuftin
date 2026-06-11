@@ -1,17 +1,11 @@
-import * as React from "react";
 import type * as LabelPrimitive from "@radix-ui/react-label";
+import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
+import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import {
-  Controller,
-  type ControllerProps,
-  type FieldPath,
-  type FieldValues,
-  FormProvider,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, FormProvider, useFormContext } from "react-hook-form";
 
-import { cn } from "@waslaeuftin/lib/utils";
 import { Label } from "@waslaeuftin/components/ui/label";
+import { cn } from "@waslaeuftin/lib/utils";
 
 const Form = FormProvider;
 
@@ -85,7 +79,7 @@ const FormItem = React.forwardRef<
 FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const { error, formItemId } = useFormField();
@@ -102,7 +96,7 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = "FormLabel";
 
 const FormControl = React.forwardRef<
-  React.ElementRef<typeof Slot>,
+  React.ComponentRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } =
@@ -135,7 +129,7 @@ const FormDescription = React.forwardRef<
       ref={ref}
       id={formDescriptionId}
       className={cn(
-        "text-slate-500 text-[0.8rem] dark:text-slate-400",
+        "text-[0.8rem] text-slate-500 dark:text-slate-400",
         className,
       )}
       {...props}
@@ -160,7 +154,7 @@ const FormMessage = React.forwardRef<
       ref={ref}
       id={formMessageId}
       className={cn(
-        "text-red-500 text-[0.8rem] font-medium dark:text-red-900",
+        "text-[0.8rem] font-medium text-red-500 dark:text-red-900",
         className,
       )}
       {...props}

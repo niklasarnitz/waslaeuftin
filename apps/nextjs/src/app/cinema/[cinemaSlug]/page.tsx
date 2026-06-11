@@ -1,12 +1,13 @@
+import { type Metadata } from "next";
+import moment from "moment-timezone";
+
 import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
 import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
+import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
 import { Constants } from "@waslaeuftin/globals/Constants";
 import { getPathName } from "@waslaeuftin/helpers/getPathName";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
 import { api } from "@waslaeuftin/trpc/server";
-import moment from "moment-timezone";
-import { type Metadata } from "next";
-import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
 
 type CinemaPageProps = {
   params: Promise<{ cinemaSlug?: string }>;
@@ -90,8 +91,8 @@ export default async function CinemaPage({
         workPresented: {
           "@type": "Movie",
           name: movie.name,
-        }
-      }))
+        },
+      })),
     ),
   };
 

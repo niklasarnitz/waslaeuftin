@@ -1,9 +1,12 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { type NextRequest } from "next/server";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
+import {
+  appRouter,
+  createTRPCContext,
+  getClientIp,
+} from "@waslaeuftin/api/server";
 import { env } from "@waslaeuftin/env";
-import { appRouter } from "@waslaeuftin/server/api/root";
-import { createTRPCContext, getClientIp } from "@waslaeuftin/server/api/trpc";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -26,7 +29,7 @@ const handler = (req: NextRequest) =>
       env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
             );
           }
         : undefined,

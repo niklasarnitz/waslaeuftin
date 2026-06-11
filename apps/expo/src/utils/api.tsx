@@ -3,10 +3,8 @@ import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import superjson from "superjson";
 
-import type { AppRouter } from "@acme/api";
-
-import { authClient } from "./auth";
-import { getBaseUrl } from "./base-url";
+import type { AppRouter } from "@waslaeuftin/api";
+import { getBaseUrl } from "@waslaeuftin/expo/utils/base-url";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +22,7 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
     links: [
       loggerLink({
         enabled: (opts) =>
-          process.env.NODE_ENV === "development" ||
+          __DEV__ ||
           (opts.direction === "down" && opts.result instanceof Error),
         colorMode: "ansi",
       }),
@@ -35,10 +33,6 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
           const headers = new Map<string, string>();
           headers.set("x-trpc-source", "expo-react");
 
-          const cookies = authClient.getCookie();
-          if (cookies) {
-            headers.set("Cookie", cookies);
-          }
           return headers;
         },
       }),
@@ -47,4 +41,4 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
   queryClient,
 });
 
-export type { RouterInputs, RouterOutputs } from "@acme/api";
+export type { RouterInputs, RouterOutputs } from "@waslaeuftin/api";

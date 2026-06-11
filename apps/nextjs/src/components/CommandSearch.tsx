@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Building2, Loader2, MapPin, Search } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@waslaeuftin/components/ui/dialog";
 import { Input } from "@waslaeuftin/components/ui/input";
-import { api } from "@waslaeuftin/trpc/react";
-import { Building2, Loader2, MapPin, Search } from "lucide-react";
 import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
+import { api } from "@waslaeuftin/trpc/react";
 
 type SearchItem = {
   id: string;
@@ -117,7 +118,7 @@ export function CommandSearch() {
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="border-input bg-background/60 text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+        className="border-input bg-background/60 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-full max-w-64 items-center gap-2 rounded-lg border px-3 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
       >
         <Search aria-hidden="true" className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Suchen…</span>
@@ -156,7 +157,9 @@ export function CommandSearch() {
               aria-expanded="true"
               aria-controls="search-results"
               aria-activedescendant={
-                items.length > 0 && activeIndex >= 0 ? `cmd-item-${activeIndex}` : undefined
+                items.length > 0 && activeIndex >= 0
+                  ? `cmd-item-${activeIndex}`
+                  : undefined
               }
               className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
               autoFocus
@@ -206,7 +209,7 @@ export function CommandSearch() {
                       onMouseEnter={() => setActiveIndex(flatIndex)}
                       onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
-                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                      className="data-[active=true]:bg-accent focus-visible:ring-ring flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
                     >
                       <MapPin
                         aria-hidden="true"
@@ -238,7 +241,7 @@ export function CommandSearch() {
                       onMouseEnter={() => setActiveIndex(flatIndex)}
                       onFocus={() => setActiveIndex(flatIndex)}
                       data-active={flatIndex === activeIndex}
-                      className="data-[active=true]:bg-accent flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                      className="data-[active=true]:bg-accent focus-visible:ring-ring flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
                     >
                       <Building2
                         aria-hidden="true"

@@ -6,6 +6,14 @@ import turboPlugin from "eslint-plugin-turbo";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
+const turboRecommendedConfig = turboPlugin.configs?.recommended;
+const turboRecommendedRules =
+  turboRecommendedConfig &&
+  !Array.isArray(turboRecommendedConfig) &&
+  "rules" in turboRecommendedConfig
+    ? turboRecommendedConfig.rules
+    : {};
+
 /**
  * All packages that leverage t3-env should use this rule
  */
@@ -53,7 +61,7 @@ export const baseConfig = defineConfig(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
-      ...turboPlugin.configs.recommended.rules,
+      ...turboRecommendedRules,
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -73,7 +81,29 @@ export const baseConfig = defineConfig(
         },
       ],
       "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/no-deprecated": "error",
       "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^\\.{1,2}/",
+              message:
+                "Use an @waslaeuftin/* alias instead of a relative import.",
+            },
+          ],
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "ImportExpression[source.type='Literal'][source.value=/^\\.{1,2}\\//]",
+          message:
+            "Use an @waslaeuftin/* alias instead of a relative dynamic import.",
+        },
+      ],
     },
   },
   {

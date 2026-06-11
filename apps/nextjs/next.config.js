@@ -1,4 +1,4 @@
-await import("./src/env.js");
+await import("@waslaeuftin/web/env");
 
 const minioBaseUrl = process.env.MINIO_PUBLIC_BASE_URL;
 const minioRemotePattern = minioBaseUrl
@@ -16,6 +16,11 @@ const minioRemotePattern = minioBaseUrl
 
 /** @type {import("next").NextConfig} */
 const config = {
+  transpilePackages: [
+    "@waslaeuftin/api",
+    "@waslaeuftin/db",
+    "@waslaeuftin/validators",
+  ],
   images: {
     remotePatterns: minioRemotePattern ? [minioRemotePattern] : [],
   },
