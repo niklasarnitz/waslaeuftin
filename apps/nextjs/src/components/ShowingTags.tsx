@@ -1,0 +1,79 @@
+import { useMemo } from "react";
+
+const KNOWN_TAGS = new Set(["imax", "omu", "omu spezial", "d-box", "atmos"]);
+
+const isKnownTag = (value: string) => KNOWN_TAGS.has(value.toLowerCase());
+
+export const ShowingTags = ({
+  showingId,
+  titleTags,
+  additionalData,
+}: {
+  showingId: number;
+  titleTags: string[];
+  additionalData?: string[] | null;
+}) => {
+  const { tags, otherParts } = useMemo(() => {
+    const parts = additionalData ?? [];
+
+    const matchedTags: string[] = [];
+    const otherParts: string[] = [];
+
+    for (const part of parts) {
+      if (isKnownTag(part)) {
+        matchedTags.push(part);
+      } else {
+        otherParts.push(part);
+      }
+    }
+
+    const seen = new Set<string>();
+    const merged: string[] = [];
+
+    for (const tag of titleTags) {
+      const key = tag.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(tag);
+      }
+    }
+
+    for (const tag of matchedTags) {
+      const key = tag.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(tag);
+      }
+    }
+
+    return {
+      tags: merged.sort((a, b) => a.localeCompare(b)),
+      otherParts,
+    };
+  }, [titleTags, additionalData]);
+
+  if (tags.length === 0 && otherParts.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {tags.map((tag) => (
+        <span
+          key={`tag-${showingId}-${tag}`}
+          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold whitespace-nowrap uppercase"
+        >
+          {tag}
+        </span>
+      ))}
+      {otherParts.map((part, index) => (
+        <span
+          key={`other-${showingId}-${part}-${index}`}
+          className="border-border/80 text-muted-foreground dark:bg-muted/50 rounded-full border bg-white px-1.5 py-0.5 text-[10px] leading-none font-medium whitespace-nowrap"
+        >
+          {part}
+        </span>
+      ))}
+    </>
+  );
+};

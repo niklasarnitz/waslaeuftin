@@ -1,0 +1,11 @@
+{
+  "extends": "@waslaeuftin/tsconfig/compiled-package.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "paths": {
+      "@waslaeuftin/cinema-providers/internal/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
