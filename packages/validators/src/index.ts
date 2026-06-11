@@ -10,14 +10,14 @@ export const RequestCinemaSchema = z.object({
 
 export const CinemaBySlugInputSchema = z.object({
   cinemaSlug: z.string(),
-  date: z.date().optional(),
+  date: z.coerce.date().optional(),
 });
 
 export const NearbyCinemasInputSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   maxDistanceKm: z.number().positive().max(250).default(20),
-  date: z.date().optional(),
+  date: z.coerce.date().optional(),
 });
 
 export const CitySlugSchema = z.string();
@@ -27,7 +27,7 @@ export const CityIdSchema = z.number();
 
 export const CityMoviesAndShowingsInputSchema = z.object({
   slug: z.string(),
-  date: z.date().optional(),
+  date: z.coerce.date().optional(),
 });
 
 export const RawLocationInputSchema = z

@@ -5,6 +5,11 @@ import Constants from "expo-constants";
  * setting the baseUrl to your production API URL.
  */
 export const getBaseUrl = () => {
+  if (!__DEV__) {
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL as unknown;
+    return typeof apiUrl === "string" ? apiUrl : "https://waslaeuft.in";
+  }
+
   /**
    * Gets the IP address of your host-machine. If it cannot automatically find it,
    * you'll have to manually set it. NOTE: Port 3000 should work for most but confirm

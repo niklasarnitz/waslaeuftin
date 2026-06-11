@@ -12,9 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useSearch } from "@waslaeuftin/expo/hooks/use-search";
 import { trpc } from "@waslaeuftin/expo/utils/api";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function SearchIndex() {
   const router = useRouter();
+  const primaryColor = usePrimaryColor();
   const searchInput = useSearch({ placeholder: "Stadt oder Kino suchen" });
 
   // Debounce search input to avoid hitting database on every keystroke
@@ -96,7 +98,7 @@ export default function SearchIndex() {
     <View className="bg-background flex-1">
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#c03484" size="large" />
+          <ActivityIndicator color={primaryColor} size="large" />
         </View>
       ) : debouncedQuery.trim().length === 0 ? (
         // List all cities
@@ -156,7 +158,7 @@ export default function SearchIndex() {
                   <View className="flex-row items-center gap-3">
                     <SymbolView
                       name="mappin.circle.fill"
-                      tintColor="#c03484"
+                      tintColor={primaryColor}
                       size={18}
                     />
                     <Text className="text-foreground text-base font-semibold">
@@ -180,7 +182,7 @@ export default function SearchIndex() {
                   <View className="flex-row items-center gap-3">
                     <SymbolView
                       name="film.fill"
-                      tintColor="#c03484"
+                      tintColor={primaryColor}
                       size={18}
                     />
                     <View>

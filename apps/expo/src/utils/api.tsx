@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
@@ -9,9 +11,17 @@ import { getBaseUrl } from "@waslaeuftin/expo/utils/base-url";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // ...
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      staleTime: 1000 * 60 * 1, // 1 minute (serve from cache, refetch if older than 1 minute)
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     },
   },
+});
+
+export const persister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: "WASLAEUFTIN_QUERY_CACHE",
 });
 
 /**

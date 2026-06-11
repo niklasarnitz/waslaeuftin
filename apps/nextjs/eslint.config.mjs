@@ -11,10 +11,12 @@ const config = [
       "no-restricted-imports": [
         "error",
         {
-          name: "moment",
-          message: "moment-timezone is used to ensure timezone support.",
-        },
-        {
+          paths: [
+            {
+              name: "moment",
+              message: "moment-timezone is used to ensure timezone support.",
+            },
+          ],
           patterns: [
             {
               regex: "^\\.{1,2}/",

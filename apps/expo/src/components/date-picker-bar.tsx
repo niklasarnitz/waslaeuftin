@@ -2,32 +2,37 @@ import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
+import {
+  createScheduleDate,
+  isSameScheduleDay,
+  SCHEDULE_TIME_ZONE,
+} from "@waslaeuftin/expo/utils/date";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+
 interface DatePickerBarProps {
   selectedDate: Date;
   onChange: (date: Date) => void;
 }
 
-const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const dayNumberFormatter = new Intl.DateTimeFormat("de-DE", {
+  day: "numeric",
+  timeZone: SCHEDULE_TIME_ZONE,
+});
+const weekdayFormatter = new Intl.DateTimeFormat("de-DE", {
+  weekday: "short",
+  timeZone: SCHEDULE_TIME_ZONE,
+});
 
 export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
+  const primaryColor = usePrimaryColor();
   // Generate next 10 days
   const days = React.useMemo(() => {
     const list: Date[] = [];
     for (let i = 0; i < 10; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      list.push(d);
+      list.push(createScheduleDate(i));
     }
     return list;
   }, []);
-
-  const isSameDay = (d1: Date, d2: Date) => {
-    return (
-      d1.getDate() === d2.getDate() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getFullYear() === d2.getFullYear()
-    );
-  };
 
   const handlePress = (date: Date) => {
     Haptics.selectionAsync().catch(() => {
@@ -44,9 +49,9 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
         contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
       >
         {days.map((date, index) => {
-          const active = isSameDay(date, selectedDate);
+          const active = isSameScheduleDay(date, selectedDate);
 
-          let dayName = WEEKDAYS[date.getDay()];
+          let dayName = weekdayFormatter.format(date);
           if (index === 0) dayName = "Heute";
           if (index === 1) dayName = "Morgen";
 
@@ -54,10 +59,11 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
             <Pressable
               key={index}
               onPress={() => handlePress(date)}
-              className={`min-w-[70px] items-center justify-center rounded-xl px-4 py-2.5 ${
-                active ? "bg-[#c03484]" : "bg-muted"
-              }`}
-              style={{ borderCurve: "continuous" }}
+              className="min-w-[70px] items-center justify-center rounded-xl px-4 py-2.5"
+              style={{
+                borderCurve: "continuous",
+                backgroundColor: active ? primaryColor : undefined,
+              }}
             >
               <Text
                 className={`text-xs font-medium ${
@@ -71,7 +77,7 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
                   active ? "text-white" : "text-foreground"
                 }`}
               >
-                {date.getDate()}
+                {dayNumberFormatter.format(date)}
               </Text>
             </Pressable>
           );

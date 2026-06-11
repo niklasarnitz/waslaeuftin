@@ -25,6 +25,7 @@
     "test:web": "bun --filter @waslaeuftin/web test",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add",
+    "build:android:apk": "bun --filter @waslaeuftin/expo build:android:apk",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
