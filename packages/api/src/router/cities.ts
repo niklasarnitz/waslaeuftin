@@ -13,6 +13,10 @@ import {
   CitySlugSchema,
 } from "@waslaeuftin/validators";
 
+const SCHEDULE_TIMEZONE = "Europe/Berlin";
+
+const getScheduleDate = (date: Date) => moment(date).tz(SCHEDULE_TIMEZONE);
+
 export const citiesRouter = createTRPCRouter({
   getCityBySlug: publicProcedure
     .input(CitySlugSchema)
@@ -94,9 +98,10 @@ export const citiesRouter = createTRPCRouter({
 
       date ??= new Date();
 
-      // Use moment to ensure correct day boundaries in UTC
-      const start = moment(date).startOf("day").toDate();
-      const end = moment(date).endOf("day").toDate();
+      // Use Berlin calendar days so mobile Date objects match the web URL dates.
+      const scheduleDate = getScheduleDate(date);
+      const start = scheduleDate.clone().startOf("day").toDate();
+      const end = scheduleDate.clone().endOf("day").toDate();
 
       const showingsFilter = {
         dateTime: {

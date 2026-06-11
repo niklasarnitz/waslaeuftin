@@ -74,7 +74,10 @@ export function groupCinemasByMovie(
   // Sort cinemas in each movie: closer distance first
   for (const movie of result) {
     movie.cinemas.sort((a, b) => {
-      if (a.cinema.distanceKm !== undefined && b.cinema.distanceKm !== undefined) {
+      if (
+        a.cinema.distanceKm !== undefined &&
+        b.cinema.distanceKm !== undefined
+      ) {
         return a.cinema.distanceKm - b.cinema.distanceKm;
       }
       return a.cinema.name.localeCompare(b.cinema.name);

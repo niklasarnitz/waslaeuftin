@@ -45,7 +45,11 @@ export function ShowingTimePill({ showing }: ShowingTimePillProps) {
     <Pressable
       onPress={() => openBooking(showing.bookingUrl)}
       className="flex-row items-center gap-1.5 rounded-xl border py-2.5"
-      style={{ backgroundColor: primaryBg, borderColor: primaryBorder, paddingHorizontal: 12 }}
+      style={{
+        backgroundColor: primaryBg,
+        borderColor: primaryBorder,
+        paddingHorizontal: 12,
+      }}
     >
       {/* Time — text-sm */}
       <Text className="text-sm font-bold" style={{ color: primaryColor }}>

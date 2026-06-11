@@ -7,16 +7,20 @@ import {
   View,
 } from "react-native";
 import * as Location from "expo-location";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
+import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { queryClient, trpc } from "@waslaeuftin/expo/utils/api";
-import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+import {
+  createScheduleDate,
+  normalizeToStartOfDay,
+} from "@waslaeuftin/expo/utils/date";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 const POPULAR_CITIES = [
   { name: "Berlin", slug: "berlin" },
@@ -33,6 +37,7 @@ export default function HomeIndex() {
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
   );
+  const [searchVisible, setSearchVisible] = useState(false);
 
   // Cached coords are available immediately from the persisted store
   const cachedCoords = useLocationStore((s) => s.cachedCoords);
@@ -64,7 +69,7 @@ export default function HomeIndex() {
         longitude: loc.coords.longitude,
       };
       setStoredCoords(fresh); // persist for next launch
-      setCoords(fresh);       // update query immediately
+      setCoords(fresh); // update query immediately
     } catch (err) {
       console.error("Error getting location", err);
       if (!coords) setLocationError(true);
@@ -74,7 +79,11 @@ export default function HomeIndex() {
   };
 
   useEffect(() => {
-    void requestLocation();
+    const timer = setTimeout(() => {
+      void requestLocation();
+    }, 0);
+
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -98,10 +107,8 @@ export default function HomeIndex() {
   useEffect(() => {
     if (!coords) return;
     const timer = setTimeout(() => {
-      const tomorrow = normalizeToStartOfDay(new Date());
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dayAfterTomorrow = normalizeToStartOfDay(new Date());
-      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+      const tomorrow = createScheduleDate(1);
+      const dayAfterTomorrow = createScheduleDate(2);
 
       const prefetchOptions = (date: Date) =>
         trpc.cinemas.getNearbyMovies.queryOptions({
@@ -124,93 +131,94 @@ export default function HomeIndex() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="bg-background flex-1"
-    >
-      {/* Date Picker Bar */}
-      <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
+    <>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        className="bg-background flex-1"
+      >
+        {/* Date Picker Bar */}
+        <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
 
-      <View className="gap-6 p-4">
-        {/* Nearby Cinemas Section */}
-        <View>
-          <View className="mb-3 flex-row items-center gap-2">
-            <SymbolView
-              name="location.fill"
-              tintColor={primaryColor}
-              size={18}
-            />
-            <Text className="text-foreground text-xl font-bold tracking-tight">
-              Filme in deiner Nähe
-            </Text>
+        <View className="gap-6 p-4">
+          {/* Nearby Cinemas Section */}
+          <View>
+            <View className="mb-3 flex-row items-center gap-2">
+              <SymbolView
+                name="location.fill"
+                tintColor={primaryColor}
+                size={18}
+              />
+              <Text className="text-foreground text-xl font-bold tracking-tight">
+                Filme in deiner Nähe
+              </Text>
+            </View>
+
+            {locationLoading ? (
+              <View className="items-center justify-center py-8">
+                <ActivityIndicator color={primaryColor} size="small" />
+                <Text className="text-muted-foreground mt-2 text-xs font-medium">
+                  Bestimme Standort...
+                </Text>
+              </View>
+            ) : locationError || !coords ? (
+              <View className="bg-muted border-border/40 rounded-xl border p-4">
+                <Text className="text-foreground mb-1 text-sm font-semibold">
+                  Standortfreigabe inaktiv
+                </Text>
+                <Text className="text-muted-foreground mb-3 text-xs leading-relaxed">
+                  Aktiviere den Standortzugriff, um Kinos in deiner direkten
+                  Umgebung zu finden.
+                </Text>
+                <Pressable
+                  onPress={requestLocation}
+                  className="self-start rounded-lg px-4 py-2"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Text className="text-xs font-bold text-white">
+                    Standort freigeben
+                  </Text>
+                </Pressable>
+              </View>
+            ) : nearbyMoviesQuery.isLoading ? (
+              <View className="items-center justify-center py-8">
+                <ActivityIndicator color={primaryColor} size="small" />
+                <Text className="text-muted-foreground mt-2 text-xs font-medium">
+                  Suche Kinos in der Umgebung...
+                </Text>
+              </View>
+            ) : groupedMovies.length > 0 ? (
+              groupedMovies.map((movie) => (
+                <MovieCard key={movie.name} movie={movie} />
+              ))
+            ) : (
+              <View className="bg-muted border-border/40 items-center justify-center rounded-xl border p-4">
+                <Text className="text-muted-foreground text-xs italic">
+                  Keine Filme oder Kinos im Umkreis von 25 km gefunden.
+                </Text>
+              </View>
+            )}
           </View>
 
-          {locationLoading ? (
-            <View className="items-center justify-center py-8">
-              <ActivityIndicator color={primaryColor} size="small" />
-              <Text className="text-muted-foreground mt-2 text-xs font-medium">
-                Bestimme Standort...
-              </Text>
-            </View>
-          ) : locationError || !coords ? (
-            <View className="bg-muted border-border/40 rounded-xl border p-4">
-              <Text className="text-foreground mb-1 text-sm font-semibold">
-                Standortfreigabe inaktiv
-              </Text>
-              <Text className="text-muted-foreground mb-3 text-xs leading-relaxed">
-                Aktiviere den Standortzugriff, um Kinos in deiner direkten
-                Umgebung zu finden.
-              </Text>
+          {/* Browse Cities Section */}
+          <View className="border-border/20 border-t pt-5">
+            <Text className="text-foreground mb-3 text-lg font-bold tracking-tight">
+              Beliebte Städte durchsuchen
+            </Text>
+            <View className="flex-row flex-wrap gap-2.5">
+              {POPULAR_CITIES.map((city) => (
+                <Pressable
+                  key={city.slug}
+                  onPress={() => handleCityPress(city.slug)}
+                  className="bg-muted border-border/30 active:bg-muted/80 rounded-xl border px-4 py-2.5"
+                  style={{ borderCurve: "continuous" }}
+                >
+                  <Text className="text-foreground text-sm font-semibold">
+                    {city.name}
+                  </Text>
+                </Pressable>
+              ))}
               <Pressable
-                onPress={requestLocation}
-                className="self-start rounded-lg px-4 py-2"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Text className="text-xs font-bold text-white">
-                  Standort freigeben
-                </Text>
-              </Pressable>
-            </View>
-          ) : nearbyMoviesQuery.isLoading ? (
-            <View className="items-center justify-center py-8">
-              <ActivityIndicator color={primaryColor} size="small" />
-              <Text className="text-muted-foreground mt-2 text-xs font-medium">
-                Suche Kinos in der Umgebung...
-              </Text>
-            </View>
-          ) : groupedMovies.length > 0 ? (
-            groupedMovies.map((movie) => (
-              <MovieCard key={movie.name} movie={movie} />
-            ))
-          ) : (
-            <View className="bg-muted border-border/40 items-center justify-center rounded-xl border p-4">
-              <Text className="text-muted-foreground text-xs italic">
-                Keine Filme oder Kinos im Umkreis von 25 km gefunden.
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Browse Cities Section */}
-        <View className="border-border/20 border-t pt-5">
-          <Text className="text-foreground mb-3 text-lg font-bold tracking-tight">
-            Beliebte Städte durchsuchen
-          </Text>
-          <View className="flex-row flex-wrap gap-2.5">
-            {POPULAR_CITIES.map((city) => (
-              <Pressable
-                key={city.slug}
-                onPress={() => handleCityPress(city.slug)}
-                className="bg-muted border-border/30 active:bg-muted/80 rounded-xl border px-4 py-2.5"
-                style={{ borderCurve: "continuous" }}
-              >
-                <Text className="text-foreground text-sm font-semibold">
-                  {city.name}
-                </Text>
-              </Pressable>
-            ))}
-            <Link href="/(search)" asChild>
-              <Pressable
+                onPress={() => setSearchVisible(true)}
                 className="bg-muted/40 border-border/80 active:bg-muted/60 rounded-xl border border-dashed px-4 py-2.5"
                 style={{ borderCurve: "continuous" }}
               >
@@ -221,10 +229,14 @@ export default function HomeIndex() {
                   Alle Städte...
                 </Text>
               </Pressable>
-            </Link>
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+      <SearchModal
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+      />
+    </>
   );
 }

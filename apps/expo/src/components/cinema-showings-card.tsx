@@ -40,7 +40,10 @@ export function CinemaShowingsCard({
             )}
           </View>
           {cinema.distanceKm !== undefined && (
-            <Text className="text-xs font-semibold" style={{ color: primaryColor }}>
+            <Text
+              className="text-xs font-semibold"
+              style={{ color: primaryColor }}
+            >
               {cinema.distanceKm.toFixed(1)} km
             </Text>
           )}
@@ -49,10 +52,7 @@ export function CinemaShowingsCard({
 
       <View className="flex-row flex-wrap gap-1.5">
         {showings.map((showing, index) => (
-          <ShowingTimePill
-            key={`${showing.id}-${index}`}
-            showing={showing}
-          />
+          <ShowingTimePill key={`${showing.id}-${index}`} showing={showing} />
         ))}
       </View>
     </View>

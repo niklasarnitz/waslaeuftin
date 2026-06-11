@@ -15,6 +15,13 @@ import {
 
 type NearbyCinemasInput = z.infer<typeof NearbyCinemasInputSchema>;
 type DbClient = typeof prismaDb;
+const SCHEDULE_TIMEZONE = "Europe/Berlin";
+
+const getScheduleDate = (date: Date | undefined) => {
+  return date
+    ? moment(date).tz(SCHEDULE_TIMEZONE)
+    : moment.tz(SCHEDULE_TIMEZONE);
+};
 
 const getNearbyCinemasForInput = async (
   input: NearbyCinemasInput,
@@ -22,12 +29,9 @@ const getNearbyCinemasForInput = async (
   options?: { includeTomorrow?: boolean },
 ) => {
   const includeTomorrow = options?.includeTomorrow ?? true;
-  const nowInGermany = moment.tz("Europe/Berlin");
-  const todayStart = (input.date ? moment(input.date) : nowInGermany)
-    .clone()
-    .startOf("day")
-    .toDate();
-  const endDate = (input.date ? moment(input.date) : nowInGermany)
+  const scheduleDate = getScheduleDate(input.date);
+  const todayStart = scheduleDate.clone().startOf("day").toDate();
+  const endDate = scheduleDate
     .clone()
     .add(includeTomorrow ? 1 : 0, "day")
     .endOf("day")
@@ -251,11 +255,12 @@ export const cinemaRouter = createTRPCRouter({
   getCinemaBySlug: publicProcedure
     .input(CinemaBySlugInputSchema)
     .query(async ({ input, ctx }) => {
-      const showingDateFilter = input.date
+      const scheduleDate = input.date ? getScheduleDate(input.date) : undefined;
+      const showingDateFilter = scheduleDate
         ? {
             dateTime: {
-              lt: moment(input.date).format("YYYY-MM-DD") + "T23:59:59.999Z",
-              gt: input.date.toISOString(),
+              gte: scheduleDate.clone().startOf("day").toDate(),
+              lte: scheduleDate.clone().endOf("day").toDate(),
             },
           }
         : undefined;

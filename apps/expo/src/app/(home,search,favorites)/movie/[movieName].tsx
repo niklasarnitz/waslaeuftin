@@ -78,14 +78,26 @@ export default function MovieDetailScreen() {
               {movie.name}
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
-              <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: primaryBg }}>
-                <Text className="text-[10px] font-semibold" style={{ color: primaryColor }}>
+              <View
+                className="rounded-full px-2 py-0.5"
+                style={{ backgroundColor: primaryBg }}
+              >
+                <Text
+                  className="text-[10px] font-semibold"
+                  style={{ color: primaryColor }}
+                >
                   {movie.showingsCount}{" "}
                   {movie.showingsCount === 1 ? "Vorstellung" : "Vorstellungen"}
                 </Text>
               </View>
-              <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: primaryBg }}>
-                <Text className="text-[10px] font-semibold" style={{ color: primaryColor }}>
+              <View
+                className="rounded-full px-2 py-0.5"
+                style={{ backgroundColor: primaryBg }}
+              >
+                <Text
+                  className="text-[10px] font-semibold"
+                  style={{ color: primaryColor }}
+                >
                   {movie.cinemas.length}{" "}
                   {movie.cinemas.length === 1 ? "Kino" : "Kinos"}
                 </Text>

@@ -27,14 +27,14 @@ export default function CityScreen() {
     }),
   );
 
-  // Set the screen title to the city name dynamically
+  // Set the screen title: immediately from the slug, then from real data
   useEffect(() => {
-    if (cityQuery.data?.name) {
-      navigation.setOptions({
-        title: `${cityQuery.data.name}`,
-      });
-    }
-  }, [cityQuery.data, navigation]);
+    const initial = citySlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    navigation.setOptions({ title: cityQuery.data?.name ?? initial });
+  }, [cityQuery.data?.name, citySlug, navigation]);
 
   const groupedMovies = React.useMemo(() => {
     return cityQuery.data?.cinemas

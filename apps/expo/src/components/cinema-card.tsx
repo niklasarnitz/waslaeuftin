@@ -1,13 +1,7 @@
-import type { GestureResponderEvent } from "react-native";
 import { Pressable, Text, View } from "react-native";
-import { SymbolView } from "expo-symbols";
 
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { ShowingTimePill } from "@waslaeuftin/expo/components/showing-time-pill";
-import {
-  favoritesStore,
-  useIsFavorite,
-} from "@waslaeuftin/expo/utils/favorites";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface Showing {
@@ -43,17 +37,7 @@ export function CinemaCard({
   onCinemaPress,
   hideHeader = false,
 }: CinemaCardProps) {
-  const isFav = useIsFavorite(cinema.id);
   const primaryColor = usePrimaryColor();
-
-  const handleToggleFavorite = (e: GestureResponderEvent) => {
-    e.stopPropagation();
-    favoritesStore.toggle({
-      id: cinema.id,
-      name: cinema.name,
-      slug: cinema.slug,
-    });
-  };
 
   return (
     <View
@@ -65,41 +49,31 @@ export function CinemaCard({
     >
       {/* Header */}
       {!hideHeader && (
-        <View className="mb-3 flex-row items-start justify-between">
-          <Pressable onPress={onCinemaPress} className="mr-4 flex-1">
-            <Text className="text-foreground text-xl font-bold tracking-tight">
-              {cinema.name}
-            </Text>
-            <View className="mt-0.5 flex-row items-center gap-1.5">
-              {cinema.city && (
-                <Text className="text-muted-foreground text-sm font-medium">
-                  {cinema.city.name}
+        <Pressable onPress={onCinemaPress} className="mb-3">
+          <Text className="text-foreground text-xl font-bold tracking-tight">
+            {cinema.name}
+          </Text>
+          <View className="mt-0.5 flex-row items-center gap-1.5">
+            {cinema.city && (
+              <Text className="text-muted-foreground text-sm font-medium">
+                {cinema.city.name}
+              </Text>
+            )}
+            {cinema.distanceKm !== undefined && (
+              <>
+                {cinema.city && (
+                  <Text className="text-muted-foreground/60 text-xs">•</Text>
+                )}
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: primaryColor }}
+                >
+                  {cinema.distanceKm.toFixed(1)} km entfernt
                 </Text>
-              )}
-              {cinema.distanceKm !== undefined && (
-                <>
-                  {cinema.city && (
-                    <Text className="text-muted-foreground/60 text-xs">•</Text>
-                  )}
-                  <Text className="text-sm font-semibold" style={{ color: primaryColor }}>
-                    {cinema.distanceKm.toFixed(1)} km entfernt
-                  </Text>
-                </>
-              )}
-            </View>
-          </Pressable>
-
-          <Pressable
-            onPress={handleToggleFavorite}
-            className="bg-muted/60 rounded-full p-1.5"
-          >
-            <SymbolView
-              name={isFav ? "star.fill" : "star"}
-              tintColor={isFav ? "#EAB308" : "#8E8E93"}
-              size={20}
-            />
-          </Pressable>
-        </View>
+              </>
+            )}
+          </View>
+        </Pressable>
       )}
 
       {/* Movies & Screenings */}
@@ -123,10 +97,7 @@ export function CinemaCard({
                   {/* Showtimes List */}
                   <View className="mt-2 flex-row flex-wrap gap-2">
                     {movie.showings.map((showing) => (
-                      <ShowingTimePill
-                        key={showing.id}
-                        showing={showing}
-                      />
+                      <ShowingTimePill key={showing.id} showing={showing} />
                     ))}
                   </View>
                 </View>

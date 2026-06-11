@@ -1,4 +1,5 @@
 import Stack from "expo-router/stack";
+
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function SearchLayout() {
