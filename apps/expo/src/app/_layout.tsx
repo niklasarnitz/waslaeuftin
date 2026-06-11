@@ -1,14 +1,14 @@
 import { useColorScheme } from "react-native";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
-import { queryClient } from "@waslaeuftin/expo/utils/api";
+import { persister, queryClient } from "@waslaeuftin/expo/utils/api";
 
 import "@waslaeuftin/expo/styles.css";
 
@@ -16,24 +16,14 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }}
+    >
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <NativeTabs minimizeBehavior="onScrollDown" tintColor="#c03484">
-          <NativeTabs.Trigger name="(home)">
-            <Icon sf="house.fill" />
-            <Label>Entdecken</Label>
-          </NativeTabs.Trigger>
-          <NativeTabs.Trigger name="(search)" role="search">
-            <Icon sf="magnifyingglass" />
-            <Label>Suche</Label>
-          </NativeTabs.Trigger>
-          <NativeTabs.Trigger name="(favorites)" role="favorites">
-            <Icon sf="star.fill" />
-            <Label>Favoriten</Label>
-          </NativeTabs.Trigger>
-        </NativeTabs>
+        <Slot />
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

@@ -1,30 +1,24 @@
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
-import { CinemaCard } from "@waslaeuftin/expo/components/cinema-card";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
+import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { trpc } from "@waslaeuftin/expo/utils/api";
-import {
-  favoritesStore,
-  useIsFavorite,
-} from "@waslaeuftin/expo/utils/favorites";
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
+import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function CinemaScreen() {
   const navigation = useNavigation();
+  const primaryColor = usePrimaryColor();
   const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    normalizeToStartOfDay(new Date()),
+  );
 
-  // Fetch cinema schedule and info
   const cinemaQuery = useQuery(
     trpc.cinemas.getCinemaBySlug.queryOptions({
       cinemaSlug,
@@ -33,50 +27,47 @@ export default function CinemaScreen() {
   );
 
   const cinema = cinemaQuery.data;
-  const isFav = useIsFavorite(cinema?.id ?? -1);
 
-  // Set title and favorite button dynamically
+  // Set title: immediately from the slug, then from real data
   useEffect(() => {
-    if (cinema) {
-      navigation.setOptions({
-        title: cinema.name,
-        headerRight: () => (
-          <Pressable
-            onPress={() =>
-              favoritesStore.toggle({
-                id: cinema.id,
-                name: cinema.name,
-                slug: cinema.slug,
-              })
-            }
-            className="mr-1 p-2 active:opacity-60"
-          >
-            <SymbolView
-              name={isFav ? "star.fill" : "star"}
-              tintColor={isFav ? "#EAB308" : "#8E8E93"}
-              size={22}
-            />
-          </Pressable>
-        ),
-      });
-    }
-  }, [cinema, isFav, navigation]);
+    const initial = cinemaSlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    navigation.setOptions({ title: cinema?.name ?? initial });
+  }, [cinema?.name, cinemaSlug, navigation]);
+
+  const groupedMovies = React.useMemo(() => {
+    return cinema ? groupCinemasByMovie([cinema]) : [];
+  }, [cinema]);
 
   const isLoading = cinemaQuery.isLoading;
 
   return (
     <View className="bg-background flex-1">
-      {/* Date Picker Bar */}
       <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#c03484" size="large" />
+          <ActivityIndicator color={primaryColor} size="large" />
         </View>
       ) : cinema ? (
         <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* Reuse CinemaCard with header hidden since it's displayed in the native Stack navbar */}
-          <CinemaCard cinema={cinema} hideHeader={true} />
+          {groupedMovies.length > 0 ? (
+            groupedMovies.map((movie) => (
+              <MovieCard
+                key={movie.name}
+                movie={movie}
+                hideCinemaHeader={true}
+              />
+            ))
+          ) : (
+            <View className="items-center justify-center py-8">
+              <Text className="text-muted-foreground text-sm italic">
+                Keine Vorstellungen für dieses Datum gefunden.
+              </Text>
+            </View>
+          )}
         </ScrollView>
       ) : (
         <View className="flex-1 items-center justify-center p-6">

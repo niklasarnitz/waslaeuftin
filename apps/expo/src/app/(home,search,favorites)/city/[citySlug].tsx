@@ -1,18 +1,23 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
-import { CinemaCard } from "@waslaeuftin/expo/components/cinema-card";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
+import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { trpc } from "@waslaeuftin/expo/utils/api";
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
+import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function CityScreen() {
-  const router = useRouter();
   const navigation = useNavigation();
+  const primaryColor = usePrimaryColor();
   const { citySlug } = useLocalSearchParams<{ citySlug: string }>();
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    normalizeToStartOfDay(new Date()),
+  );
 
   // Fetch movies and showings for the city
   const cityQuery = useQuery(
@@ -22,18 +27,20 @@ export default function CityScreen() {
     }),
   );
 
-  // Set the screen title to the city name dynamically
+  // Set the screen title: immediately from the slug, then from real data
   useEffect(() => {
-    if (cityQuery.data?.name) {
-      navigation.setOptions({
-        title: `${cityQuery.data.name}`,
-      });
-    }
-  }, [cityQuery.data, navigation]);
+    const initial = citySlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    navigation.setOptions({ title: cityQuery.data?.name ?? initial });
+  }, [cityQuery.data?.name, citySlug, navigation]);
 
-  const handleCinemaPress = (cinemaSlug: string) => {
-    router.push(`/cinema/${cinemaSlug}`);
-  };
+  const groupedMovies = React.useMemo(() => {
+    return cityQuery.data?.cinemas
+      ? groupCinemasByMovie(cityQuery.data.cinemas)
+      : [];
+  }, [cityQuery.data]);
 
   const isLoading = cityQuery.isLoading;
 
@@ -44,30 +51,24 @@ export default function CityScreen() {
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#c03484" size="large" />
+          <ActivityIndicator color={primaryColor} size="large" />
         </View>
-      ) : cityQuery.data?.cinemas && cityQuery.data.cinemas.length > 0 ? (
+      ) : groupedMovies.length > 0 ? (
         <FlatList
           contentInsetAdjustmentBehavior="automatic"
-          data={cityQuery.data.cinemas}
-          keyExtractor={(item) => item.id.toString()}
+          data={groupedMovies}
+          keyExtractor={(item) => item.name}
           contentContainerStyle={{ padding: 16 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
-          renderItem={({ item }) => (
-            <CinemaCard
-              cinema={item}
-              onCinemaPress={() => handleCinemaPress(item.slug)}
-            />
-          )}
+          renderItem={({ item }) => <MovieCard movie={item} />}
         />
       ) : (
         <View className="flex-1 items-center justify-center p-6">
           <Text className="text-foreground text-base font-semibold">
-            Keine Kinos gefunden
+            Keine Filme gefunden
           </Text>
           <Text className="text-muted-foreground mt-1 text-center text-xs">
-            In dieser Stadt wurden aktuell keine Kinos oder Vorstellungen
-            eingepflegt.
+            In dieser Stadt wurden aktuell keine Vorstellungen eingepflegt.
           </Text>
         </View>
       )}

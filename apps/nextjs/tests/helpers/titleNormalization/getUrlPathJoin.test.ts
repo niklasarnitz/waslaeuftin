@@ -34,9 +34,7 @@ describe("getUrlPathJoin", () => {
   });
 
   test("preserves absolute path at the start", () => {
-    expect(getUrlPathJoin("/api", "/v1/", "/users/")).toBe(
-      "/api/v1/users",
-    );
+    expect(getUrlPathJoin("/api", "/v1/", "/users/")).toBe("/api/v1/users");
     expect(getUrlPathJoin("@waslaeuftin/api/", "/v1/", "/users/")).toBe(
       "@waslaeuftin/api/v1/users",
     );
