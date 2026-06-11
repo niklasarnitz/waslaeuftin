@@ -1,0 +1,77 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".cache/tsbuildinfo.json", "dist/**"]
+    },
+    "dev": {
+      "dependsOn": ["^dev"],
+      "cache": false,
+      "persistent": false
+    },
+    "format": {
+      "outputs": [".cache/.prettiercache"],
+      "outputLogs": "new-only"
+    },
+    "lint": {
+      "dependsOn": ["^topo", "^build"],
+      "outputs": [".cache/.eslintcache"]
+    },
+    "typecheck": {
+      "dependsOn": ["^topo", "^build"],
+      "outputs": [".cache/tsbuildinfo.json"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "//#clean": {
+      "cache": false
+    },
+    "push": {
+      "cache": false,
+      "interactive": true
+    },
+    "studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "ui-add": {
+      "cache": false,
+      "interactive": true
+    }
+  },
+  "globalEnv": [
+    "DATABASE_URL",
+    "GITHUB_TOKEN",
+    "TMDB_API_KEY",
+    "TMDB_IMAGE_BASE_URL",
+    "TMDB_POSTER_SIZE",
+    "TMDB_MIN_CONFIDENCE_SCORE",
+    "MINIO_ENDPOINT",
+    "MINIO_REGION",
+    "MINIO_ACCESS_KEY",
+    "MINIO_SECRET_KEY",
+    "MINIO_USE_SSL",
+    "MINIO_BUCKET",
+    "MINIO_MOVIE_COVERS_PREFIX",
+    "MINIO_PUBLIC_BASE_URL",
+    "UMAMI_URL",
+    "UMAMI_WEBSITE_ID",
+    "UMAMI_VIEW_DEDUPLICATION_SECONDS",
+    "POSTGRES_URL",
+    "PORT"
+  ],
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "npm_lifecycle_event"
+  ]
+}

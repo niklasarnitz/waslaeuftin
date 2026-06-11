@@ -1,25 +1,41 @@
 # waslaeuft.in
 
-waslaeuft.in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.
+Turborepo for the waslaeuft.in web app and future Expo clients.
 
-## Verwendete Technologien
+## Workspaces
 
-- T3 Stack (Next.js, Prisma, tRPC):
-  - Next.js (Frontend & Backend)
-  - Prisma (Datenbank, PostgreSQL)
-  - tRPC (Backend)
-  - NextJS Cron (Zum nächtlichen Updaten der Filme)
+- `apps/nextjs`: Next.js web app and HTTP adapters
+- `apps/expo`: Expo client scaffold consuming the shared tRPC contract
+- `packages/api`: tRPC routers and client-safe router types
+- `packages/db`: Prisma client, schema, and migrations
+- `packages/validators`: schemas shared by web, API, and mobile clients
+- `packages/ui`: shared UI primitives from the original starter
+- `tooling/*`: shared TypeScript, ESLint, Prettier, and Tailwind config
 
-## Lokale Entwicklung
+The `@waslaeuftin/api` root export contains only types and is safe to import from
+Expo. Server runtimes use `@waslaeuftin/api/server`. Prisma stays behind
+`@waslaeuftin/db` and must not be imported by mobile code.
 
-- Pakete installieren `bun install`
-- Datenbank konfigurieren: `DATABASE_URL` in `.env` eintragen
-- Datenbank migrieren: `bun prisma db push`
-- App starten: `bun dev`
+## Development
 
-## Contributing
+```bash
+bun install
+cp .env.example .env
+bun run db:push
+bun run dev:web
+```
 
-Aktuell entwickle ich dieses Projekt unregelmäßig in meiner Freizeit weiter.
-Falls du Lust hast, Kinos hinzuzufügen oder andere Änderungen vorzunehmen, erstelle gerne eine Pull Request oder ein Issue :)
+Start the Expo client separately:
 
-(Die Code Qualität ist eher auf Spaghetti Level, aber es funktioniert gut genug ^^)
+```bash
+bun --filter @waslaeuftin/expo dev
+```
+
+## Verification
+
+```bash
+bun run typecheck
+bun run lint
+bun run build
+bun run test:web
+```
