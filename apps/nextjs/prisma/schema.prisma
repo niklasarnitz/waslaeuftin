@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Showing {
+  id                    Int      @id @default(autoincrement())
+  dateTime              DateTime
+  bookingUrl            String?
+  showingAdditionalData String[]
+  rawMovieName          String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @default(now()) @updatedAt
+
+  cinemaId Int
+  movieId  Int
+
+  cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
+  movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([cinemaId, movieId, dateTime])
+  @@index([cinemaId, dateTime])
+  @@index([movieId, dateTime])
+  @@index([movieId, cinemaId])
+}
+
+model Movie {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  normalizedTitle    String
+  canonicalKey       String    @unique
+  coverUrl           String?
+  coverStorageKey    String?
+  coverConfidence    Float?
+  tmdbMovieId        Int?      @unique
+  tmdbSearchFailedOn DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+
+  tmdbMetadata TmdbMetadata? @relation(fields: [tmdbMovieId], references: [tmdbId], onDelete: SetNull)
+  showings     Showing[]
+
+  @@index([name])
+  @@index([normalizedTitle])
+}
+
+model TmdbMetadata {
+  tmdbId           Int      @id
+  title            String
+  originalTitle    String
+  originalLanguage String
+  overview         String?
+  tagline          String?
+  posterPath       String?
+  backdropPath     String?
+  releaseDate      String?
+  runtime          Int?
+  budget           BigInt?
+  revenue          BigInt?
+  popularity       Float?
+  voteAverage      Float?
+  voteCount        Int?
+  status           String?
+  adult            Boolean?
+  video            Boolean?
+  homepage         String?
+  imdbId           String?
+  genres           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  movie            Movie?
+}
+
+model ComtradaCineOrderMetadata {
+  id           Int      @id @default(autoincrement())
+  backendUrl   String
+  centerId     String
+  centerShorty String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  Cinema       Cinema[]
+}
+
+model KinoHeldCinemasMetadata {
+  id           Int      @id @default(autoincrement())
+  centerId     String
+  centerShorty String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  Cinema       Cinema[]
+}
+
+model CinemaxxVueCinemasMetadata {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  cinemaId  Int
+  Cinema    Cinema[]
+}
+
+enum Countries {
+  GERMANY
+  AUSTRIA
+}
+
+model Cinema {
+  id                           Int                         @id @default(autoincrement())
+  name                         String
+  slug                         String
+  latitude                     Float?
+  longitude                    Float?
+  comtradaCineOrderMetadataId  Int?
+  isKinoTicketsExpress         Boolean?
+  kinoHeldCinemasMetadataId    Int?
+  cityId                       Int
+  createdAt                    DateTime                    @default(now())
+  updatedAt                    DateTime                    @default(now()) @updatedAt
+  cinemaxxVueCinemasMetadataId Int?
+  premiumKinoSubdomain         String?
+  cineStarCinemaId             Int?
+  cineStarCinemaNumber         Int?
+  cineplexCinemaId             String?
+  cineplexxAtCinemaId          String?
+  cinfinityCinemaId            String?
+  myVueCinemaId                String?
+  lastFetchedAt                DateTime?
+  cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
+  city                         City                        @relation(fields: [cityId], references: [id])
+  comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id], onDelete: Cascade)
+  kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
+  showings                     Showing[]
+
+  country Countries
+
+  @@unique([cityId, slug])
+  @@index([name])
+  @@index([latitude, longitude])
+  @@index([cinfinityCinemaId])
+}
+
+model City {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  cinemas   Cinema[]
+  country   Countries
+
+  latitude  Float?
+  longitude Float?
+
+  @@index([name])
+}

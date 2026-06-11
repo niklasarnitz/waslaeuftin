@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+body {
+  font-family: var(--font-rubik), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-libre_franklin), sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 210 24% 97%;
+    --foreground: 222 35% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 35% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 35% 12%;
+    --primary: 209 92% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 34% 93%;
+    --secondary-foreground: 222 35% 12%;
+    --muted: 210 26% 92%;
+    --muted-foreground: 218 12% 35%;
+    --accent: 207 32% 90%;
+    --accent-foreground: 222 35% 12%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 20% 84%;
+    --input: 215 20% 84%;
+    --ring: 209 92% 46%;
+    --radius: 0.75rem;
+    --chart-1: 209 84% 56%;
+    --chart-2: 190 70% 40%;
+    --chart-3: 224 49% 36%;
+    --chart-4: 173 47% 50%;
+    --chart-5: 202 72% 59%;
+    --sidebar-background: 210 30% 95%;
+    --sidebar-foreground: 222 30% 16%;
+    --sidebar-primary: 209 92% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 209 28% 90%;
+    --sidebar-accent-foreground: 222 30% 16%;
+    --sidebar-border: 214 21% 84%;
+    --sidebar-ring: 209 92% 46%;
+  }
+
+  .dark {
+    --background: 222 28% 8%;
+    --foreground: 210 22% 92%;
+    --card: 222 24% 11%;
+    --card-foreground: 210 22% 92%;
+    --popover: 222 28% 8%;
+    --popover-foreground: 210 22% 92%;
+    --primary: 206 90% 62%;
+    --primary-foreground: 222 30% 10%;
+    --secondary: 220 16% 18%;
+    --secondary-foreground: 210 22% 92%;
+    --muted: 220 16% 18%;
+    --muted-foreground: 214 12% 70%;
+    --accent: 220 16% 18%;
+    --accent-foreground: 210 22% 92%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 219 14% 26%;
+    --input: 219 14% 26%;
+    --ring: 206 90% 62%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 190 62% 42%;
+    --chart-3: 214 60% 56%;
+    --chart-4: 173 47% 50%;
+    --chart-5: 201 80% 64%;
+    --sidebar-background: 222 23% 12%;
+    --sidebar-foreground: 210 22% 90%;
+    --sidebar-primary: 206 90% 62%;
+    --sidebar-primary-foreground: 222 30% 10%;
+    --sidebar-accent: 220 16% 20%;
+    --sidebar-accent-foreground: 210 22% 90%;
+    --sidebar-border: 219 14% 26%;
+    --sidebar-ring: 206 90% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 8% -12%, hsl(210 90% 54% / 0.12), transparent 34%),
+      radial-gradient(circle at 94% 4%, hsl(193 72% 47% / 0.1), transparent 28%),
+      linear-gradient(125deg, hsl(0 0% 100% / 0.08) 0%, transparent 42%),
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+    background-attachment: fixed;
+  }
+}
