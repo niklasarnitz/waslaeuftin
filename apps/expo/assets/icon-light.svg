@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient (Light, vibrant lavender-white) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="50%" stop-color="#F6F5FC" />
+      <stop offset="100%" stop-color="#E8E6F5" />
+    </linearGradient>
+
+    <!-- Neon Border Gradient (High contrast for light mode) -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2E93" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <!-- Movie Reel Inner Gradient (Soft lavender shadow) -->
+    <linearGradient id="reelInnerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FDFDFF" />
+      <stop offset="100%" stop-color="#E1DDF2" />
+    </linearGradient>
+
+    <!-- Hub Gradient -->
+    <linearGradient id="hubGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#EAE5F8" />
+    </linearGradient>
+
+    <!-- Play Icon Gradient -->
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2FF" />
+      <stop offset="100%" stop-color="#FF1A75" />
+    </linearGradient>
+
+    <!-- Ambient Glow Filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Subtle Glow Filter -->
+    <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background (rounded square for adaptive icon) -->
+  <rect width="1024" height="1024" rx="0" fill="url(#bgGrad)" />
+
+  <!-- Glow effect behind the movie reel -->
+  <circle cx="512" cy="512" r="320" fill="none" stroke="url(#borderGrad)" stroke-width="20" filter="url(#glow)" opacity="0.25" />
+
+  <!-- Outer Reel Ring -->
+  <circle cx="512" cy="512" r="320" fill="url(#reelInnerGrad)" stroke="url(#borderGrad)" stroke-width="12" />
+
+  <!-- Ring of Sprocket Holes (Film Strip style) -->
+  <circle cx="512" cy="512" r="280" fill="none" stroke="url(#borderGrad)" stroke-width="16" stroke-dasharray="22, 22" opacity="0.25" />
+
+  <!-- Reel Spokes / Holes -->
+  <!-- 5 circular cutouts styled to reveal the background -->
+  <circle cx="672" cy="512" r="65" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" />
+  <circle cx="561" cy="664" r="65" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" />
+  <circle cx="383" cy="606" r="65" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" />
+  <circle cx="383" cy="418" r="65" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" />
+  <circle cx="561" cy="360" r="65" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="3" />
+
+  <!-- Central Hub -->
+  <circle cx="512" cy="512" r="95" fill="url(#hubGrad)" stroke="url(#borderGrad)" stroke-width="5" />
+
+  <!-- Glowing Play Button Triangle -->
+  <polygon points="485,452 485,572 580,512" fill="url(#playGrad)" filter="url(#subtleGlow)" />
+</svg>
