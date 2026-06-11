@@ -11,9 +11,12 @@ import { Link, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
-import { CinemaCard } from "@waslaeuftin/expo/components/cinema-card";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
-import { trpc } from "@waslaeuftin/expo/utils/api";
+import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
+import { queryClient, trpc } from "@waslaeuftin/expo/utils/api";
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+import { useLocationStore } from "@waslaeuftin/expo/utils/location";
 
 const POPULAR_CITIES = [
   { name: "Berlin", slug: "berlin" },
@@ -26,50 +29,58 @@ const POPULAR_CITIES = [
 
 export default function HomeIndex() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const primaryColor = usePrimaryColor();
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    normalizeToStartOfDay(new Date()),
+  );
 
-  // Geolocation states
-  const [coords, setCoords] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-  const [locationLoading, setLocationLoading] = useState(true);
-  const [locationError, setLocationError] = useState<boolean>(false);
+  // Cached coords are available immediately from the persisted store
+  const cachedCoords = useLocationStore((s) => s.cachedCoords);
+  const setStoredCoords = useLocationStore((s) => s.setCoords);
 
-  // Request location permission & get current coordinates
+  // Only show "loading" spinner when there is no cached location yet
+  const [locationLoading, setLocationLoading] = useState(!cachedCoords);
+  const [locationError, setLocationError] = useState(false);
+
+  // coords used for queries = cached value (updated in-place when OS responds)
+  const [coords, setCoords] = useState(cachedCoords);
+
+  // Request fresh location from OS; update store & local state when it arrives
   const requestLocation = async () => {
-    setLocationLoading(true);
+    setLocationLoading(!coords); // only show spinner if we have nothing cached
     setLocationError(false);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== Location.PermissionStatus.GRANTED) {
-        setLocationError(true);
+        setLocationError(!coords); // only surface error when there's no fallback
         setLocationLoading(false);
         return;
       }
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
-      setCoords({
+      const fresh = {
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
-      });
+      };
+      setStoredCoords(fresh); // persist for next launch
+      setCoords(fresh);       // update query immediately
     } catch (err) {
       console.error("Error getting location", err);
-      setLocationError(true);
+      if (!coords) setLocationError(true);
     } finally {
       setLocationLoading(false);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void requestLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch nearby cinemas via tRPC if coords are available
-  const nearbyCinemasQuery = useQuery(
-    trpc.cinemas.getNearbyCinemas.queryOptions(
+  // Fetch server-grouped nearby movies via tRPC if coords are available
+  const nearbyMoviesQuery = useQuery(
+    trpc.cinemas.getNearbyMovies.queryOptions(
       {
         latitude: coords?.latitude ?? 0,
         longitude: coords?.longitude ?? 0,
@@ -82,12 +93,34 @@ export default function HomeIndex() {
     ),
   );
 
+  // Prefetch tomorrow and the day after in the background once coords are ready.
+  // We defer with setTimeout so the current-day query gets priority.
+  useEffect(() => {
+    if (!coords) return;
+    const timer = setTimeout(() => {
+      const tomorrow = normalizeToStartOfDay(new Date());
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dayAfterTomorrow = normalizeToStartOfDay(new Date());
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+      const prefetchOptions = (date: Date) =>
+        trpc.cinemas.getNearbyMovies.queryOptions({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          maxDistanceKm: 25,
+          date,
+        });
+
+      void queryClient.prefetchQuery(prefetchOptions(tomorrow));
+      void queryClient.prefetchQuery(prefetchOptions(dayAfterTomorrow));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [coords]);
+
+  const groupedMovies = nearbyMoviesQuery.data ?? [];
+
   const handleCityPress = (citySlug: string) => {
     router.push(`/city/${citySlug}`);
-  };
-
-  const handleCinemaPress = (cinemaSlug: string) => {
-    router.push(`/cinema/${cinemaSlug}`);
   };
 
   return (
@@ -102,15 +135,19 @@ export default function HomeIndex() {
         {/* Nearby Cinemas Section */}
         <View>
           <View className="mb-3 flex-row items-center gap-2">
-            <SymbolView name="location.fill" tintColor="#c03484" size={18} />
+            <SymbolView
+              name="location.fill"
+              tintColor={primaryColor}
+              size={18}
+            />
             <Text className="text-foreground text-xl font-bold tracking-tight">
-              Kinos in deiner Nähe
+              Filme in deiner Nähe
             </Text>
           </View>
 
           {locationLoading ? (
             <View className="items-center justify-center py-8">
-              <ActivityIndicator color="#c03484" size="small" />
+              <ActivityIndicator color={primaryColor} size="small" />
               <Text className="text-muted-foreground mt-2 text-xs font-medium">
                 Bestimme Standort...
               </Text>
@@ -126,32 +163,29 @@ export default function HomeIndex() {
               </Text>
               <Pressable
                 onPress={requestLocation}
-                className="self-start rounded-lg bg-[#c03484] px-4 py-2"
+                className="self-start rounded-lg px-4 py-2"
+                style={{ backgroundColor: primaryColor }}
               >
                 <Text className="text-xs font-bold text-white">
                   Standort freigeben
                 </Text>
               </Pressable>
             </View>
-          ) : nearbyCinemasQuery.isLoading ? (
+          ) : nearbyMoviesQuery.isLoading ? (
             <View className="items-center justify-center py-8">
-              <ActivityIndicator color="#c03484" size="small" />
+              <ActivityIndicator color={primaryColor} size="small" />
               <Text className="text-muted-foreground mt-2 text-xs font-medium">
                 Suche Kinos in der Umgebung...
               </Text>
             </View>
-          ) : nearbyCinemasQuery.data && nearbyCinemasQuery.data.length > 0 ? (
-            nearbyCinemasQuery.data.map((cinema) => (
-              <CinemaCard
-                key={cinema.id}
-                cinema={cinema}
-                onCinemaPress={() => handleCinemaPress(cinema.slug)}
-              />
+          ) : groupedMovies.length > 0 ? (
+            groupedMovies.map((movie) => (
+              <MovieCard key={movie.name} movie={movie} />
             ))
           ) : (
             <View className="bg-muted border-border/40 items-center justify-center rounded-xl border p-4">
               <Text className="text-muted-foreground text-xs italic">
-                Keine Kinos im Umkreis von 25 km gefunden.
+                Keine Filme oder Kinos im Umkreis von 25 km gefunden.
               </Text>
             </View>
           )}
@@ -180,7 +214,10 @@ export default function HomeIndex() {
                 className="bg-muted/40 border-border/80 active:bg-muted/60 rounded-xl border border-dashed px-4 py-2.5"
                 style={{ borderCurve: "continuous" }}
               >
-                <Text className="text-sm font-semibold text-[#c03484]">
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: primaryColor }}
+                >
                   Alle Städte...
                 </Text>
               </Pressable>

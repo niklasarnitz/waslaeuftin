@@ -2,6 +2,9 @@ import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+
 interface DatePickerBarProps {
   selectedDate: Date;
   onChange: (date: Date) => void;
@@ -10,13 +13,14 @@ interface DatePickerBarProps {
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
+  const primaryColor = usePrimaryColor();
   // Generate next 10 days
   const days = React.useMemo(() => {
     const list: Date[] = [];
     for (let i = 0; i < 10; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      list.push(d);
+      list.push(normalizeToStartOfDay(d));
     }
     return list;
   }, []);
@@ -54,10 +58,11 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
             <Pressable
               key={index}
               onPress={() => handlePress(date)}
-              className={`min-w-[70px] items-center justify-center rounded-xl px-4 py-2.5 ${
-                active ? "bg-[#c03484]" : "bg-muted"
-              }`}
-              style={{ borderCurve: "continuous" }}
+              className="min-w-[70px] items-center justify-center rounded-xl px-4 py-2.5"
+              style={{
+                borderCurve: "continuous",
+                backgroundColor: active ? primaryColor : undefined,
+              }}
             >
               <Text
                 className={`text-xs font-medium ${

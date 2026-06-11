@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -10,19 +10,23 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
-import { CinemaCard } from "@waslaeuftin/expo/components/cinema-card";
+import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import {
   favoritesStore,
   useIsFavorite,
 } from "@waslaeuftin/expo/utils/favorites";
+import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 
 export default function CinemaScreen() {
   const navigation = useNavigation();
+  const primaryColor = usePrimaryColor();
   const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => normalizeToStartOfDay(new Date()));
 
   // Fetch cinema schedule and info
   const cinemaQuery = useQuery(
@@ -62,6 +66,10 @@ export default function CinemaScreen() {
     }
   }, [cinema, isFav, navigation]);
 
+  const groupedMovies = React.useMemo(() => {
+    return cinema ? groupCinemasByMovie([cinema]) : [];
+  }, [cinema]);
+
   const isLoading = cinemaQuery.isLoading;
 
   return (
@@ -71,12 +79,25 @@ export default function CinemaScreen() {
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#c03484" size="large" />
+          <ActivityIndicator color={primaryColor} size="large" />
         </View>
       ) : cinema ? (
         <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* Reuse CinemaCard with header hidden since it's displayed in the native Stack navbar */}
-          <CinemaCard cinema={cinema} hideHeader={true} />
+          {groupedMovies.length > 0 ? (
+            groupedMovies.map((movie) => (
+              <MovieCard
+                key={movie.name}
+                movie={movie}
+                hideCinemaHeader={true}
+              />
+            ))
+          ) : (
+            <View className="items-center justify-center py-8">
+              <Text className="text-muted-foreground text-sm italic">
+                Keine Vorstellungen für dieses Datum gefunden.
+              </Text>
+            </View>
+          )}
         </ScrollView>
       ) : (
         <View className="flex-1 items-center justify-center p-6">

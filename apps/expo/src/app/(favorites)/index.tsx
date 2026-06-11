@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -10,14 +10,18 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useQueries } from "@tanstack/react-query";
 
-import { CinemaCard } from "@waslaeuftin/expo/components/cinema-card";
+import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useFavorites } from "@waslaeuftin/expo/utils/favorites";
+import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 
 export default function FavoritesIndex() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const primaryColor = usePrimaryColor();
+  const [selectedDate, setSelectedDate] = useState<Date>(() => normalizeToStartOfDay(new Date()));
 
   // Get favorited cinemas metadata (id, name, slug)
   const favorites = useFavorites();
@@ -32,9 +36,17 @@ export default function FavoritesIndex() {
     ),
   });
 
-  const handleCinemaPress = (cinemaSlug: string) => {
-    router.push(`/cinema/${cinemaSlug}`);
-  };
+  const isLoading = cinemaQueries.some((q) => q.isLoading);
+
+  const loadedCinemas = React.useMemo(() => {
+    return cinemaQueries
+      .map((q) => q.data)
+      .filter((data): data is NonNullable<typeof data> => !!data);
+  }, [cinemaQueries]);
+
+  const groupedMovies = React.useMemo(() => {
+    return groupCinemasByMovie(loadedCinemas);
+  }, [loadedCinemas]);
 
   const handleNavigateToSearch = () => {
     router.push("/(search)");
@@ -62,61 +74,41 @@ export default function FavoritesIndex() {
           </View>
           <Pressable
             onPress={handleNavigateToSearch}
-            className="rounded-xl bg-[#c03484] px-5 py-3 active:bg-[#c03484]/80"
-            style={{ borderCurve: "continuous" }}
+            className="rounded-xl px-5 py-3"
+            style={{ borderCurve: "continuous", backgroundColor: primaryColor }}
           >
             <Text className="text-sm font-bold text-white">Kinos suchen</Text>
           </Pressable>
         </View>
-      ) : (
+      ) : isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color={primaryColor} size="large" />
+          <Text className="text-muted-foreground mt-2 text-xs font-medium">
+            Lade Lieblingskinos...
+          </Text>
+        </View>
+      ) : groupedMovies.length > 0 ? (
         <FlatList
           contentInsetAdjustmentBehavior="automatic"
-          data={favorites}
-          keyExtractor={(item) => item.id.toString()}
+          data={groupedMovies}
+          keyExtractor={(item) => item.name}
           contentContainerStyle={{ padding: 16 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
-          renderItem={({ item, index }) => {
-            const query = cinemaQueries[index];
-
-            if (query?.isLoading) {
-              return (
-                <View
-                  className="bg-card border-border/40 min-h-[120px] items-center justify-center rounded-2xl border p-4"
-                  style={{ borderCurve: "continuous" }}
-                >
-                  <ActivityIndicator color="#c03484" size="small" />
-                  <Text className="text-muted-foreground mt-2 text-xs font-medium">
-                    Lade {item.name}...
-                  </Text>
-                </View>
-              );
-            }
-
-            if (query?.data) {
-              // Merge the calculated distance if available (though not stored, the query returns full details)
-              return (
-                <CinemaCard
-                  cinema={query.data}
-                  onCinemaPress={() => handleCinemaPress(item.slug)}
-                />
-              );
-            }
-
-            return (
-              <View
-                className="bg-card border-border/40 rounded-2xl border p-4"
-                style={{ borderCurve: "continuous" }}
-              >
-                <Text className="text-foreground text-base font-bold">
-                  {item.name}
-                </Text>
-                <Text className="text-destructive mt-1 text-xs">
-                  Fehler beim Laden des Spielplans.
-                </Text>
-              </View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <MovieCard
+              movie={item}
+            />
+          )}
         />
+      ) : (
+        <View className="flex-1 items-center justify-center p-6">
+          <Text className="text-foreground text-base font-semibold">
+            Keine Filme gefunden
+          </Text>
+          <Text className="text-muted-foreground mt-1 text-center text-xs">
+            Für das ausgewählte Datum wurden in deinen Lieblingskinos keine Vorstellungen gefunden.
+          </Text>
+        </View>
       )}
     </View>
   );
