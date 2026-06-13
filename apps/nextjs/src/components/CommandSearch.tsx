@@ -195,8 +195,9 @@ export function CommandSearch() {
                 <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
                   {query.length > 0 ? "Städte" : "Städte in der Nähe"}
                 </p>
-                {cityItems.map((item) => {
-                  const flatIndex = items.indexOf(item);
+                {cityItems.map((item, index) => {
+                  // ⚡ Bolt: Replace O(N) indexOf lookup with O(1) index calculation
+                  const flatIndex = index;
                   return (
                     <button
                       key={item.id}
@@ -227,8 +228,9 @@ export function CommandSearch() {
                 <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
                   {query.length > 0 ? "Kinos" : "Kinos in der Nähe"}
                 </p>
-                {cinemaItems.map((item) => {
-                  const flatIndex = items.indexOf(item);
+                {cinemaItems.map((item, index) => {
+                  // ⚡ Bolt: Replace O(N) indexOf lookup with O(1) index calculation
+                  const flatIndex = cityItems.length + index;
                   return (
                     <button
                       key={item.id}
