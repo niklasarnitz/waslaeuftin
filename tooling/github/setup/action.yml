@@ -4,7 +4,7 @@ description: "Common setup steps for Actions"
 runs:
   using: composite
   steps:
-    - uses: oven-sh/setup-bun@v1
+    - uses: oven-sh/setup-bun@v2
     - uses: actions/setup-node@v6
       with:
         node-version-file: ".nvmrc"
