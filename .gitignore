@@ -46,3 +46,4 @@ dist/
 
 # turbo
 .turbo
+tsconfig.tsbuildinfo
