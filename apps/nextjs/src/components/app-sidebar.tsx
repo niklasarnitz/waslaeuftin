@@ -1,6 +1,12 @@
 import * as React from "react";
 import Link from "next/link";
-import { Building2, Clapperboard, Film, Sparkles } from "lucide-react";
+import {
+  Building2,
+  Clapperboard,
+  Download,
+  Film,
+  Sparkles,
+} from "lucide-react";
 
 import { SearchTextField } from "@waslaeuftin/components/SearchTextField";
 import {
@@ -126,13 +132,20 @@ export async function AppSidebar({ searchQuery, ...props }: AppSidebarProps) {
           </div>
         )}
       </SidebarContent>
-      <SidebarFooter className="border-sidebar-border/70 border-t px-3 py-3">
+      <SidebarFooter className="border-sidebar-border/70 gap-2 border-t px-3 py-3">
         <Link
           href="/request-cinema"
           className="text-sidebar-foreground/75 hover:text-sidebar-foreground inline-flex items-center gap-2 rounded-lg text-sm transition-colors"
         >
           <Sparkles className="h-4 w-4" />
           Kino fehlt? Jetzt wünschen
+        </Link>
+        <Link
+          href="/download"
+          className="text-sidebar-foreground/75 hover:text-sidebar-foreground inline-flex items-center gap-2 rounded-lg text-sm transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          App herunterladen
         </Link>
       </SidebarFooter>
     </Sidebar>

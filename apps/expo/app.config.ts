@@ -45,6 +45,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-sqlite",
     "expo-web-browser",
     [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "Um die Kinos in der Nähe zu finden, gib bitte der App Standort-Berechtigungen.",
+      },
+    ],
+    [
       "expo-splash-screen",
       {
         backgroundColor: "#E4E4E7",

@@ -1,0 +1,48 @@
+{
+  "name": "wasläuft.in",
+  "identifier": "in.waslaeuft",
+  "subtitle": "Deine Kinoübersicht für die Stadt",
+  "description": "Offizielle AltStore-Quelle für wasläuft.in.",
+  "iconURL": "https://waslaeuft.in/altstore/icon.png",
+  "website": "https://waslaeuft.in",
+  "tintColor": "#046495",
+  "featuredApps": ["com.niklasarnitz.waslaeuftin"],
+  "apps": [
+    {
+      "name": "wasläuft.in",
+      "bundleIdentifier": "com.niklasarnitz.waslaeuftin",
+      "developerName": "Niklas Arnitz",
+      "subtitle": "Kinoübersicht für Städte",
+      "localizedDescription": "waslaeuft.in bietet eine Übersicht, welche Filme in deiner Stadt heute und zukünftig laufen.",
+      "iconURL": "https://waslaeuft.in/altstore/icon.png",
+      "tintColor": "#046495",
+      "category": "lifestyle",
+      "screenshotURLs": [],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "buildVersion": "1",
+          "date": "2026-06-17",
+          "localizedDescription": "Erste AltStore-Veröffentlichung.",
+          "downloadURL": "https://waslaeuft.in/altstore/waslaeuftin.ipa",
+          "size": 0,
+          "minOSVersion": "16.4"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSLocationWhenInUseUsageDescription": "Um die Kinos in der Nähe zu finden, gib bitte der App Standort-Berechtigungen."
+        }
+      },
+      "version": "0.1.0",
+      "buildVersion": "1",
+      "versionDate": "2026-06-17",
+      "versionDescription": "Erste AltStore-Veröffentlichung.",
+      "downloadURL": "https://waslaeuft.in/altstore/waslaeuftin.ipa",
+      "size": 0,
+      "minOSVersion": "16.4"
+    }
+  ],
+  "news": []
+}
