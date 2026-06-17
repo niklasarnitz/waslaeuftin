@@ -25,29 +25,34 @@ export const persister = createAsyncStoragePersister({
 });
 
 /**
+ * Vanilla tRPC client for imperative calls outside of React (e.g. device
+ * registration on startup, notification-tap handlers).
+ */
+export const apiClient = createTRPCClient<AppRouter>({
+  links: [
+    loggerLink({
+      enabled: (opts) =>
+        __DEV__ || (opts.direction === "down" && opts.result instanceof Error),
+      colorMode: "ansi",
+    }),
+    httpBatchLink({
+      transformer: superjson,
+      url: `${getBaseUrl()}/api/trpc`,
+      headers() {
+        const headers = new Map<string, string>();
+        headers.set("x-trpc-source", "expo-react");
+
+        return headers;
+      },
+    }),
+  ],
+});
+
+/**
  * A set of typesafe hooks for consuming your API.
  */
 export const trpc = createTRPCOptionsProxy<AppRouter>({
-  client: createTRPCClient({
-    links: [
-      loggerLink({
-        enabled: (opts) =>
-          __DEV__ ||
-          (opts.direction === "down" && opts.result instanceof Error),
-        colorMode: "ansi",
-      }),
-      httpBatchLink({
-        transformer: superjson,
-        url: `${getBaseUrl()}/api/trpc`,
-        headers() {
-          const headers = new Map<string, string>();
-          headers.set("x-trpc-source", "expo-react");
-
-          return headers;
-        },
-      }),
-    ],
-  }),
+  client: apiClient,
   queryClient,
 });
 

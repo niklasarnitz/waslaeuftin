@@ -1,0 +1,12 @@
+{
+  "extends": "@waslaeuftin/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["bun"],
+    "paths": {
+      "@waslaeuftin/worker/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "eslint.config.ts"],
+  "exclude": ["node_modules"]
+}

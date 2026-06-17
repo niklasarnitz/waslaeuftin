@@ -10,6 +10,7 @@ import { trackCinemaView } from "@waslaeuftin/api/internal/umami";
 import { Prisma } from "@waslaeuftin/db";
 import {
   CinemaBySlugInputSchema,
+  NearbyCinemasForMovieInputSchema,
   NearbyCinemasInputSchema,
 } from "@waslaeuftin/validators";
 
@@ -23,21 +24,11 @@ const getScheduleDate = (date: Date | undefined) => {
     : moment.tz(SCHEDULE_TIMEZONE);
 };
 
-const getNearbyCinemasForInput = async (
-  input: NearbyCinemasInput,
+// Find nearby cinema IDs + distances using a raw SQL haversine query.
+const getNearbyCinemaDistances = async (
+  input: Pick<NearbyCinemasInput, "latitude" | "longitude" | "maxDistanceKm">,
   db: DbClient,
-  options?: { includeTomorrow?: boolean },
 ) => {
-  const includeTomorrow = options?.includeTomorrow ?? true;
-  const scheduleDate = getScheduleDate(input.date);
-  const todayStart = scheduleDate.clone().startOf("day").toDate();
-  const endDate = scheduleDate
-    .clone()
-    .add(includeTomorrow ? 1 : 0, "day")
-    .endOf("day")
-    .toDate();
-
-  // Step 1: Find nearby cinema IDs + distances using raw SQL haversine
   const nearbyCinemaRows = await db.$queryRaw<
     { id: number; distance_km: number }[]
   >(Prisma.sql`
@@ -65,16 +56,35 @@ const getNearbyCinemasForInput = async (
     ORDER BY sub.distance_km ASC
   `);
 
-  if (nearbyCinemaRows.length === 0) {
+  return {
+    cinemaIds: nearbyCinemaRows.map((row) => row.id),
+    distanceById: new Map(
+      nearbyCinemaRows.map((row) => [row.id, Number(row.distance_km)]),
+    ),
+  };
+};
+
+const getNearbyCinemasForInput = async (
+  input: NearbyCinemasInput,
+  db: DbClient,
+  options?: { includeTomorrow?: boolean },
+) => {
+  const includeTomorrow = options?.includeTomorrow ?? true;
+  const scheduleDate = getScheduleDate(input.date);
+  const todayStart = scheduleDate.clone().startOf("day").toDate();
+  const endDate = scheduleDate
+    .clone()
+    .add(includeTomorrow ? 1 : 0, "day")
+    .endOf("day")
+    .toDate();
+
+  const { cinemaIds, distanceById } = await getNearbyCinemaDistances(input, db);
+
+  if (cinemaIds.length === 0) {
     return [];
   }
 
-  const cinemaIds = nearbyCinemaRows.map((row) => row.id);
-  const distanceById = new Map(
-    nearbyCinemaRows.map((row) => [row.id, Number(row.distance_km)]),
-  );
-
-  // Step 2: Fetch full cinema data with showings for only the nearby IDs.
+  // Fetch full cinema data with showings for only the nearby IDs.
   const cinemas = await db.cinema.findMany({
     where: {
       id: { in: cinemaIds },
@@ -251,6 +261,95 @@ const buildNearbyMovies = (nearbyCinemas: NearbyCinema[]) => {
   return movies.sort((left, right) => left.name.localeCompare(right.name));
 };
 
+// Builds a single grouped-movie object (matching the client `GroupedMovie`
+// shape) for one TMDB movie across the cinemas near the user. Powers the
+// notification-tap deep link. Returns null when the movie has no nearby
+// future showings.
+const getNearbyMovieByTmdbId = async (
+  input: z.infer<typeof NearbyCinemasForMovieInputSchema>,
+  db: DbClient,
+) => {
+  const { cinemaIds, distanceById } = await getNearbyCinemaDistances(input, db);
+  if (cinemaIds.length === 0) {
+    return null;
+  }
+
+  const nowDate = new Date();
+
+  const cinemas = await db.cinema.findMany({
+    where: { id: { in: cinemaIds } },
+    include: {
+      city: { select: { name: true, slug: true } },
+      showings: {
+        where: {
+          dateTime: { gte: nowDate },
+          movie: { tmdbMovieId: input.tmdbMovieId },
+        },
+        orderBy: { dateTime: "asc" },
+        include: {
+          movie: {
+            select: { id: true, name: true, coverUrl: true },
+          },
+        },
+      },
+    },
+  });
+
+  type GroupedShowing = (typeof cinemas)[number]["showings"][number];
+
+  let name: string | null = null;
+  let coverUrl: string | null = null;
+  let showingsCount = 0;
+  let nextShowingDate: Date | undefined;
+  const groupedCinemas: {
+    cinema: Omit<(typeof cinemas)[number], "showings"> & { distanceKm: number };
+    showings: GroupedShowing[];
+  }[] = [];
+
+  for (const cinema of cinemas) {
+    if (cinema.showings.length === 0) continue;
+
+    const { showings, ...cinemaWithoutShowings } = cinema;
+    name ??= showings[0]?.movie.name ?? null;
+    coverUrl ??= showings[0]?.movie.coverUrl ?? null;
+    showingsCount += showings.length;
+
+    const earliest = showings[0]?.dateTime;
+    if (
+      earliest &&
+      (!nextShowingDate || earliest.getTime() < nextShowingDate.getTime())
+    ) {
+      nextShowingDate = earliest;
+    }
+
+    groupedCinemas.push({
+      cinema: {
+        ...cinemaWithoutShowings,
+        distanceKm: distanceById.get(cinema.id) ?? 0,
+      },
+      showings,
+    });
+  }
+
+  if (groupedCinemas.length === 0 || !name) {
+    return null;
+  }
+
+  groupedCinemas.sort(
+    (left, right) =>
+      (distanceById.get(left.cinema.id) ?? 0) -
+      (distanceById.get(right.cinema.id) ?? 0),
+  );
+
+  return {
+    name,
+    coverUrl,
+    cinemas: groupedCinemas,
+    showingsCount,
+    nextShowingDate,
+  };
+};
+
 export const cinemaRouter = createTRPCRouter({
   getCinemaBySlug: publicProcedure
     .input(CinemaBySlugInputSchema)
@@ -354,5 +453,10 @@ export const cinemaRouter = createTRPCRouter({
         includeTomorrow: false,
       });
       return buildNearbyMovies(nearbyCinemas);
+    }),
+  getNearbyCinemasForMovie: publicProcedure
+    .input(NearbyCinemasForMovieInputSchema)
+    .query(async ({ input, ctx }) => {
+      return getNearbyMovieByTmdbId(input, ctx.db);
     }),
 });

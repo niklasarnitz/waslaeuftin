@@ -49,6 +49,55 @@ export const LocationInputSchema = NearbyCinemasInputSchema.omit({
   date: true,
 });
 
+// ─── Reminders / push notifications ─────────────────────────────────────────
+
+/** ISO 3166-1 alpha-2 country/region code used for TMDB upcoming queries. */
+export const RegionSchema = z
+  .string()
+  .trim()
+  .length(2)
+  .transform((value) => value.toUpperCase())
+  .catch("DE");
+
+export const DeviceIdSchema = z.string().min(1).max(128);
+
+export const RegisterDeviceInputSchema = z.object({
+  deviceId: DeviceIdSchema,
+  expoPushToken: z.string().min(1).optional(),
+  country: z.enum(["GERMANY", "AUSTRIA"]).optional(),
+});
+
+export const ReportNearbyCinemasInputSchema = z.object({
+  deviceId: DeviceIdSchema,
+  cinemaIds: z.array(z.number().int().positive()).max(200),
+});
+
+export const AddReminderInputSchema = z.object({
+  deviceId: DeviceIdSchema,
+  tmdbMovieId: z.number().int().positive(),
+  title: z.string().min(1).max(500),
+  posterPath: z.string().min(1).optional(),
+});
+
+export const RemoveReminderInputSchema = z.object({
+  deviceId: DeviceIdSchema,
+  tmdbMovieId: z.number().int().positive(),
+});
+
+export const GetRemindersInputSchema = z.object({
+  deviceId: DeviceIdSchema,
+});
+
+export const UpcomingMoviesInputSchema = z.object({
+  region: RegionSchema.optional(),
+});
+
+export const NearbyCinemasForMovieInputSchema = NearbyCinemasInputSchema.extend(
+  {
+    tmdbMovieId: z.number().int().positive(),
+  },
+);
+
 export const ProviderShowingSchema = z.object({
   dateTime: z.date(),
   bookingUrl: z.string().optional(),
