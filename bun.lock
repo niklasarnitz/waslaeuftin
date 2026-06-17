@@ -105,6 +105,7 @@
         "class-variance-authority": "catalog:",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
+        "expo-server-sdk": "^6.1.0",
         "lodash": "^4.17.23",
         "lucide-react": "^1.6.0",
         "minio": "^8.0.7",
@@ -112,6 +113,7 @@
         "moment-timezone": "catalog:",
         "momentjs": "^2.0.0",
         "next": "16.2.1",
+        "node-cron": "^4.3.0",
         "nuqs": "^2.8.9",
         "octokit": "catalog:",
         "react": "catalog:react19",
@@ -146,24 +148,6 @@
         "tailwindcss": "catalog:",
         "typescript": "catalog:",
         "typescript-eslint": "catalog:",
-      },
-    },
-    "apps/worker": {
-      "name": "@waslaeuftin/worker",
-      "dependencies": {
-        "@waslaeuftin/api": "workspace:*",
-        "@waslaeuftin/db": "workspace:*",
-        "expo-server-sdk": "^6.1.0",
-        "node-cron": "^4.3.0",
-      },
-      "devDependencies": {
-        "@types/bun": "catalog:",
-        "@waslaeuftin/eslint-config": "workspace:*",
-        "@waslaeuftin/prettier-config": "workspace:*",
-        "@waslaeuftin/tsconfig": "workspace:*",
-        "eslint": "catalog:",
-        "prettier": "catalog:",
-        "typescript": "catalog:",
       },
     },
     "packages/api": {
@@ -1304,8 +1288,6 @@
     "@waslaeuftin/validators": ["@waslaeuftin/validators@workspace:packages/validators"],
 
     "@waslaeuftin/web": ["@waslaeuftin/web@workspace:apps/nextjs"],
-
-    "@waslaeuftin/worker": ["@waslaeuftin/worker@workspace:apps/worker"],
 
     "@wry/caches": ["@wry/caches@1.0.1", "", { "dependencies": { "tslib": "^2.3.0" } }, "sha512-bXuaUNLVVkD20wcGBWRyo7j9N3TxePEWFZj2Y+r9OoUzfqmavM84+mFykRicNsBqatba5JLay1t48wxaXaWnlA=="],
 
