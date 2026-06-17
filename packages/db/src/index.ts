@@ -3,8 +3,11 @@ export type {
   Cinema,
   City,
   ComtradaCineOrderMetadata,
+  Device,
+  DeviceCinemaPopularity,
   KinoHeldCinemasMetadata,
   Movie,
+  Reminder,
   Showing,
   TmdbMetadata,
 } from "@prisma/client";

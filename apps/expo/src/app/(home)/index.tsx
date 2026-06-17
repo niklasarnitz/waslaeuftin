@@ -14,11 +14,12 @@ import { useQuery } from "@tanstack/react-query";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
-import { queryClient, trpc } from "@waslaeuftin/expo/utils/api";
+import { apiClient, queryClient, trpc } from "@waslaeuftin/expo/utils/api";
 import {
   createScheduleDate,
   normalizeToStartOfDay,
 } from "@waslaeuftin/expo/utils/date";
+import { useDeviceStore } from "@waslaeuftin/expo/utils/device";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
@@ -125,6 +126,24 @@ export default function HomeIndex() {
   }, [coords]);
 
   const groupedMovies = nearbyMoviesQuery.data ?? [];
+
+  // Accumulate the cinemas that appear near this device so the backend can
+  // notify about remembered movies showing nearby. Anonymous, ids only.
+  const deviceId = useDeviceStore((s) => s.deviceId);
+  const nearbyMoviesData = nearbyMoviesQuery.data;
+  useEffect(() => {
+    if (!deviceId || !nearbyMoviesData || nearbyMoviesData.length === 0) return;
+    const cinemaIds = new Set<number>();
+    for (const movie of nearbyMoviesData) {
+      for (const entry of movie.cinemas) {
+        cinemaIds.add(entry.cinema.id);
+      }
+    }
+    if (cinemaIds.size === 0) return;
+    void apiClient.devices.reportNearbyCinemas
+      .mutate({ deviceId, cinemaIds: Array.from(cinemaIds) })
+      .catch((err) => console.error("Failed to report nearby cinemas", err));
+  }, [deviceId, nearbyMoviesData]);
 
   const handleCityPress = (citySlug: string) => {
     router.push(`/city/${citySlug}`);

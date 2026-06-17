@@ -35,15 +35,15 @@ export default function HomeLayout() {
           }}
         />
         <Stack.Screen
-          name="(home,search,favorites)/city/[citySlug]"
+          name="(home,search,favorites,upcoming)/city/[citySlug]"
           options={{ title: "", headerLargeTitle: false }}
         />
         <Stack.Screen
-          name="(home,search,favorites)/cinema/[cinemaSlug]"
+          name="(home,search,favorites,upcoming)/cinema/[cinemaSlug]"
           options={{ title: "", headerLargeTitle: false }}
         />
         <Stack.Screen
-          name="(home,search,favorites)/movie/[movieName]"
+          name="(home,search,favorites,upcoming)/movie/[movieName]"
           options={{ title: "", headerLargeTitle: false }}
         />
       </Stack>

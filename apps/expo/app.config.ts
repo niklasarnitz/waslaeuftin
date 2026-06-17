@@ -2,9 +2,9 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "waslaeuft.in",
-  slug: "waslaeuftin",
-  scheme: "waslaeuftin",
+  name: "wasläuft.in",
+  slug: "waslauftin",
+  scheme: "waslauftin",
   version: "0.1.0",
   orientation: "portrait",
   icon: "./assets/icon-light.png",
@@ -28,11 +28,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#1F104A",
     },
   },
-  // extra: {
-  //   eas: {
-  //     projectId: "your-eas-project-id",
-  //   },
-  // },
+  extra: {
+    eas: {
+      projectId: "6e8988f3-eb9e-4beb-a4ad-3465c7f6a278",
+    },
+  },
   experiments: {
     tsconfigPaths: true,
     typedRoutes: true,
@@ -44,6 +44,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-sqlite",
     "expo-web-browser",
+    [
+      "expo-notifications",
+      {
+        color: "#1F104A",
+      },
+    ],
     [
       "expo-location",
       {
@@ -63,4 +69,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
   ],
+  owner: "niklasarnitz",
 });

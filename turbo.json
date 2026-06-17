@@ -64,7 +64,9 @@
     "UMAMI_WEBSITE_ID",
     "UMAMI_VIEW_DEDUPLICATION_SECONDS",
     "POSTGRES_URL",
-    "PORT"
+    "PORT",
+    "EXPO_ACCESS_TOKEN",
+    "WORKER_CRON"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

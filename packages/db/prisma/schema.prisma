@@ -132,6 +132,7 @@ model Cinema {
   comtradaCineOrderMetadata    ComtradaCineOrderMetadata?  @relation(fields: [comtradaCineOrderMetadataId], references: [id], onDelete: Cascade)
   kinoHeldCinemasMetadata      KinoHeldCinemasMetadata?    @relation(fields: [kinoHeldCinemasMetadataId], references: [id], onDelete: Cascade)
   showings                     Showing[]
+  deviceCinemaPopularity       DeviceCinemaPopularity[]
 
   country Countries
 
@@ -154,4 +155,52 @@ model City {
   longitude Float?
 
   @@index([name])
+}
+
+/// Anonymous, client-generated device identity used for reminders + push
+/// notifications. Holds no account data and no precise coordinates.
+model Device {
+  id            String   @id
+  expoPushToken String?
+  country       Countries?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+  lastSeenAt    DateTime @default(now())
+
+  reminders        Reminder[]
+  cinemaPopularity DeviceCinemaPopularity[]
+}
+
+/// Per-device tally of how often a cinema has appeared in the device's
+/// vicinity. Only the top 20 by `count` are retained per device.
+model DeviceCinemaPopularity {
+  id         Int      @id @default(autoincrement())
+  deviceId   String
+  cinemaId   Int
+  count      Int      @default(1)
+  lastSeenAt DateTime @default(now())
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, cinemaId])
+  @@index([deviceId, count])
+}
+
+/// An upcoming movie a device wants to be reminded about ("Erinnerung").
+/// `notifiedAt` is set once a push has been sent to avoid re-notifying.
+model Reminder {
+  id          Int      @id @default(autoincrement())
+  deviceId    String
+  tmdbMovieId Int
+  title       String
+  posterPath  String?
+  createdAt   DateTime @default(now())
+  notifiedAt  DateTime?
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, tmdbMovieId])
+  @@index([tmdbMovieId])
+  @@index([notifiedAt])
 }
