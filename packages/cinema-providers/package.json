@@ -28,16 +28,16 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@ainias42/js-helper": "^0.9.0",
-    "@apollo/client": "^4.1.6",
+    "@ainias42/js-helper": "catalog:",
+    "@apollo/client": "catalog:",
     "@waslaeuftin/db": "workspace:*",
     "@waslaeuftin/validators": "workspace:*",
     "cheerio": "^1.2.0",
-    "moment-timezone": "^0.6.1",
-    "xior": "^0.8.3"
+    "moment-timezone": "catalog:",
+    "xior": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.11",
+    "@types/bun": "catalog:",
     "@waslaeuftin/eslint-config": "workspace:*",
     "@waslaeuftin/prettier-config": "workspace:*",
     "@waslaeuftin/tsconfig": "workspace:*",

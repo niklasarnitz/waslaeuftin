@@ -31,16 +31,16 @@
   },
   "dependencies": {
     "@trpc/server": "catalog:",
-    "@umami/node": "^0.4.0",
+    "@umami/node": "catalog:",
     "@waslaeuftin/db": "workspace:*",
     "@waslaeuftin/validators": "workspace:*",
-    "moment-timezone": "^0.6.1",
-    "octokit": "^5.0.5",
-    "superjson": "2.2.3",
+    "moment-timezone": "catalog:",
+    "octokit": "catalog:",
+    "superjson": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.11",
+    "@types/bun": "catalog:",
     "@waslaeuftin/eslint-config": "workspace:*",
     "@waslaeuftin/prettier-config": "workspace:*",
     "@waslaeuftin/tsconfig": "workspace:*",

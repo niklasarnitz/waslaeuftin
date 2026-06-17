@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "@ianvs/prettier-plugin-sort-imports": "catalog:",
     "prettier": "catalog:",
-    "prettier-plugin-tailwindcss": "^0.7.1"
+    "prettier-plugin-tailwindcss": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
