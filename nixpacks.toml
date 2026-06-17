@@ -1,0 +1,25 @@
+# Coolify / Nixpacks build configuration.
+#
+# The .ipa / .apk under apps/nextjs/public are stored in Git LFS. A normal
+# clone/checkout leaves them as small text "pointer" files, so without this the
+# build would copy pointers instead of the real binaries and the downloads on
+# the website would be broken. We make git-lfs available and materialize the
+# real objects before the app is built.
+#
+# This repo is public, so `git lfs pull` works anonymously inside the build.
+
+[phases.setup]
+nixPkgs = ["...", "git", "git-lfs"]
+
+[phases.lfs]
+dependsOn = ["install"]
+# Non-fatal: if the pull can't run (e.g. .git not present in the build context),
+# the deploy still succeeds and only the .ipa/.apk download links are affected,
+# rather than taking the whole site down.
+cmds = [
+  "git lfs install --local || true",
+  "git lfs pull || echo 'WARN: git lfs pull failed; .ipa/.apk will be served as pointer files. Ensure git-lfs is available at clone time (host: git lfs install --system).'",
+]
+
+[phases.build]
+dependsOn = ["lfs"]
