@@ -47,3 +47,6 @@ dist/
 # turbo
 .turbo
 tsconfig.tsbuildinfo
+
+# Local secrets (never commit)
+password.md
