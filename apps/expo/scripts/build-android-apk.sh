@@ -40,3 +40,12 @@ mkdir -p dist
 cp android/app/build/outputs/apk/release/app-release.apk dist/waslaeuftin.apk
 
 echo "APK created at apps/expo/dist/waslaeuftin.apk"
+
+# ---------------------------------------------------------------------------
+# Publish the APK to the Next.js public dir so it can be committed and served
+# as a direct download from the website (https://waslaeuft.in/waslaeuftin.apk).
+# ---------------------------------------------------------------------------
+NEXTJS_PUBLIC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../nextjs/public" && pwd)"
+cp dist/waslaeuftin.apk "$NEXTJS_PUBLIC_DIR/waslaeuftin.apk"
+echo "APK published to apps/nextjs/public/waslaeuftin.apk"
+echo "Commit apps/nextjs/public/waslaeuftin.apk to ship the Android download."
