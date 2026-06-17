@@ -33,7 +33,7 @@
     "@waslaeuftin/eslint-config": "workspace:*",
     "@waslaeuftin/prettier-config": "workspace:*",
     "@waslaeuftin/tsconfig": "workspace:*",
-    "dotenv-cli": "^10.0.0",
+    "dotenv-cli": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prisma": "^7.5.0",

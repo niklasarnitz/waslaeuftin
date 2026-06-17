@@ -1,11 +1,11 @@
 import { useColorScheme } from "react-native";
 import { Slot } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
+import { StatusBar } from "expo-status-bar";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
 import { persister, queryClient } from "@waslaeuftin/expo/utils/api";

@@ -30,12 +30,12 @@
     "ios": "expo run:ios"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "@ianvs/prettier-plugin-sort-imports": "catalog:",
     "@turbo/gen": "^2.5.8",
     "@waslaeuftin/prettier-config": "workspace:*",
-    "dotenv-cli": "^10.0.0",
+    "dotenv-cli": "catalog:",
     "prettier": "catalog:",
-    "prettier-plugin-tailwindcss": "^0.7.1",
+    "prettier-plugin-tailwindcss": "catalog:",
     "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
@@ -61,16 +61,31 @@
       "eslint": "^9.39.1",
       "prettier": "^3.8.1",
       "tailwindcss": "^4.2.2",
-      "typescript": "^5.9.3",
+      "typescript": "~6.0.3",
       "typescript-eslint": "^8.46.2",
-      "zod": "^4.3.6"
+      "zod": "^4.3.6",
+      "@ainias42/js-helper": "^0.9.0",
+      "@apollo/client": "^4.1.6",
+      "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+      "@radix-ui/react-icons": "^1.3.2",
+      "@types/bun": "^1.3.11",
+      "@umami/node": "^0.4.0",
+      "class-variance-authority": "^0.7.1",
+      "dotenv-cli": "^10.0.0",
+      "moment-timezone": "^0.6.1",
+      "octokit": "^5.0.5",
+      "postcss": "^8.5.6",
+      "prettier-plugin-tailwindcss": "^0.7.1",
+      "superjson": "2.2.3",
+      "tailwind-merge": "^3.3.1",
+      "xior": "^0.8.3"
     },
     "catalogs": {
       "react19": {
-        "@types/react": "19.2.14",
+        "@types/react": "~19.2.14",
         "@types/react-dom": "19.2.3",
-        "react": "19.2.4",
-        "react-dom": "19.2.4"
+        "react": "19.2.3",
+        "react-dom": "19.2.3"
       }
     }
   }

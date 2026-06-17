@@ -12,7 +12,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   updates: {
     fallbackToCacheTimeout: 0,
   },
-  newArchEnabled: true,
   assetBundlePatterns: ["**/*"],
   ios: {
     bundleIdentifier: "com.niklasarnitz.waslaeuftin",
@@ -28,7 +27,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/icon-light.png",
       backgroundColor: "#1F104A",
     },
-    edgeToEdgeEnabled: true,
   },
   // extra: {
   //   eas: {
@@ -44,6 +42,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-secure-store",
+    "expo-sqlite",
     "expo-web-browser",
     [
       "expo-splash-screen",
