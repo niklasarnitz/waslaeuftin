@@ -52,7 +52,7 @@ function RootLayoutInner() {
           }}
         />
         <Tabs.Screen
-          name="(favorites)"
+          name="(reminders)"
           options={{
             title: "Erinnerungen",
             tabBarIcon: ({ color, size }) => (
