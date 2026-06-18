@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface MovieCardProps {
   movie: GroupedMovie;
@@ -20,9 +19,6 @@ export function MovieCard({
   showDetailsLink = true,
 }: MovieCardProps) {
   const router = useRouter();
-  const primaryColor = usePrimaryColor();
-  // Semi-transparent tint for badge backgrounds
-  const primaryBg = `${primaryColor}1a`; // hex + "1a" ≈ 10% opacity
   const visibleCinemas = movie.cinemas.slice(0, cinemaLimit);
   const hiddenCinemaCount = movie.cinemas.length - visibleCinemas.length;
 
@@ -47,11 +43,8 @@ export function MovieCard({
 
   return (
     <View
-      className="bg-card border-border/40 mb-4 rounded-2xl border p-4"
-      style={{
-        borderCurve: "continuous",
-        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
-      }}
+      className="bg-card border-border/40 mb-4 rounded-2xl border p-4 shadow-sm"
+      style={{ borderCurve: "continuous" }}
     >
       {/* Two-column layout: cover | title + cinemas */}
       <View className="flex-row gap-3">
@@ -78,27 +71,15 @@ export function MovieCard({
 
           {/* Meta row */}
           <View className="mt-1.5 flex-row flex-wrap items-center gap-1.5">
-            <View
-              className="rounded-full px-2 py-0.5"
-              style={{ backgroundColor: primaryBg }}
-            >
-              <Text
-                className="text-[10px] font-semibold"
-                style={{ color: primaryColor }}
-              >
+            <View className="bg-primary/10 rounded-full px-2 py-0.5">
+              <Text className="text-primary text-[10px] font-semibold">
                 {movie.showingsCount}{" "}
                 {movie.showingsCount === 1 ? "Vorstellung" : "Vorstellungen"}
               </Text>
             </View>
             {movie.cinemas.length > 0 && !hideCinemaHeader && (
-              <View
-                className="rounded-full px-2 py-0.5"
-                style={{ backgroundColor: primaryBg }}
-              >
-                <Text
-                  className="text-[10px] font-semibold"
-                  style={{ color: primaryColor }}
-                >
+              <View className="bg-primary/10 rounded-full px-2 py-0.5">
+                <Text className="text-primary text-[10px] font-semibold">
                   {movie.cinemas.length}{" "}
                   {movie.cinemas.length === 1 ? "Kino" : "Kinos"}
                 </Text>
@@ -123,16 +104,10 @@ export function MovieCard({
             {hiddenCinemaCount > 0 && showDetailsLink && (
               <Pressable
                 onPress={openMovieDetail}
-                className="border-border/30 bg-muted/40 active:bg-muted/60 rounded-xl border border-dashed p-2.5"
-                style={{
-                  borderColor: `${primaryColor}66`,
-                  borderCurve: "continuous",
-                }}
+                className="border-primary/40 bg-muted/40 active:bg-muted/60 rounded-xl border border-dashed p-2.5"
+                style={{ borderCurve: "continuous" }}
               >
-                <Text
-                  className="text-center text-sm font-bold"
-                  style={{ color: primaryColor }}
-                >
+                <Text className="text-primary text-center text-sm font-bold">
                   {formatCinemaCount(hiddenCinemaCount)} weitere{" "}
                   {hiddenCinemaCount === 1 ? "Kino" : "Kinos"} anzeigen
                 </Text>

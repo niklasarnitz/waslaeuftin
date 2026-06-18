@@ -9,6 +9,8 @@ export interface SearchBarEvent {
 
 export interface SearchOptions {
   placeholder?: string;
+  /** Activate the search field as soon as the screen appears. */
+  autoFocus?: boolean;
   onChangeText?: (e: SearchBarEvent) => void;
   onSearchButtonPress?: (e: SearchBarEvent) => void;
   onCancelButtonPress?: (e: SearchBarEvent) => void;

@@ -1,7 +1,14 @@
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 
+import { AdaptiveGlass } from "@waslaeuftin/expo/components/glass";
 import {
   createScheduleDate,
   isSameScheduleDay,
@@ -25,6 +32,8 @@ const weekdayFormatter = new Intl.DateTimeFormat("de-DE", {
 
 export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
   const primaryColor = usePrimaryColor();
+  const isDark = useColorScheme() === "dark";
+  const glassFallback = isDark ? "#2C2C2E" : "#FFFFFF";
   // Generate next 10 days
   const days = React.useMemo(() => {
     const list: Date[] = [];
@@ -59,26 +68,37 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
             <Pressable
               key={index}
               onPress={() => handlePress(date)}
-              className="min-w-[70px] items-center justify-center rounded-xl px-4 py-2.5"
-              style={{
-                borderCurve: "continuous",
-                backgroundColor: active ? primaryColor : undefined,
-              }}
+              className="overflow-hidden rounded-[14px]"
+              style={{ borderCurve: "continuous" }}
             >
-              <Text
-                className={`text-xs font-medium ${
-                  active ? "text-white" : "text-muted-foreground"
-                }`}
+              <AdaptiveGlass
+                isInteractive
+                glassEffectStyle="regular"
+                tintColor={active ? primaryColor : undefined}
+                fallbackColor={active ? primaryColor : glassFallback}
+                style={{
+                  minWidth: 70,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                }}
               >
-                {dayName}
-              </Text>
-              <Text
-                className={`mt-0.5 text-lg font-bold ${
-                  active ? "text-white" : "text-foreground"
-                }`}
-              >
-                {dayNumberFormatter.format(date)}
-              </Text>
+                <Text
+                  className={`text-xs font-medium ${
+                    active ? "text-white" : "text-muted-foreground"
+                  }`}
+                >
+                  {dayName}
+                </Text>
+                <Text
+                  className={`mt-0.5 text-lg font-bold ${
+                    active ? "text-white" : "text-foreground"
+                  }`}
+                >
+                  {dayNumberFormatter.format(date)}
+                </Text>
+              </AdaptiveGlass>
             </Pressable>
           );
         })}

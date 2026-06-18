@@ -10,6 +10,7 @@ import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 function getFirstParam(value: string | string[] | undefined) {
@@ -63,7 +64,6 @@ export default function MovieDetailScreen() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
   useTrackMobileScreen("movie");
-  const primaryBg = `${primaryColor}1a`;
   const params = useLocalSearchParams<{
     movie?: string | string[];
     movieName?: string | string[];
@@ -77,6 +77,7 @@ export default function MovieDetailScreen() {
   const tmdbMovieId = Number(getFirstParam(params.tmdbMovieId));
   const hasTmdbId = Number.isFinite(tmdbMovieId) && tmdbMovieId > 0;
   const cachedCoords = useLocationStore((state) => state.cachedCoords);
+  const searchRadiusKm = useSettingsStore((state) => state.searchRadiusKm);
 
   // Deep-link path (notification tap / Erinnerungen): fetch the movie's nearby
   // cinemas by its TMDB id when we weren't handed a serialized movie.
@@ -86,7 +87,7 @@ export default function MovieDetailScreen() {
       {
         latitude: cachedCoords?.latitude ?? 0,
         longitude: cachedCoords?.longitude ?? 0,
-        maxDistanceKm: 25,
+        maxDistanceKm: searchRadiusKm,
         tmdbMovieId: hasTmdbId ? tmdbMovieId : 1,
       },
       { enabled: shouldFetch },
@@ -138,11 +139,8 @@ export default function MovieDetailScreen() {
       contentContainerStyle={{ padding: 16, gap: 16 }}
     >
       <View
-        className="bg-card border-border/40 rounded-2xl border p-4"
-        style={{
-          borderCurve: "continuous",
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
-        }}
+        className="bg-card border-border/40 rounded-2xl border p-4 shadow-sm"
+        style={{ borderCurve: "continuous" }}
       >
         <View className="flex-row gap-4">
           <MoviePoster coverUrl={movie.coverUrl} size="lg" />
@@ -151,26 +149,14 @@ export default function MovieDetailScreen() {
               {movie.name}
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
-              <View
-                className="rounded-full px-2 py-0.5"
-                style={{ backgroundColor: primaryBg }}
-              >
-                <Text
-                  className="text-[10px] font-semibold"
-                  style={{ color: primaryColor }}
-                >
+              <View className="bg-primary/10 rounded-full px-2 py-0.5">
+                <Text className="text-primary text-[10px] font-semibold">
                   {movie.showingsCount}{" "}
                   {movie.showingsCount === 1 ? "Vorstellung" : "Vorstellungen"}
                 </Text>
               </View>
-              <View
-                className="rounded-full px-2 py-0.5"
-                style={{ backgroundColor: primaryBg }}
-              >
-                <Text
-                  className="text-[10px] font-semibold"
-                  style={{ color: primaryColor }}
-                >
+              <View className="bg-primary/10 rounded-full px-2 py-0.5">
+                <Text className="text-primary text-[10px] font-semibold">
                   {movie.cinemas.length}{" "}
                   {movie.cinemas.length === 1 ? "Kino" : "Kinos"}
                 </Text>

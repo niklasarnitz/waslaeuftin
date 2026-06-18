@@ -2,7 +2,6 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Cinema, Showing } from "@waslaeuftin/expo/utils/group-movies";
 import { ShowingTimePill } from "@waslaeuftin/expo/components/showing-time-pill";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface CinemaShowingsCardProps {
   cinema: Cinema;
@@ -17,7 +16,6 @@ export function CinemaShowingsCard({
   hideCinemaHeader = false,
   onCinemaPress,
 }: CinemaShowingsCardProps) {
-  const primaryColor = usePrimaryColor();
   return (
     <View
       className="border-border/20 bg-muted/30 rounded-xl border p-2.5"
@@ -40,10 +38,7 @@ export function CinemaShowingsCard({
             )}
           </View>
           {cinema.distanceKm !== undefined && (
-            <Text
-              className="text-xs font-semibold"
-              style={{ color: primaryColor }}
-            >
+            <Text className="text-primary text-xs font-semibold">
               {cinema.distanceKm.toFixed(1)} km
             </Text>
           )}

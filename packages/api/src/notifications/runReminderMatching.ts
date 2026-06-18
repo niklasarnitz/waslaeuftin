@@ -36,6 +36,7 @@ export const runReminderMatching = async (
   sender: PushSender,
 ): Promise<ReminderMatchingResult> => {
   const now = new Date();
+  const fourDaysFromNow = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
 
   const reminders = await db.reminder.findMany({
     where: {
@@ -66,7 +67,7 @@ export const runReminderMatching = async (
 
     const showing = await db.showing.findFirst({
       where: {
-        dateTime: { gte: now },
+        dateTime: { gte: now, lte: fourDaysFromNow },
         cinemaId: { in: cinemaIds },
         movie: { tmdbMovieId: reminder.tmdbMovieId },
       },
