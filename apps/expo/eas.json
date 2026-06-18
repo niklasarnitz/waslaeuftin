@@ -28,6 +28,14 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "niklas@arnitz.email",
+        "ascAppId": "6781673099",
+        "ascApiKeyPath": "./credentials/asc-api-key.p8",
+        "ascApiKeyId": "LDJ3VYCZ26",
+        "ascApiKeyIssuerId": "e2a65449-a428-41ce-9083-54cd76605950"
+      }
+    }
   }
 }
