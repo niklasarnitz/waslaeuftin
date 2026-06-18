@@ -18,7 +18,7 @@
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
-    "lint:ws": "bunx sherif@latest",
+    "lint:ws": "bun x sherif@latest",
     "postinstall": "bun run lint:ws && bun run db:generate",
     "test:api": "bun --filter @waslaeuftin/api test",
     "test:providers": "bun --filter @waslaeuftin/cinema-providers test",
