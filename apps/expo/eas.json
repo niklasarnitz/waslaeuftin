@@ -35,6 +35,10 @@
         "ascApiKeyPath": "./credentials/asc-api-key.p8",
         "ascApiKeyId": "LDJ3VYCZ26",
         "ascApiKeyIssuerId": "e2a65449-a428-41ce-9083-54cd76605950"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./credentials/google-play-service-account.json",
+        "track": "internal"
       }
     }
   }

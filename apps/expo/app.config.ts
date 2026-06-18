@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   assetBundlePatterns: ["**/*"],
   ios: {
-    bundleIdentifier: "com.niklasarnitz.waslaeuftin",
+    bundleIdentifier: "com.niklasarnitz.waslaeuft.in",
     supportsTablet: true,
     icon: {
       light: "./assets/icon-light.png",
@@ -27,10 +27,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: "com.niklasarnitz.waslaeuftin",
+    package: "com.niklasarnitz.waslaeuft.in",
     adaptiveIcon: {
       foregroundImage: "./assets/icon-light.png",
-      backgroundColor: "#1F104A",
+      backgroundColor: "#E7DEFB",
     },
   },
   extra: {

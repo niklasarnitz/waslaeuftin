@@ -15,15 +15,15 @@ export default function FavoritesLayout() {
     >
       <Stack.Screen name="index" options={{ title: "Erinnerungen" }} />
       <Stack.Screen
-        name="(home,search,reminders,upcoming)/city/[citySlug]"
+        name="city/[citySlug]"
         options={{ title: "", headerLargeTitle: false }}
       />
       <Stack.Screen
-        name="(home,search,reminders,upcoming)/cinema/[cinemaSlug]"
+        name="cinema/[cinemaSlug]"
         options={{ title: "", headerLargeTitle: false }}
       />
       <Stack.Screen
-        name="(home,search,reminders,upcoming)/movie/[movieName]"
+        name="movie/[movieName]"
         options={{ title: "", headerLargeTitle: false }}
       />
     </Stack>
