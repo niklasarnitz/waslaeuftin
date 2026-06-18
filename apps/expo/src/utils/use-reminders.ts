@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { trackMobileEvent } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useDeviceStore } from "@waslaeuftin/expo/utils/device";
 
@@ -45,8 +46,20 @@ export const useReminders = () => {
   const toggle = (movie: RememberableMovie) => {
     if (!deviceId) return;
     if (reminderIds.has(movie.tmdbMovieId)) {
+      trackMobileEvent({
+        name: "mobile-reminder-toggled",
+        screen: "reminders",
+        action: "remove",
+        targetType: "movie",
+      });
       removeReminder.mutate({ deviceId, tmdbMovieId: movie.tmdbMovieId });
     } else {
+      trackMobileEvent({
+        name: "mobile-reminder-toggled",
+        screen: "upcoming",
+        action: "add",
+        targetType: "movie",
+      });
       addReminder.mutate({
         deviceId,
         tmdbMovieId: movie.tmdbMovieId,

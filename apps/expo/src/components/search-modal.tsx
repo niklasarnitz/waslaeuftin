@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
+import { trackMobileEvent } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
@@ -108,6 +109,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const inputRef = useRef<TextInput>(null);
+  const trackedQueriesRef = useRef(new Set<string>());
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -186,6 +188,26 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
 
   const hasNoResults =
     isSearching && !isLoading && searchResultsData.length === 0;
+
+  useEffect(() => {
+    const normalizedQuery = debouncedQuery.trim().toLowerCase();
+    if (
+      normalizedQuery.length < 2 ||
+      !citiesSearchQuery.data ||
+      trackedQueriesRef.current.has(normalizedQuery)
+    ) {
+      return;
+    }
+
+    trackedQueriesRef.current.add(normalizedQuery);
+    trackMobileEvent({
+      name: "mobile-search-submitted",
+      screen: "home",
+      resultCount:
+        citiesSearchQuery.data.cities.length +
+        citiesSearchQuery.data.cinemas.length,
+    });
+  }, [citiesSearchQuery.data, debouncedQuery]);
 
   // ── Colours ──
   const bgColor = isDark ? "#1C1C1E" : "#F2F2F7";

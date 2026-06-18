@@ -14,6 +14,10 @@ import { useQuery } from "@tanstack/react-query";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
+import {
+  trackMobileEvent,
+  useTrackMobileScreen,
+} from "@waslaeuftin/expo/utils/analytics";
 import { apiClient, queryClient, trpc } from "@waslaeuftin/expo/utils/api";
 import {
   createScheduleDate,
@@ -35,6 +39,7 @@ const POPULAR_CITIES = [
 export default function HomeIndex() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("home");
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
   );
@@ -58,10 +63,20 @@ export default function HomeIndex() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== Location.PermissionStatus.GRANTED) {
+        trackMobileEvent({
+          name: "mobile-location-permission-result",
+          screen: "home",
+          result: "denied",
+        });
         setLocationError(!coords); // only surface error when there's no fallback
         setLocationLoading(false);
         return;
       }
+      trackMobileEvent({
+        name: "mobile-location-permission-result",
+        screen: "home",
+        result: "granted",
+      });
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
@@ -73,6 +88,11 @@ export default function HomeIndex() {
       setCoords(fresh); // update query immediately
     } catch (err) {
       console.error("Error getting location", err);
+      trackMobileEvent({
+        name: "mobile-location-permission-result",
+        screen: "home",
+        result: "error",
+      });
       if (!coords) setLocationError(true);
     } finally {
       setLocationLoading(false);

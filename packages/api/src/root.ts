@@ -1,3 +1,4 @@
+import { analyticsRouter } from "@waslaeuftin/api/internal/router/analytics";
 import { cinemaRouter } from "@waslaeuftin/api/internal/router/cinema";
 import { citiesRouter } from "@waslaeuftin/api/internal/router/cities";
 import { devicesRouter } from "@waslaeuftin/api/internal/router/devices";
@@ -8,6 +9,7 @@ import {
 } from "@waslaeuftin/api/internal/trpc";
 
 export const appRouter = createTRPCRouter({
+  analytics: analyticsRouter,
   cities: citiesRouter,
   github: githubRouter,
   cinemas: cinemaRouter,
