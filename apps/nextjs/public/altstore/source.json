@@ -7,12 +7,12 @@
   "website": "https://waslaeuft.in",
   "tintColor": "#046495",
   "featuredApps": [
-    "com.niklasarnitz.waslaeuftin"
+    "com.niklasarnitz.waslaeuft.in"
   ],
   "apps": [
     {
       "name": "wasläuft.in",
-      "bundleIdentifier": "com.niklasarnitz.waslaeuftin",
+      "bundleIdentifier": "com.niklasarnitz.waslaeuft.in",
       "developerName": "Niklas Arnitz",
       "subtitle": "Kinoübersicht für Städte",
       "localizedDescription": "waslaeuft.in bietet eine Übersicht, welche Filme in deiner Stadt heute und zukünftig laufen.",

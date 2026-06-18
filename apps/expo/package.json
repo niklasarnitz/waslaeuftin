@@ -10,6 +10,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "build:android:apk": "bash scripts/build-android-apk.sh",
+    "build:android:playstore": "bash scripts/build-android-playstore.sh",
     "build:ios:altstore": "bash scripts/build-ios-altstore.sh",
     "build:ios:appstore": "bash scripts/build-ios-appstore.sh",
     "format": "prettier --check . --ignore-path ../../.gitignore --ignore-path .prettierignore",
