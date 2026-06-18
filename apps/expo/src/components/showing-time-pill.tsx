@@ -2,7 +2,6 @@ import { Pressable, Text } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 
 import type { Showing } from "@waslaeuftin/expo/utils/group-movies";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface ShowingTimePillProps {
   showing: Showing;
@@ -29,10 +28,6 @@ async function openBooking(url: string | null) {
 }
 
 export function ShowingTimePill({ showing }: ShowingTimePillProps) {
-  const primaryColor = usePrimaryColor();
-  const primaryBg = `${primaryColor}1a`;
-  const primaryBorder = `${primaryColor}33`;
-
   const timeStr = formatTime(showing.dateTime);
   const isOV = showing.showingAdditionalData.some((tag) =>
     ["ov", "omu"].includes(tag.toLowerCase()),
@@ -44,17 +39,10 @@ export function ShowingTimePill({ showing }: ShowingTimePillProps) {
   return (
     <Pressable
       onPress={() => openBooking(showing.bookingUrl)}
-      className="flex-row items-center gap-1.5 rounded-xl border py-2.5"
-      style={{
-        backgroundColor: primaryBg,
-        borderColor: primaryBorder,
-        paddingHorizontal: 12,
-      }}
+      className="bg-primary/10 border-primary/20 flex-row items-center gap-1.5 rounded-xl border px-3 py-2.5"
     >
       {/* Time — text-sm */}
-      <Text className="text-sm font-bold" style={{ color: primaryColor }}>
-        {timeStr}
-      </Text>
+      <Text className="text-primary text-sm font-bold">{timeStr}</Text>
       {isOV && (
         <Text className="rounded-md bg-amber-100 px-1.5 py-0.5 text-xs font-black text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
           OV

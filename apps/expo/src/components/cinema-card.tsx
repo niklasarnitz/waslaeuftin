@@ -2,7 +2,6 @@ import { Pressable, Text, View } from "react-native";
 
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { ShowingTimePill } from "@waslaeuftin/expo/components/showing-time-pill";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface Showing {
   id: number;
@@ -37,15 +36,10 @@ export function CinemaCard({
   onCinemaPress,
   hideHeader = false,
 }: CinemaCardProps) {
-  const primaryColor = usePrimaryColor();
-
   return (
     <View
-      className="bg-card border-border/40 mb-4 rounded-2xl border p-4"
-      style={{
-        borderCurve: "continuous",
-        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
-      }}
+      className="bg-card border-border/40 mb-4 rounded-2xl border p-4 shadow-sm"
+      style={{ borderCurve: "continuous" }}
     >
       {/* Header */}
       {!hideHeader && (
@@ -64,10 +58,7 @@ export function CinemaCard({
                 {cinema.city && (
                   <Text className="text-muted-foreground/60 text-xs">•</Text>
                 )}
-                <Text
-                  className="text-sm font-semibold"
-                  style={{ color: primaryColor }}
-                >
+                <Text className="text-primary text-sm font-semibold">
                   {cinema.distanceKm.toFixed(1)} km entfernt
                 </Text>
               </>

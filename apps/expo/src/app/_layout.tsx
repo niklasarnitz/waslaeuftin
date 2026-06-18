@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
-import { Tabs } from "expo-router";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "expo-router/react-navigation";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
 import { trackMobileEvent } from "@waslaeuftin/expo/utils/analytics";
@@ -33,45 +32,35 @@ function RootLayoutInner() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: primaryColor,
-        }}
-      >
-        <Tabs.Screen
-          name="(home)"
-          options={{
-            title: "Filme",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="film-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="(upcoming)"
-          options={{
-            title: "Demnächst",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="(reminders)"
-          options={{
-            title: "Erinnerungen",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons
-                name="notifications-outline"
-                size={size}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen name="(search)" options={{ href: null }} />
-      </Tabs>
+      <NativeTabs tintColor={primaryColor} minimizeBehavior="onScrollDown">
+        <NativeTabs.Trigger name="(home)">
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "film", selected: "film.fill" }}
+            md="movie"
+          />
+          <NativeTabs.Trigger.Label>Filme</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(upcoming)">
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "calendar", selected: "calendar" }}
+            md="calendar_month"
+          />
+          <NativeTabs.Trigger.Label>Demnächst</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(reminders)">
+          <NativeTabs.Trigger.Icon
+            sf={{ default: "bell", selected: "bell.fill" }}
+            md="notifications"
+          />
+          <NativeTabs.Trigger.Label>Erinnerungen</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+        {/* iOS 26 renders this as the detached liquid-glass search button on
+            the tab bar (à la Apple Music). Keep it last per platform guidance. */}
+        <NativeTabs.Trigger name="(search)" role="search">
+          <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
+          <NativeTabs.Trigger.Label>Suchen</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+      </NativeTabs>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
   );

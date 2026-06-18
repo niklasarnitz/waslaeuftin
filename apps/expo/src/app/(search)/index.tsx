@@ -22,7 +22,16 @@ export default function SearchIndex() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
   useTrackMobileScreen("search");
-  const searchInput = useSearch({ placeholder: "Stadt oder Kino suchen" });
+  const searchOptions = useMemo(
+    () => ({
+      placeholder: "Stadt oder Kino suchen",
+      autoFocus: true,
+      // Tapping the search field's cancel (×) returns to the main (Filme) tab.
+      onCancelButtonPress: () => router.navigate("/"),
+    }),
+    [router],
+  );
+  const searchInput = useSearch(searchOptions);
   const trackedQueriesRef = useRef(new Set<string>());
 
   // Debounce search input to avoid hitting database on every keystroke
@@ -144,8 +153,11 @@ export default function SearchIndex() {
               className="bg-card border-border/40 flex-row items-center justify-between rounded-xl border p-4"
               style={{ borderCurve: "continuous" }}
             >
-              <View>
-                <Text className="text-foreground text-base font-bold">
+              <View className="min-w-0 flex-1">
+                <Text
+                  numberOfLines={1}
+                  className="text-foreground text-base font-bold"
+                >
                   {item.name}
                 </Text>
                 <Text className="text-muted-foreground mt-0.5 text-xs font-medium">
@@ -153,7 +165,12 @@ export default function SearchIndex() {
                   {item._count.cinemas === 1 ? "Kino" : "Kinos"}
                 </Text>
               </View>
-              <SymbolView name="chevron.right" tintColor="#8E8E93" size={14} />
+              <SymbolView
+                name="chevron.right"
+                tintColor="#8E8E93"
+                size={14}
+                style={{ marginLeft: 8 }}
+              />
             </Pressable>
           )}
         />
@@ -180,13 +197,16 @@ export default function SearchIndex() {
                   className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
                   style={{ borderCurve: "continuous" }}
                 >
-                  <View className="flex-row items-center gap-3">
+                  <View className="min-w-0 flex-1 flex-row items-center gap-3">
                     <SymbolView
                       name="mappin.circle.fill"
                       tintColor={primaryColor}
                       size={18}
                     />
-                    <Text className="text-foreground text-base font-semibold">
+                    <Text
+                      numberOfLines={1}
+                      className="text-foreground min-w-0 flex-1 text-base font-semibold"
+                    >
                       {item.item.name}
                     </Text>
                   </View>
@@ -194,6 +214,7 @@ export default function SearchIndex() {
                     name="chevron.right"
                     tintColor="#8E8E93"
                     size={14}
+                    style={{ marginLeft: 8 }}
                   />
                 </Pressable>
               );
@@ -204,17 +225,23 @@ export default function SearchIndex() {
                   className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
                   style={{ borderCurve: "continuous" }}
                 >
-                  <View className="flex-row items-center gap-3">
+                  <View className="min-w-0 flex-1 flex-row items-center gap-3">
                     <SymbolView
                       name="film.fill"
                       tintColor={primaryColor}
                       size={18}
                     />
-                    <View>
-                      <Text className="text-foreground text-base font-semibold">
+                    <View className="min-w-0 flex-1">
+                      <Text
+                        numberOfLines={1}
+                        className="text-foreground text-base font-semibold"
+                      >
                         {item.item.name}
                       </Text>
-                      <Text className="text-muted-foreground mt-0.5 text-xs font-medium">
+                      <Text
+                        numberOfLines={1}
+                        className="text-muted-foreground mt-0.5 text-xs font-medium"
+                      >
                         in {item.item.city.name}
                       </Text>
                     </View>
@@ -223,6 +250,7 @@ export default function SearchIndex() {
                     name="chevron.right"
                     tintColor="#8E8E93"
                     size={14}
+                    style={{ marginLeft: 8 }}
                   />
                 </Pressable>
               );

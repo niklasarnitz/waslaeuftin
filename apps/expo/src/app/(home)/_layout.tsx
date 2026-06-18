@@ -3,6 +3,7 @@ import { Pressable } from "react-native";
 import Stack from "expo-router/stack";
 import { Ionicons } from "@expo/vector-icons";
 
+import { glassSupported } from "@waslaeuftin/expo/components/glass";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
@@ -23,15 +24,19 @@ export default function HomeLayout() {
           name="index"
           options={{
             title: "wasläuft.in",
-            headerRight: () => (
-              <Pressable
-                onPress={() => setSearchVisible(true)}
-                hitSlop={12}
-                style={{ padding: 4 }}
-              >
-                <Ionicons name="search" size={22} color={primaryColor} />
-              </Pressable>
-            ),
+            // On iOS 26 the tab-bar search button is the primary search entry,
+            // so the redundant header button is hidden when glass is available.
+            headerRight: glassSupported
+              ? undefined
+              : () => (
+                  <Pressable
+                    onPress={() => setSearchVisible(true)}
+                    hitSlop={12}
+                    className="p-1"
+                  >
+                    <Ionicons name="search" size={22} color={primaryColor} />
+                  </Pressable>
+                ),
           }}
         />
         <Stack.Screen

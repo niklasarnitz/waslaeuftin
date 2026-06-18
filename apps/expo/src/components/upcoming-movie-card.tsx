@@ -69,10 +69,9 @@ export function UpcomingMovieCard({
         <Pressable
           onPress={onToggleReminder}
           hitSlop={8}
-          className="flex-row items-center gap-1.5 self-start rounded-lg px-3 py-1.5"
-          style={{
-            backgroundColor: isReminded ? primaryColor : `${primaryColor}1a`,
-          }}
+          className={`flex-row items-center gap-1.5 self-start rounded-lg px-3 py-1.5 ${
+            isReminded ? "bg-primary" : "bg-primary/10"
+          }`}
         >
           <Ionicons
             name={isReminded ? "notifications" : "notifications-outline"}
@@ -80,8 +79,9 @@ export function UpcomingMovieCard({
             color={isReminded ? "#fff" : primaryColor}
           />
           <Text
-            className="text-xs font-bold"
-            style={{ color: isReminded ? "#fff" : primaryColor }}
+            className={`text-xs font-bold ${
+              isReminded ? "text-white" : "text-primary"
+            }`}
           >
             {isReminded ? "Erinnerung aktiv" : "Erinnern"}
           </Text>

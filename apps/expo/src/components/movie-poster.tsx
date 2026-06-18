@@ -6,21 +6,18 @@ interface MoviePosterProps {
   size?: "sm" | "md" | "lg";
 }
 
-const POSTER_WIDTH = {
-  sm: 48,
-  md: 100,
-  lg: 120,
+// 0.25rem spacing scale: w-12 = 48px, w-25 = 100px, w-30 = 120px
+const POSTER_WIDTH_CLASS = {
+  sm: "w-12",
+  md: "w-25",
+  lg: "w-30",
 };
 
 export function MoviePoster({ coverUrl, size = "md" }: MoviePosterProps) {
   return (
     <View
-      className="bg-muted shrink-0 overflow-hidden rounded-xl"
-      style={{
-        width: POSTER_WIDTH[size],
-        aspectRatio: 2 / 3,
-        borderCurve: "continuous",
-      }}
+      className={`bg-muted aspect-[2/3] shrink-0 overflow-hidden rounded-xl ${POSTER_WIDTH_CLASS[size]}`}
+      style={{ borderCurve: "continuous" }}
     >
       {coverUrl ? (
         <Image

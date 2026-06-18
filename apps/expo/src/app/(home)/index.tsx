@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
+import { SettingsModal } from "@waslaeuftin/expo/components/settings-modal";
 import {
   trackMobileEvent,
   useTrackMobileScreen,
@@ -25,6 +26,7 @@ import {
 } from "@waslaeuftin/expo/utils/date";
 import { useDeviceStore } from "@waslaeuftin/expo/utils/device";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 const POPULAR_CITIES = [
@@ -44,6 +46,9 @@ export default function HomeIndex() {
     normalizeToStartOfDay(new Date()),
   );
   const [searchVisible, setSearchVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+
+  const searchRadiusKm = useSettingsStore((s) => s.searchRadiusKm);
 
   // Cached coords are available immediately from the persisted store
   const cachedCoords = useLocationStore((s) => s.cachedCoords);
@@ -114,7 +119,7 @@ export default function HomeIndex() {
       {
         latitude: coords?.latitude ?? 0,
         longitude: coords?.longitude ?? 0,
-        maxDistanceKm: 25,
+        maxDistanceKm: searchRadiusKm,
         date: selectedDate,
       },
       {
@@ -135,7 +140,7 @@ export default function HomeIndex() {
         trpc.cinemas.getNearbyMovies.queryOptions({
           latitude: coords.latitude,
           longitude: coords.longitude,
-          maxDistanceKm: 25,
+          maxDistanceKm: searchRadiusKm,
           date,
         });
 
@@ -143,7 +148,7 @@ export default function HomeIndex() {
       void queryClient.prefetchQuery(prefetchOptions(dayAfterTomorrow));
     }, 0);
     return () => clearTimeout(timer);
-  }, [coords]);
+  }, [coords, searchRadiusKm]);
 
   const groupedMovies = nearbyMoviesQuery.data ?? [];
 
@@ -181,15 +186,34 @@ export default function HomeIndex() {
         <View className="gap-6 p-4">
           {/* Nearby Cinemas Section */}
           <View>
-            <View className="mb-3 flex-row items-center gap-2">
-              <SymbolView
-                name="location.fill"
-                tintColor={primaryColor}
-                size={18}
-              />
-              <Text className="text-foreground text-xl font-bold tracking-tight">
-                Filme in deiner Nähe
-              </Text>
+            <View className="mb-3 flex-row items-center justify-between gap-2">
+              <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                <SymbolView
+                  name="location.fill"
+                  tintColor={primaryColor}
+                  size={18}
+                />
+                <Text
+                  numberOfLines={1}
+                  className="text-foreground min-w-0 flex-1 text-xl font-bold tracking-tight"
+                >
+                  Filme in deiner Nähe
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setSettingsVisible(true)}
+                hitSlop={8}
+                className="bg-primary/10 flex-row items-center gap-1 rounded-full px-2.5 py-1"
+              >
+                <SymbolView
+                  name="slider.horizontal.3"
+                  tintColor={primaryColor}
+                  size={14}
+                />
+                <Text className="text-primary text-xs font-bold tabular-nums">
+                  {searchRadiusKm} km
+                </Text>
+              </Pressable>
             </View>
 
             {locationLoading ? (
@@ -210,8 +234,7 @@ export default function HomeIndex() {
                 </Text>
                 <Pressable
                   onPress={requestLocation}
-                  className="self-start rounded-lg px-4 py-2"
-                  style={{ backgroundColor: primaryColor }}
+                  className="bg-primary self-start rounded-lg px-4 py-2"
                 >
                   <Text className="text-xs font-bold text-white">
                     Standort freigeben
@@ -232,7 +255,8 @@ export default function HomeIndex() {
             ) : (
               <View className="bg-muted border-border/40 items-center justify-center rounded-xl border p-4">
                 <Text className="text-muted-foreground text-xs italic">
-                  Keine Filme oder Kinos im Umkreis von 25 km gefunden.
+                  Keine Filme oder Kinos im Umkreis von {searchRadiusKm} km
+                  gefunden.
                 </Text>
               </View>
             )}
@@ -261,10 +285,7 @@ export default function HomeIndex() {
                 className="bg-muted/40 border-border/80 active:bg-muted/60 rounded-xl border border-dashed px-4 py-2.5"
                 style={{ borderCurve: "continuous" }}
               >
-                <Text
-                  className="text-sm font-semibold"
-                  style={{ color: primaryColor }}
-                >
+                <Text className="text-primary text-sm font-semibold">
                   Alle Städte...
                 </Text>
               </Pressable>
@@ -275,6 +296,10 @@ export default function HomeIndex() {
       <SearchModal
         visible={searchVisible}
         onClose={() => setSearchVisible(false)}
+      />
+      <SettingsModal
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
       />
     </>
   );

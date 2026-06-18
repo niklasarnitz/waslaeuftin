@@ -23,29 +23,22 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
+// Shared card class for every result row.
+const ROW_CLASS =
+  "bg-card border-border mb-2 flex-row items-center justify-between rounded-xl border p-3.5";
+
 // ─── Icon wrapper ────────────────────────────────────────────────────────────
 // We deliberately avoid SymbolView in list rows because it is iOS-only and
 // renders nothing on Android.  Ionicons work on both platforms.
 function ItemIcon({
   name,
   color,
-  bg,
 }: {
   name: keyof typeof Ionicons.glyphMap;
   color: string;
-  bg: string;
 }) {
   return (
-    <View
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        backgroundColor: bg,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
+    <View className="bg-primary/10 h-9 w-9 items-center justify-center rounded-[10px]">
       <Ionicons name={name} size={18} color={color} />
     </View>
   );
@@ -56,33 +49,15 @@ function SectionHeader({
   icon,
   title,
   color,
-  muted,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   color: string;
-  muted: string;
 }) {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-        marginTop: 16,
-        marginBottom: 8,
-      }}
-    >
+    <View className="mt-4 mb-2 flex-row items-center gap-1.5">
       <Ionicons name={icon} size={13} color={color} />
-      <Text
-        style={{
-          color: muted,
-          fontSize: 12,
-          fontWeight: "600",
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-        }}
-      >
+      <Text className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
         {title}
       </Text>
     </View>
@@ -106,8 +81,9 @@ export function SearchModal({ visible, onClose }: SearchModalProps) {
 function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const isDark = useColorScheme() === "dark";
+  // Icon tint passed as a prop (not a style object) — kept as a value.
+  const mutedColor = isDark ? "#8E8E93" : "#6C6C70";
   const inputRef = useRef<TextInput>(null);
   const trackedQueriesRef = useRef(new Set<string>());
 
@@ -209,105 +185,72 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     });
   }, [citiesSearchQuery.data, debouncedQuery]);
 
-  // ── Colours ──
-  const bgColor = isDark ? "#1C1C1E" : "#F2F2F7";
-  const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
-  const textColor = isDark ? "#FFFFFF" : "#000000";
-  const mutedColor = isDark ? "#8E8E93" : "#6C6C70";
-  const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const inputBg = isDark ? "#3A3A3C" : "#E5E5EA";
-  const iconBg = `${primaryColor}20`;
-
-  // ── Card style ──
-  const cardStyle = {
-    backgroundColor: cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor,
-    padding: 14,
-    marginBottom: 8,
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-  };
-
   // ── Render a single result row ──
   const renderResultItem = ({ item }: { item: ListItem }) => {
     if (item.type === "header") {
       return (
-        <SectionHeader
-          icon={item.icon}
-          title={item.title}
-          color={primaryColor}
-          muted={mutedColor}
-        />
+        <SectionHeader icon={item.icon} title={item.title} color={primaryColor} />
       );
     }
 
     if (item.type === "city") {
       return (
-        <Pressable
-          onPress={() => go(`/city/${item.item.slug}`)}
-          style={cardStyle}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <ItemIcon name="location" color={primaryColor} bg={iconBg} />
-            <Text style={{ color: textColor, fontSize: 15, fontWeight: "600" }}>
+        <Pressable onPress={() => go(`/city/${item.item.slug}`)} className={ROW_CLASS}>
+          <View className="min-w-0 flex-1 flex-row items-center gap-3">
+            <ItemIcon name="location" color={primaryColor} />
+            <Text
+              numberOfLines={1}
+              className="text-foreground flex-1 text-[15px] font-semibold"
+            >
               {item.item.name}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={14} color={mutedColor} />
+          <Ionicons
+            name="chevron-forward"
+            size={14}
+            color={mutedColor}
+            style={{ marginLeft: 8 }}
+          />
         </Pressable>
       );
     }
 
     // cinema
     return (
-      <Pressable
-        onPress={() => go(`/cinema/${item.item.slug}`)}
-        style={cardStyle}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <ItemIcon name="videocam" color={primaryColor} bg={iconBg} />
-          <View>
-            <Text style={{ color: textColor, fontSize: 15, fontWeight: "600" }}>
+      <Pressable onPress={() => go(`/cinema/${item.item.slug}`)} className={ROW_CLASS}>
+        <View className="min-w-0 flex-1 flex-row items-center gap-3">
+          <ItemIcon name="videocam" color={primaryColor} />
+          <View className="min-w-0 flex-1">
+            <Text
+              numberOfLines={1}
+              className="text-foreground text-[15px] font-semibold"
+            >
               {item.item.name}
             </Text>
-            <Text style={{ color: mutedColor, fontSize: 12, marginTop: 1 }}>
+            <Text numberOfLines={1} className="text-muted-foreground mt-px text-xs">
               in {item.item.city.name}
             </Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={14} color={mutedColor} />
+        <Ionicons
+          name="chevron-forward"
+          size={14}
+          color={mutedColor}
+          style={{ marginLeft: 8 }}
+        />
       </Pressable>
     );
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: bgColor }}>
+    <View className="bg-background flex-1">
       {/* ── Header ── */}
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingTop: Platform.OS === "ios" ? 20 : 16,
-          paddingBottom: 12,
-          gap: 12,
-        }}
+        className={`flex-row items-center gap-3 px-4 pb-3 ${
+          Platform.OS === "ios" ? "pt-5" : "pt-4"
+        }`}
       >
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: inputBg,
-            borderRadius: 12,
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            gap: 8,
-          }}
-        >
+        <View className="bg-secondary flex-1 flex-row items-center gap-2 rounded-xl px-3 py-2.5">
           <Ionicons name="search" size={16} color={mutedColor} />
           <TextInput
             ref={inputRef}
@@ -315,63 +258,29 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
             onChangeText={setQuery}
             placeholder="Filme, Kinos oder Städte suchen"
             placeholderTextColor={mutedColor}
-            style={{
-              flex: 1,
-              fontSize: 16,
-              color: textColor,
-              padding: 0,
-            }}
+            className="text-foreground flex-1 p-0 text-base"
             returnKeyType="search"
             clearButtonMode="while-editing"
             autoCorrect={false}
           />
         </View>
         <Pressable onPress={onClose} hitSlop={8}>
-          <Text
-            style={{ color: primaryColor, fontSize: 16, fontWeight: "600" }}
-          >
-            Abbrechen
-          </Text>
+          <Text className="text-primary text-base font-semibold">Abbrechen</Text>
         </Pressable>
       </View>
 
       {/* ── Content ── */}
       {isLoading ? (
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={primaryColor} size="large" />
         </View>
       ) : hasNoResults ? (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
+        <View className="flex-1 items-center justify-center p-6">
           <Ionicons name="search-outline" size={48} color={mutedColor} />
-          <Text
-            style={{
-              color: textColor,
-              fontSize: 16,
-              fontWeight: "600",
-              marginTop: 16,
-              textAlign: "center",
-            }}
-          >
+          <Text className="text-foreground mt-4 text-center text-base font-semibold">
             Keine Ergebnisse für „{debouncedQuery}"
           </Text>
-          <Text
-            style={{
-              color: mutedColor,
-              fontSize: 13,
-              marginTop: 6,
-              textAlign: "center",
-              maxWidth: 240,
-            }}
-          >
+          <Text className="text-muted-foreground mt-1.5 max-w-[240px] text-center text-[13px]">
             Versuche einen anderen Film-, Kino- oder Städtenamen.
           </Text>
         </View>
@@ -390,58 +299,38 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 16 }}
           keyboardShouldPersistTaps="handled"
-          ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+          ItemSeparatorComponent={() => <View className="h-2" />}
           ListHeaderComponent={() => (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                marginBottom: 12,
-              }}
-            >
+            <View className="mb-3 flex-row items-center gap-1.5">
               <Ionicons name="location" size={14} color={primaryColor} />
-              <Text
-                style={{
-                  color: mutedColor,
-                  fontSize: 12,
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
+              <Text className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                 Alle Städte
               </Text>
             </View>
           )}
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => go(`/city/${item.slug}`)}
-              style={cardStyle}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-              >
-                <ItemIcon name="location" color={primaryColor} bg={iconBg} />
-                <View>
+            <Pressable onPress={() => go(`/city/${item.slug}`)} className={ROW_CLASS}>
+              <View className="min-w-0 flex-1 flex-row items-center gap-3">
+                <ItemIcon name="location" color={primaryColor} />
+                <View className="min-w-0 flex-1">
                   <Text
-                    style={{
-                      color: textColor,
-                      fontSize: 15,
-                      fontWeight: "700",
-                    }}
+                    numberOfLines={1}
+                    className="text-foreground text-[15px] font-bold"
                   >
                     {item.name}
                   </Text>
-                  <Text
-                    style={{ color: mutedColor, fontSize: 12, marginTop: 1 }}
-                  >
+                  <Text className="text-muted-foreground mt-px text-xs">
                     {item._count.cinemas}{" "}
                     {item._count.cinemas === 1 ? "Kino" : "Kinos"}
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={14} color={mutedColor} />
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={mutedColor}
+                style={{ marginLeft: 8 }}
+              />
             </Pressable>
           )}
         />

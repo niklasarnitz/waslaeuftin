@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo/ui": "~56.0.18",
     "@expo/vector-icons": "^15.0.3",
     "@legendapp/list": "^2.0.14",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -32,6 +33,7 @@
     "expo-crypto": "~56.0.4",
     "expo-dev-client": "~56.0.20",
     "expo-font": "~56.0.7",
+    "expo-glass-effect": "~56.0.4",
     "expo-haptics": "~56.0.3",
     "expo-image": "~56.0.11",
     "expo-linking": "~56.0.14",
