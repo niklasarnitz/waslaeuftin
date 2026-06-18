@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { Tabs } from "expo-router";
 import {
@@ -9,6 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
+import { trackMobileEvent } from "@waslaeuftin/expo/utils/analytics";
 import { persister, queryClient } from "@waslaeuftin/expo/utils/api";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 import {
@@ -21,6 +23,10 @@ import "@waslaeuftin/expo/styles.css";
 function RootLayoutInner() {
   const colorScheme = useColorScheme();
   const primaryColor = usePrimaryColor();
+
+  useEffect(() => {
+    trackMobileEvent({ name: "mobile-app-opened" });
+  }, []);
 
   useDeviceRegistration();
   useNotificationDeepLink();

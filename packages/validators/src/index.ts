@@ -92,6 +92,33 @@ export const UpcomingMoviesInputSchema = z.object({
   region: RegionSchema.optional(),
 });
 
+export const MobileAnalyticsScreenSchema = z.enum([
+  "home",
+  "city",
+  "cinema",
+  "movie",
+  "search",
+  "upcoming",
+  "reminders",
+]);
+
+export const MobileAnalyticsEventNameSchema = z.enum([
+  "mobile-app-opened",
+  "mobile-screen-viewed",
+  "mobile-location-permission-result",
+  "mobile-search-submitted",
+  "mobile-reminder-toggled",
+]);
+
+export const MobileAnalyticsEventInputSchema = z.object({
+  name: MobileAnalyticsEventNameSchema,
+  screen: MobileAnalyticsScreenSchema.optional(),
+  result: z.enum(["granted", "denied", "error"]).optional(),
+  action: z.enum(["add", "remove"]).optional(),
+  targetType: z.enum(["city", "cinema", "movie"]).optional(),
+  resultCount: z.number().int().nonnegative().max(500).optional(),
+});
+
 export const NearbyCinemasForMovieInputSchema = NearbyCinemasInputSchema.extend(
   {
     tmdbMovieId: z.number().int().positive(),

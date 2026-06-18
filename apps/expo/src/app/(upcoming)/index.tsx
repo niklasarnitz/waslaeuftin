@@ -4,6 +4,7 @@ import * as Location from "expo-location";
 import { useQuery } from "@tanstack/react-query";
 
 import { UpcomingMovieCard } from "@waslaeuftin/expo/components/upcoming-movie-card";
+import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
@@ -11,6 +12,7 @@ import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 
 export default function UpcomingScreen() {
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("upcoming");
   const cachedCoords = useLocationStore((state) => state.cachedCoords);
   const [region, setRegion] = useState("DE");
   const { isReminded, toggle } = useReminders();

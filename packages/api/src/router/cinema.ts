@@ -6,7 +6,10 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@waslaeuftin/api/internal/trpc";
-import { trackCinemaView } from "@waslaeuftin/api/internal/umami";
+import {
+  getAnalyticsSource,
+  trackCinemaView,
+} from "@waslaeuftin/api/internal/umami";
 import { Prisma } from "@waslaeuftin/db";
 import {
   CinemaBySlugInputSchema,
@@ -433,8 +436,12 @@ export const cinemaRouter = createTRPCRouter({
 
       const { showings: _showings, ...cinemaWithoutShowings } = cinema;
 
-      // ⚡ Bolt: Fire-and-forget analytics tracking to prevent blocking the API response
-      void trackCinemaView(cinema, ctx.ip).catch(console.error);
+      // Fire-and-forget analytics tracking to prevent blocking the API response.
+      void trackCinemaView(
+        cinema,
+        ctx.ip,
+        getAnalyticsSource(ctx.headers),
+      ).catch(console.error);
 
       return {
         ...cinemaWithoutShowings,

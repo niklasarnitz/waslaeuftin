@@ -7,6 +7,7 @@ import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
 import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
+import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
@@ -61,6 +62,7 @@ export default function MovieDetailScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("movie");
   const primaryBg = `${primaryColor}1a`;
   const params = useLocalSearchParams<{
     movie?: string | string[];

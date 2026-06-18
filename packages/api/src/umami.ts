@@ -1,10 +1,12 @@
 "server only";
 
 import { createHash } from "node:crypto";
+import type { z } from "zod";
 import { Umami } from "@umami/node";
 
 import type { Cinema, City } from "@waslaeuftin/db";
 import { ViewDeduplicator } from "@waslaeuftin/api/internal/view-deduplicator";
+import { MobileAnalyticsEventInputSchema } from "@waslaeuftin/validators";
 
 const DEFAULT_VIEW_DEDUPLICATION_WINDOW_SECONDS = 5 * 60;
 
@@ -50,9 +52,16 @@ globalForUmami.viewDeduplicator = viewDeduplicator;
 
 const hashIp = (ip: string) => createHash("sha256").update(ip).digest("hex");
 
+export const getAnalyticsSource = (headers: Headers) => {
+  const source = headers.get("x-trpc-source");
+
+  return source === "expo-react" ? "mobile" : "web";
+};
+
 export const trackCinemaView = async (
   cinema: Cinema | Cinema[],
   ip?: string,
+  source = "web",
 ) => {
   if (process.env.NODE_ENV !== "production" || !umamiClient) {
     return;
@@ -72,14 +81,18 @@ export const trackCinemaView = async (
         name: "cinema-view",
         data: {
           slug: item.slug,
-          name: item.name,
+          source,
         },
       });
     }),
   );
 };
 
-export const trackCityView = async (city: City | City[], ip?: string) => {
+export const trackCityView = async (
+  city: City | City[],
+  ip?: string,
+  source = "web",
+) => {
   if (process.env.NODE_ENV !== "production" || !umamiClient) {
     return;
   }
@@ -98,9 +111,38 @@ export const trackCityView = async (city: City | City[], ip?: string) => {
         name: "city-view",
         data: {
           slug: item.slug,
-          name: item.name,
+          source,
         },
       });
     }),
   );
+};
+
+type MobileAnalyticsEventInput = z.infer<
+  typeof MobileAnalyticsEventInputSchema
+>;
+
+export const trackMobileEvent = async (event: MobileAnalyticsEventInput) => {
+  if (process.env.NODE_ENV !== "production" || !umamiClient) {
+    return;
+  }
+
+  const input = MobileAnalyticsEventInputSchema.parse(event);
+  const url = input.screen ? `/app/${input.screen}` : "/app";
+  const data = Object.fromEntries(
+    Object.entries({
+      source: "mobile",
+      screen: input.screen,
+      result: input.result,
+      action: input.action,
+      targetType: input.targetType,
+      resultCount: input.resultCount,
+    }).filter(([, value]) => value !== undefined),
+  );
+
+  await umamiClient.track({
+    url,
+    name: input.name,
+    data,
+  });
 };

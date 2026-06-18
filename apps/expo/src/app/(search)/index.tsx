@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,13 +11,19 @@ import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
 import { useSearch } from "@waslaeuftin/expo/hooks/use-search";
+import {
+  trackMobileEvent,
+  useTrackMobileScreen,
+} from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function SearchIndex() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("search");
   const searchInput = useSearch({ placeholder: "Stadt oder Kino suchen" });
+  const trackedQueriesRef = useRef(new Set<string>());
 
   // Debounce search input to avoid hitting database on every keystroke
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -93,6 +99,25 @@ export default function SearchIndex() {
   }, [debouncedQuery, searchQuery.data]);
 
   const isLoading = searchQuery.isLoading || allCitiesQuery.isLoading;
+
+  useEffect(() => {
+    const normalizedQuery = debouncedQuery.trim().toLowerCase();
+    if (
+      normalizedQuery.length < 2 ||
+      !searchQuery.data ||
+      trackedQueriesRef.current.has(normalizedQuery)
+    ) {
+      return;
+    }
+
+    trackedQueriesRef.current.add(normalizedQuery);
+    trackMobileEvent({
+      name: "mobile-search-submitted",
+      screen: "search",
+      resultCount:
+        searchQuery.data.cities.length + searchQuery.data.cinemas.length,
+    });
+  }, [debouncedQuery, searchQuery.data]);
 
   return (
     <View className="bg-background flex-1">

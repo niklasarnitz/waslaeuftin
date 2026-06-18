@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
+import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 import { getTmdbPosterUrl } from "@waslaeuftin/expo/utils/tmdb";
 import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
@@ -10,6 +11,7 @@ import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 export default function FavoritesScreen() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("reminders");
   const { reminders, toggle } = useReminders();
 
   return (

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
+import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
@@ -13,6 +14,7 @@ import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 export default function CinemaScreen() {
   const navigation = useNavigation();
   const primaryColor = usePrimaryColor();
+  useTrackMobileScreen("cinema");
   const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
 
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
