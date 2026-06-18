@@ -1,4 +1,4 @@
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -6,6 +6,10 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    // `prisma generate` runs in CI (EAS install step) where DATABASE_URL is
+    // not present. Falling back to a placeholder keeps config-loading from
+    // throwing; generate never connects, and push/studio still pick up the
+    // real value from ../../.env locally.
+    url: process.env.DATABASE_URL ?? "postgresql://placeholder",
   },
 });

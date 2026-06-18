@@ -20,6 +20,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       light: "./assets/icon-light.png",
       dark: "./assets/icon-dark.png",
     },
+    infoPlist: {
+      // App uses only standard/exempt encryption (HTTPS) — skips the
+      // export-compliance prompt on every App Store build/submit.
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     package: "com.niklasarnitz.waslaeuftin",

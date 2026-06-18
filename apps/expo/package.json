@@ -11,6 +11,7 @@
     "ios": "expo run:ios",
     "build:android:apk": "bash scripts/build-android-apk.sh",
     "build:ios:altstore": "bash scripts/build-ios-altstore.sh",
+    "build:ios:appstore": "bash scripts/build-ios-appstore.sh",
     "format": "prettier --check . --ignore-path ../../.gitignore --ignore-path .prettierignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit"
