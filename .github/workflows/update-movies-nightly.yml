@@ -1,0 +1,30 @@
+name: Nightly Movie Updates
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-movie-updates
+  cancel-in-progress: false
+
+jobs:
+  update-movies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+      PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Run nightly movie updates
+        run: bun --filter @waslaeuftin/web update:movies:all
