@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-native";
 import * as Location from "expo-location";
 import { useQuery } from "@tanstack/react-query";
 
@@ -7,11 +7,13 @@ import { UpcomingMovieCard } from "@waslaeuftin/expo/components/upcoming-movie-c
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 
 export default function UpcomingScreen() {
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("upcoming");
   const cachedCoords = useLocationStore((state) => state.cachedCoords);
   const [region, setRegion] = useState("DE");
@@ -48,6 +50,13 @@ export default function UpcomingScreen() {
       contentContainerStyle={{ padding: 16 }}
       data={movies}
       keyExtractor={(movie) => String(movie.tmdbMovieId)}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={primaryColor}
+        />
+      }
       renderItem={({ item }) => (
         <UpcomingMovieCard
           movie={{

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,11 +9,13 @@ import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function CinemaScreen() {
   const navigation = useNavigation();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("cinema");
   const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
 
@@ -54,7 +56,16 @@ export default function CinemaScreen() {
           <ActivityIndicator color={primaryColor} size="large" />
         </View>
       ) : cinema ? (
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={primaryColor}
+            />
+          }
+        >
           {groupedMovies.length > 0 ? (
             groupedMovies.map((movie) => (
               <MovieCard

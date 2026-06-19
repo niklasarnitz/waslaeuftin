@@ -1,7 +1,10 @@
 import React, { useEffect } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import * as Linking from "expo-linking";
+import { Ionicons } from "@expo/vector-icons";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 
 import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
 import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
@@ -41,6 +44,7 @@ function toGroupedMovie(data: NearbyMovie): GroupedMovie {
     coverUrl: data.coverUrl,
     showingsCount: data.showingsCount,
     nextShowingDate: data.nextShowingDate,
+    tmdbMetadata: data.tmdbMetadata,
     cinemas: data.cinemas.map(({ cinema, showings }) => ({
       cinema: {
         id: cinema.id,
@@ -63,6 +67,7 @@ export default function MovieDetailScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("movie");
   const params = useLocalSearchParams<{
     movie?: string | string[];
@@ -137,9 +142,16 @@ export default function MovieDetailScreen() {
       contentInsetAdjustmentBehavior="automatic"
       className="bg-background flex-1"
       contentContainerStyle={{ padding: 16, gap: 16 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={primaryColor}
+        />
+      }
     >
       <View
-        className="bg-card border-border/40 rounded-2xl border p-4 shadow-sm"
+        className="bg-card border-border/40 rounded-2xl border p-4 shadow-sm gap-4"
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex-row gap-4">
@@ -149,6 +161,13 @@ export default function MovieDetailScreen() {
               {movie.name}
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
+              {movie.tmdbMetadata?.certification && (
+                <View className="bg-muted rounded-full px-2 py-0.5 border border-border">
+                  <Text className="text-muted-foreground text-[10px] font-bold uppercase">
+                    FSK {movie.tmdbMetadata.certification}
+                  </Text>
+                </View>
+              )}
               <View className="bg-primary/10 rounded-full px-2 py-0.5">
                 <Text className="text-primary text-[10px] font-semibold">
                   {movie.showingsCount}{" "}
@@ -164,6 +183,36 @@ export default function MovieDetailScreen() {
             </View>
           </View>
         </View>
+
+        {(movie.tmdbMetadata?.overview || movie.tmdbMetadata?.trailerUrl) && (
+          <>
+            <View className="bg-border/40 h-[1px]" />
+            <View className="gap-3">
+              {movie.tmdbMetadata?.trailerUrl && (
+                <View className="flex-row">
+                  <Pressable
+                    onPress={() => movie.tmdbMetadata?.trailerUrl && Linking.openURL(movie.tmdbMetadata.trailerUrl)}
+                    className="bg-primary flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl active:opacity-80"
+                    style={{ borderCurve: "continuous" }}
+                  >
+                    <Ionicons name="play" color="#FFF" size={12} />
+                    <Text className="text-white text-xs font-bold">Trailer ansehen</Text>
+                  </Pressable>
+                </View>
+              )}
+              {movie.tmdbMetadata?.overview && (
+                <View className="gap-1">
+                  <Text className="text-foreground text-sm font-bold tracking-tight">
+                    Beschreibung
+                  </Text>
+                  <Text className="text-muted-foreground text-sm leading-relaxed">
+                    {movie.tmdbMetadata.overview}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </>
+        )}
       </View>
 
       <View className="gap-3">

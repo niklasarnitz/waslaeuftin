@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,11 +9,13 @@ import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function CityScreen() {
   const navigation = useNavigation();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("city");
   const { citySlug } = useLocalSearchParams<{ citySlug: string }>();
 
@@ -63,6 +65,13 @@ export default function CityScreen() {
           contentContainerStyle={{ padding: 16 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => <MovieCard movie={item} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={primaryColor}
+            />
+          }
         />
       ) : (
         <View className="flex-1 items-center justify-center p-6">

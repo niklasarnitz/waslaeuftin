@@ -69,6 +69,8 @@ model TmdbMetadata {
   homepage         String?
   imdbId           String?
   genres           String?
+  certification    String?
+  trailerUrl       String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
   movie            Movie?

@@ -5,6 +5,9 @@ import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
 import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
 import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
+import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
+import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsResponse";
 
 type TmdbMovieSearchResponse = {
   results: TmdbMovieSearchResult[];
@@ -27,29 +30,7 @@ type TmdbMovieSearchResult = {
   genre_ids: number[];
 };
 
-type TmdbMovieDetailsResponse = {
-  id: number;
-  title: string;
-  original_title: string;
-  original_language: string;
-  overview: string | null;
-  tagline: string | null;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  release_date: string | null;
-  runtime: number | null;
-  budget: number;
-  revenue: number;
-  popularity: number;
-  vote_average: number;
-  vote_count: number;
-  status: string;
-  adult: boolean;
-  video: boolean;
-  homepage: string | null;
-  imdb_id: string | null;
-  genres: Array<{ id: number; name: string }>;
-};
+
 
 type TmdbScoredMatch = {
   tmdbMovieId: number;
@@ -191,80 +172,7 @@ const getTmdbPosterUrl = (posterPath: string) => {
   return `${normalizedBaseUrl}/${env.TMDB_POSTER_SIZE}/${normalizedPosterPath}`;
 };
 
-const fetchTmdbMovieDetails = async (
-  tmdbId: number,
-): Promise<TmdbMovieDetailsResponse> => {
-  const detailsUrl = new URL(`https://api.themoviedb.org/3/movie/${tmdbId}`);
-  detailsUrl.searchParams.set("api_key", env.TMDB_API_KEY);
-  detailsUrl.searchParams.set("language", "de-DE");
 
-  const response = await fetch(detailsUrl, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `TMDB details fetch failed (${response.status}) for movie ${tmdbId}`,
-    );
-  }
-
-  return (await response.json()) as TmdbMovieDetailsResponse;
-};
-
-const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
-  const genresString = details.genres.map((g) => g.name).join(", ");
-  const budget = BigInt(details.budget);
-  const revenue = BigInt(details.revenue);
-
-  await db.tmdbMetadata.upsert({
-    where: { tmdbId: details.id },
-    create: {
-      tmdbId: details.id,
-      title: details.title,
-      originalTitle: details.original_title,
-      originalLanguage: details.original_language,
-      overview: details.overview,
-      tagline: details.tagline,
-      posterPath: details.poster_path,
-      backdropPath: details.backdrop_path,
-      releaseDate: details.release_date,
-      runtime: details.runtime,
-      budget,
-      revenue,
-      popularity: details.popularity,
-      voteAverage: details.vote_average,
-      voteCount: details.vote_count,
-      status: details.status,
-      adult: details.adult,
-      video: details.video,
-      homepage: details.homepage,
-      imdbId: details.imdb_id,
-      genres: genresString,
-    },
-    update: {
-      title: details.title,
-      originalTitle: details.original_title,
-      originalLanguage: details.original_language,
-      overview: details.overview,
-      tagline: details.tagline,
-      posterPath: details.poster_path,
-      backdropPath: details.backdrop_path,
-      releaseDate: details.release_date,
-      runtime: details.runtime,
-      budget,
-      revenue,
-      popularity: details.popularity,
-      voteAverage: details.vote_average,
-      voteCount: details.vote_count,
-      status: details.status,
-      adult: details.adult,
-      video: details.video,
-      homepage: details.homepage,
-      imdbId: details.imdb_id,
-      genres: genresString,
-    },
-  });
-};
 
 const getUrlPathJoin = (...parts: string[]) => {
   return parts
@@ -664,17 +572,40 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
       );
     }
 
-    await db.movie.update({
-      where: { id: movie.id },
-      data: {
-        coverUrl: uploadedCover.publicUrl,
-        coverStorageKey: uploadedCover.objectKey,
-        coverConfidence: evaluation.acceptedCandidate.confidence,
-        ...(tmdbMetadataStored
-          ? { tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId }
-          : {}),
-      },
-    });
+    try {
+      await db.movie.update({
+        where: { id: movie.id },
+        data: {
+          coverUrl: uploadedCover.publicUrl,
+          coverStorageKey: uploadedCover.objectKey,
+          coverConfidence: evaluation.acceptedCandidate.confidence,
+          ...(tmdbMetadataStored
+            ? { tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId }
+            : {}),
+        },
+      });
+    } catch (error) {
+      const isUniqueConstraint =
+        error instanceof Error &&
+        (error.message.includes("Unique constraint failed") ||
+          error.message.includes("P2002"));
+
+      if (isUniqueConstraint) {
+        console.warn(
+          `[TMDB Cover Sync]   → Warning: tmdbMovieId ${evaluation.acceptedCandidate.tmdbMovieId} is already assigned. Updating cover without tmdbMovieId.`,
+        );
+        await db.movie.update({
+          where: { id: movie.id },
+          data: {
+            coverUrl: uploadedCover.publicUrl,
+            coverStorageKey: uploadedCover.objectKey,
+            coverConfidence: evaluation.acceptedCandidate.confidence,
+          },
+        });
+      } else {
+        throw error;
+      }
+    }
 
     result.updatedMovies += 1;
     console.info(

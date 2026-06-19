@@ -118,6 +118,9 @@ const getNearbyCinemasForInput = async (
               tmdbMetadata: {
                 select: {
                   popularity: true,
+                  overview: true,
+                  trailerUrl: true,
+                  certification: true,
                 },
               },
             },
@@ -183,6 +186,7 @@ const buildNearbyMovies = (nearbyCinemas: NearbyCinema[]) => {
     {
       name: string;
       coverUrl: string | null;
+      tmdbMetadata: NearbyMovie["tmdbMetadata"];
       cinemas: {
         cinema: Omit<NearbyCinema, "movies">;
         showings: NearbyShowing[];
@@ -211,6 +215,7 @@ const buildNearbyMovies = (nearbyCinemas: NearbyCinema[]) => {
         groupedMoviesMap.set(movie.name, {
           name: movie.name,
           coverUrl: movie.coverUrl,
+          tmdbMetadata: movie.tmdbMetadata,
           cinemas: [
             {
               cinema: cinemaWithoutMovies,
@@ -232,6 +237,10 @@ const buildNearbyMovies = (nearbyCinemas: NearbyCinema[]) => {
 
       if (!existingMovie.coverUrl && movie.coverUrl) {
         existingMovie.coverUrl = movie.coverUrl;
+      }
+
+      if (!existingMovie.tmdbMetadata && movie.tmdbMetadata) {
+        existingMovie.tmdbMetadata = movie.tmdbMetadata;
       }
 
       if (
@@ -291,7 +300,18 @@ const getNearbyMovieByTmdbId = async (
         orderBy: { dateTime: "asc" },
         include: {
           movie: {
-            select: { id: true, name: true, coverUrl: true },
+            select: {
+              id: true,
+              name: true,
+              coverUrl: true,
+              tmdbMetadata: {
+                select: {
+                  overview: true,
+                  trailerUrl: true,
+                  certification: true,
+                },
+              },
+            },
           },
         },
       },
@@ -302,6 +322,11 @@ const getNearbyMovieByTmdbId = async (
 
   let name: string | null = null;
   let coverUrl: string | null = null;
+  let tmdbMetadata: {
+    overview: string | null;
+    trailerUrl: string | null;
+    certification: string | null;
+  } | null = null;
   let showingsCount = 0;
   let nextShowingDate: Date | undefined;
   const groupedCinemas: {
@@ -315,6 +340,7 @@ const getNearbyMovieByTmdbId = async (
     const { showings, ...cinemaWithoutShowings } = cinema;
     name ??= showings[0]?.movie.name ?? null;
     coverUrl ??= showings[0]?.movie.coverUrl ?? null;
+    tmdbMetadata ??= showings[0]?.movie.tmdbMetadata ?? null;
     showingsCount += showings.length;
 
     const earliest = showings[0]?.dateTime;
@@ -347,6 +373,7 @@ const getNearbyMovieByTmdbId = async (
   return {
     name,
     coverUrl,
+    tmdbMetadata,
     cinemas: groupedCinemas,
     showingsCount,
     nextShowingDate,
@@ -392,6 +419,9 @@ export const cinemaRouter = createTRPCRouter({
                   tmdbMetadata: {
                     select: {
                       popularity: true,
+                      overview: true,
+                      trailerUrl: true,
+                      certification: true,
                     },
                   },
                 },

@@ -8,6 +8,7 @@ export const fetchTmdbMovieDetails = async (
   const detailsUrl = new URL(`https://api.themoviedb.org/3/movie/${tmdbId}`);
   detailsUrl.searchParams.set("api_key", env.TMDB_API_KEY);
   detailsUrl.searchParams.set("language", "de-DE");
+  detailsUrl.searchParams.set("append_to_response", "videos,release_dates");
 
   const response = await fetch(detailsUrl, {
     headers: { Accept: "application/json" },
