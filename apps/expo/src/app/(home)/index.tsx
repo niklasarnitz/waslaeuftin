@@ -51,7 +51,8 @@ export default function HomeIndex() {
   );
   const [searchVisible, setSearchVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [viewMode, setViewMode] = useState<"nearby" | "favorites">("nearby");
+  const viewMode = useSettingsStore((s) => s.lastViewMode);
+  const setViewMode = useSettingsStore((s) => s.setLastViewMode);
 
   const searchRadiusKm = useSettingsStore((s) => s.searchRadiusKm);
 
@@ -275,7 +276,7 @@ export default function HomeIndex() {
                   className="text-foreground min-w-0 flex-1 text-xl font-bold tracking-tight"
                 >
                   {isFavoritesMode
-                    ? "Deine Lieblingskinos"
+                    ? "In deinen Lieblingskinos"
                     : "Filme in deiner Nähe"}
                 </Text>
               </View>

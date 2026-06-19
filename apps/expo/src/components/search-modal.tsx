@@ -118,7 +118,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
-  const go = (path: `/city/${string}` | `/cinema/${string}`) => {
+  const go = (path: any) => {
     onClose();
     setTimeout(() => router.push(path), 200);
   };
@@ -225,7 +225,12 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     // cinema
     return (
       <Pressable
-        onPress={() => go(`/cinema/${item.item.slug}`)}
+        onPress={() =>
+          go({
+            pathname: "/cinema/[cinemaSlug]",
+            params: { cinemaSlug: item.item.slug, name: item.item.name },
+          })
+        }
         className={ROW_CLASS}
       >
         <View className="min-w-0 flex-1 flex-row items-center gap-3">

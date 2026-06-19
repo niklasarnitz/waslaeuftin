@@ -26,7 +26,10 @@ export default function CinemaScreen() {
   const primaryColor = usePrimaryColor();
   const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("cinema");
-  const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
+  const { cinemaSlug, name } = useLocalSearchParams<{
+    cinemaSlug: string;
+    name?: string;
+  }>();
 
   const favoriteCinemaIds = useFavoritesStore((s) => s.favoriteCinemaIds);
   const toggleFavoriteCinema = useFavoritesStore((s) => s.toggleFavoriteCinema);
@@ -45,12 +48,15 @@ export default function CinemaScreen() {
   const cinema = cinemaQuery.data;
   const isFavorite = cinema ? favoriteCinemaIds.includes(cinema.id) : false;
 
-  // Set title: immediately from the slug, then from real data, and add favorite button
+  // Set title: immediately from name / slug, then from real data, and add favorite button
   useEffect(() => {
-    const initial = cinemaSlug
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
+    if (!cinemaSlug) return;
+    const initial =
+      name ??
+      cinemaSlug
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
     navigation.setOptions({
       title: cinema?.name ?? initial,
       headerRight: cinema
@@ -58,7 +64,7 @@ export default function CinemaScreen() {
             <Pressable
               onPress={() => toggleFavoriteCinema(cinema.id)}
               hitSlop={12}
-              style={{ marginRight: 8 }}
+              className="p-1"
             >
               <SymbolView
                 name={isFavorite ? "star.fill" : "star"}
@@ -72,6 +78,7 @@ export default function CinemaScreen() {
   }, [
     cinema,
     cinemaSlug,
+    name,
     navigation,
     isFavorite,
     toggleFavoriteCinema,
