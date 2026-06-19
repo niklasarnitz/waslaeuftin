@@ -15,6 +15,8 @@ export const DEFAULT_SEARCH_RADIUS_KM = 25;
 interface SettingsState {
   searchRadiusKm: number;
   setSearchRadiusKm: (km: number) => void;
+  lastViewMode: "nearby" | "favorites";
+  setLastViewMode: (mode: "nearby" | "favorites") => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -22,6 +24,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       searchRadiusKm: DEFAULT_SEARCH_RADIUS_KM,
       setSearchRadiusKm: (km) => set({ searchRadiusKm: km }),
+      lastViewMode: "nearby",
+      setLastViewMode: (mode) => set({ lastViewMode: mode }),
     }),
     {
       name: "waslaeuftin_settings",

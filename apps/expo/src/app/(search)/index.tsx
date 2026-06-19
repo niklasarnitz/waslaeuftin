@@ -64,8 +64,11 @@ export default function SearchIndex() {
     router.push(`/city/${citySlug}`);
   };
 
-  const handleCinemaPress = (cinemaSlug: string) => {
-    router.push(`/cinema/${cinemaSlug}`);
+  const handleCinemaPress = (cinemaSlug: string, name?: string) => {
+    router.push({
+      pathname: "/cinema/[cinemaSlug]",
+      params: { cinemaSlug, name },
+    });
   };
 
   interface SearchCityItem {
@@ -238,7 +241,9 @@ export default function SearchIndex() {
             } else {
               return (
                 <Pressable
-                  onPress={() => handleCinemaPress(item.item.slug)}
+                  onPress={() =>
+                    handleCinemaPress(item.item.slug, item.item.name)
+                  }
                   className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
                   style={{ borderCurve: "continuous" }}
                 >

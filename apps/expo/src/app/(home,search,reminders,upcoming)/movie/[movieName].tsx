@@ -236,7 +236,12 @@ export default function MovieDetailScreen() {
             key={`${cinema.slug}-${index}`}
             cinema={cinema}
             showings={showings}
-            onCinemaPress={() => router.push(`/cinema/${cinema.slug}`)}
+            onCinemaPress={() =>
+              router.push({
+                pathname: "/cinema/[cinemaSlug]",
+                params: { cinemaSlug: cinema.slug, name: cinema.name },
+              })
+            }
           />
         ))}
       </View>

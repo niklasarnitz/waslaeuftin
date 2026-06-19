@@ -97,7 +97,12 @@ export function MovieCard({
                   cinema={cinema}
                   showings={showings}
                   hideCinemaHeader={hideCinemaHeader}
-                  onCinemaPress={() => router.push(`/cinema/${cinema.slug}`)}
+                  onCinemaPress={() =>
+                    router.push({
+                      pathname: "/cinema/[cinemaSlug]",
+                      params: { cinemaSlug: cinema.slug, name: cinema.name },
+                    })
+                  }
                 />
               );
             })}
