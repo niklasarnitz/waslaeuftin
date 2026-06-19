@@ -1,9 +1,10 @@
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 import { getTmdbPosterUrl } from "@waslaeuftin/expo/utils/tmdb";
 import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
@@ -11,6 +12,7 @@ import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 export default function FavoritesScreen() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("reminders");
   const { reminders, toggle } = useReminders();
 
@@ -21,6 +23,13 @@ export default function FavoritesScreen() {
       contentContainerStyle={{ padding: 16 }}
       data={reminders}
       keyExtractor={(reminder) => String(reminder.tmdbMovieId)}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={primaryColor}
+        />
+      }
       renderItem={({ item }) => (
         <Pressable
           onPress={() =>

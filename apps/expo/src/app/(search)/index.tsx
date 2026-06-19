@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   Text,
   View,
 } from "react-native";
@@ -16,11 +17,13 @@ import {
   useTrackMobileScreen,
 } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function SearchIndex() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("search");
   const searchOptions = useMemo(
     () => ({
@@ -141,6 +144,13 @@ export default function SearchIndex() {
           data={allCitiesQuery.data ?? []}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={primaryColor}
+            />
+          }
           ItemSeparatorComponent={() => <View className="h-2" />}
           ListHeaderComponent={() => (
             <Text className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
@@ -181,6 +191,13 @@ export default function SearchIndex() {
           data={searchResultsData}
           keyExtractor={(item, index) => `${item.type}-${index}`}
           contentContainerStyle={{ padding: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={primaryColor}
+            />
+          }
           renderItem={({ item }) => {
             if (item.type === "header") {
               return (

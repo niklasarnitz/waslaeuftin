@@ -20,4 +20,20 @@ export type TmdbMovieDetailsResponse = {
   homepage: string | null;
   imdb_id: string | null;
   genres: Array<{ id: number; name: string }>;
+  videos?: {
+    results: Array<{
+      key: string;
+      site: string;
+      type: string;
+      official: boolean;
+    }>;
+  };
+  release_dates?: {
+    results: Array<{
+      iso_3166_1: string;
+      release_dates: Array<{
+        certification: string;
+      }>;
+    }>;
+  };
 };

@@ -5,10 +5,18 @@ export interface Showing {
   showingAdditionalData: string[];
 }
 
+export interface TmdbMetadata {
+  popularity?: number | null;
+  overview?: string | null;
+  trailerUrl?: string | null;
+  certification?: string | null;
+}
+
 export interface Movie {
   name: string;
   coverUrl: string | null;
   showings: Showing[];
+  tmdbMetadata?: TmdbMetadata | null;
 }
 
 export interface Cinema {
@@ -30,6 +38,7 @@ export interface GroupedMovie {
   cinemas: GroupedMovieCinemaEntry[];
   showingsCount: number;
   nextShowingDate?: Date;
+  tmdbMetadata?: TmdbMetadata | null;
 }
 
 export function groupCinemasByMovie(
@@ -48,6 +57,7 @@ export function groupCinemasByMovie(
           coverUrl: movie.coverUrl,
           cinemas: [],
           showingsCount: 0,
+          tmdbMetadata: movie.tmdbMetadata,
         };
         groupedMap.set(movie.name, grouped);
       }

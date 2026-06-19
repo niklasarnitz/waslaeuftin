@@ -6,6 +6,32 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
   const budget = BigInt(details.budget);
   const revenue = BigInt(details.revenue);
 
+  // Extract trailer URL
+  const videoResults = details.videos?.results ?? [];
+  const trailerVideo =
+    videoResults.find((v) => v.type === "Trailer" && v.official) ??
+    videoResults.find((v) => v.type === "Trailer") ??
+    videoResults.find((v) => v.site === "YouTube" || v.site === "Vimeo");
+
+  let trailerUrl: string | null = null;
+  if (trailerVideo) {
+    if (trailerVideo.site === "YouTube") {
+      trailerUrl = `https://www.youtube.com/watch?v=${trailerVideo.key}`;
+    } else if (trailerVideo.site === "Vimeo") {
+      trailerUrl = `https://vimeo.com/${trailerVideo.key}`;
+    }
+  }
+
+  // Extract age rating certification (DE first, then fallback to US)
+  const releaseResults = details.release_dates?.results ?? [];
+  const deRelease = releaseResults.find((r) => r.iso_3166_1 === "DE");
+  let certification = deRelease?.release_dates.find((d) => d.certification)?.certification ?? null;
+
+  if (!certification) {
+    const usRelease = releaseResults.find((r) => r.iso_3166_1 === "US");
+    certification = usRelease?.release_dates.find((d) => d.certification)?.certification ?? null;
+  }
+
   await db.tmdbMetadata.upsert({
     where: { tmdbId: details.id },
     create: {
@@ -30,6 +56,8 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
       homepage: details.homepage,
       imdbId: details.imdb_id,
       genres: genresString,
+      certification,
+      trailerUrl,
     },
     update: {
       title: details.title,
@@ -52,6 +80,8 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
       homepage: details.homepage,
       imdbId: details.imdb_id,
       genres: genresString,
+      certification,
+      trailerUrl,
     },
   });
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -20,6 +21,7 @@ import {
   useTrackMobileScreen,
 } from "@waslaeuftin/expo/utils/analytics";
 import { apiClient, queryClient, trpc } from "@waslaeuftin/expo/utils/api";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import {
   createScheduleDate,
   normalizeToStartOfDay,
@@ -41,6 +43,7 @@ const POPULAR_CITIES = [
 export default function HomeIndex() {
   const router = useRouter();
   const primaryColor = usePrimaryColor();
+  const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("home");
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
@@ -179,6 +182,13 @@ export default function HomeIndex() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         className="bg-background flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+          />
+        }
       >
         {/* Date Picker Bar */}
         <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
