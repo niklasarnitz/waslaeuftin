@@ -17,6 +17,14 @@ jobs:
       contents: read
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+      MINIO_ENDPOINT: ${{ vars.MINIO_ENDPOINT }}
+      MINIO_REGION: ${{ vars.MINIO_REGION }}
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      MINIO_USE_SSL: ${{ vars.MINIO_USE_SSL }}
+      MINIO_BUCKET: ${{ vars.MINIO_BUCKET }}
+      MINIO_PUBLIC_BASE_URL: ${{ vars.MINIO_PUBLIC_BASE_URL }}
       PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
       PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
     steps:
