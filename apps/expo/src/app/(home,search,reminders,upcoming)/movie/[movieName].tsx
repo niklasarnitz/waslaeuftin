@@ -1,10 +1,16 @@
 import React, { useEffect } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import * as Linking from "expo-linking";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
+import { useQuery } from "@tanstack/react-query";
 
 import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
 import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
@@ -13,6 +19,7 @@ import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
@@ -151,7 +158,7 @@ export default function MovieDetailScreen() {
       }
     >
       <View
-        className="bg-card border-border/40 rounded-2xl border p-4 shadow-sm gap-4"
+        className="bg-card border-border/40 gap-4 rounded-2xl border p-4 shadow-sm"
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex-row gap-4">
@@ -162,7 +169,7 @@ export default function MovieDetailScreen() {
             </Text>
             <View className="flex-row flex-wrap gap-1.5">
               {movie.tmdbMetadata?.certification && (
-                <View className="bg-muted rounded-full px-2 py-0.5 border border-border">
+                <View className="bg-muted border-border rounded-full border px-2 py-0.5">
                   <Text className="text-muted-foreground text-[10px] font-bold uppercase">
                     FSK {movie.tmdbMetadata.certification}
                   </Text>
@@ -191,12 +198,17 @@ export default function MovieDetailScreen() {
               {movie.tmdbMetadata?.trailerUrl && (
                 <View className="flex-row">
                   <Pressable
-                    onPress={() => movie.tmdbMetadata?.trailerUrl && Linking.openURL(movie.tmdbMetadata.trailerUrl)}
-                    className="bg-primary flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl active:opacity-80"
+                    onPress={() =>
+                      movie.tmdbMetadata?.trailerUrl &&
+                      Linking.openURL(movie.tmdbMetadata.trailerUrl)
+                    }
+                    className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-1.5 active:opacity-80"
                     style={{ borderCurve: "continuous" }}
                   >
                     <Ionicons name="play" color="#FFF" size={12} />
-                    <Text className="text-white text-xs font-bold">Trailer ansehen</Text>
+                    <Text className="text-xs font-bold text-white">
+                      Trailer ansehen
+                    </Text>
                   </Pressable>
                 </View>
               )}

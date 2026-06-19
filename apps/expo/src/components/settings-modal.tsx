@@ -33,7 +33,9 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
   );
 }
 
-function SettingsModalContent({ onClose }: Pick<SettingsModalProps, "onClose">) {
+function SettingsModalContent({
+  onClose,
+}: Pick<SettingsModalProps, "onClose">) {
   const primaryColor = usePrimaryColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";

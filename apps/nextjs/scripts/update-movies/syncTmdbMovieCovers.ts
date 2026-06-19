@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto";
 import { Client as MinioClient } from "minio";
 
+import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsResponse";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
+import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
 import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
-import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
-import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsResponse";
 
 type TmdbMovieSearchResponse = {
   results: TmdbMovieSearchResult[];
@@ -29,8 +29,6 @@ type TmdbMovieSearchResult = {
   video: boolean;
   genre_ids: number[];
 };
-
-
 
 type TmdbScoredMatch = {
   tmdbMovieId: number;
@@ -171,8 +169,6 @@ const getTmdbPosterUrl = (posterPath: string) => {
 
   return `${normalizedBaseUrl}/${env.TMDB_POSTER_SIZE}/${normalizedPosterPath}`;
 };
-
-
 
 const getUrlPathJoin = (...parts: string[]) => {
   return parts

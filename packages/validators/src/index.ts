@@ -20,6 +20,11 @@ export const NearbyCinemasInputSchema = z.object({
   date: z.coerce.date().optional(),
 });
 
+export const FavoriteMoviesInputSchema = z.object({
+  cinemaIds: z.array(z.number().int()),
+  date: z.coerce.date().optional(),
+});
+
 export const CitySlugSchema = z.string();
 export const CityQuerySchema = z.string().optional();
 export const CitySearchSchema = z.string();

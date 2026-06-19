@@ -25,11 +25,15 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
   // Extract age rating certification (DE first, then fallback to US)
   const releaseResults = details.release_dates?.results ?? [];
   const deRelease = releaseResults.find((r) => r.iso_3166_1 === "DE");
-  let certification = deRelease?.release_dates.find((d) => d.certification)?.certification ?? null;
+  let certification =
+    deRelease?.release_dates.find((d) => d.certification)?.certification ??
+    null;
 
   if (!certification) {
     const usRelease = releaseResults.find((r) => r.iso_3166_1 === "US");
-    certification = usRelease?.release_dates.find((d) => d.certification)?.certification ?? null;
+    certification =
+      usRelease?.release_dates.find((d) => d.certification)?.certification ??
+      null;
   }
 
   await db.tmdbMetadata.upsert({

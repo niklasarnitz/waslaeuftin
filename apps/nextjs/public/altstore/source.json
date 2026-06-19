@@ -6,9 +6,7 @@
   "iconURL": "https://waslaeuft.in/altstore/icon.png",
   "website": "https://waslaeuft.in",
   "tintColor": "#046495",
-  "featuredApps": [
-    "com.niklasarnitz.waslaeuft.in"
-  ],
+  "featuredApps": ["com.niklasarnitz.waslaeuft.in"],
   "apps": [
     {
       "name": "wasläuft.in",

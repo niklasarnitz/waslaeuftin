@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
@@ -8,6 +16,7 @@ import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
+import { useFavoritesStore } from "@waslaeuftin/expo/utils/favorites";
 import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
 import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
@@ -18,6 +27,9 @@ export default function CinemaScreen() {
   const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("cinema");
   const { cinemaSlug } = useLocalSearchParams<{ cinemaSlug: string }>();
+
+  const favoriteCinemaIds = useFavoritesStore((s) => s.favoriteCinemaIds);
+  const toggleFavoriteCinema = useFavoritesStore((s) => s.toggleFavoriteCinema);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
@@ -31,15 +43,40 @@ export default function CinemaScreen() {
   );
 
   const cinema = cinemaQuery.data;
+  const isFavorite = cinema ? favoriteCinemaIds.includes(cinema.id) : false;
 
-  // Set title: immediately from the slug, then from real data
+  // Set title: immediately from the slug, then from real data, and add favorite button
   useEffect(() => {
     const initial = cinemaSlug
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
-    navigation.setOptions({ title: cinema?.name ?? initial });
-  }, [cinema?.name, cinemaSlug, navigation]);
+    navigation.setOptions({
+      title: cinema?.name ?? initial,
+      headerRight: cinema
+        ? () => (
+            <Pressable
+              onPress={() => toggleFavoriteCinema(cinema.id)}
+              hitSlop={12}
+              style={{ marginRight: 8 }}
+            >
+              <SymbolView
+                name={isFavorite ? "star.fill" : "star"}
+                tintColor={primaryColor}
+                size={22}
+              />
+            </Pressable>
+          )
+        : undefined,
+    });
+  }, [
+    cinema,
+    cinemaSlug,
+    navigation,
+    isFavorite,
+    toggleFavoriteCinema,
+    primaryColor,
+  ]);
 
   const groupedMovies = React.useMemo(() => {
     return cinema ? groupCinemasByMovie([cinema]) : [];
