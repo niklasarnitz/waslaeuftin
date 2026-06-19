@@ -189,13 +189,20 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   const renderResultItem = ({ item }: { item: ListItem }) => {
     if (item.type === "header") {
       return (
-        <SectionHeader icon={item.icon} title={item.title} color={primaryColor} />
+        <SectionHeader
+          icon={item.icon}
+          title={item.title}
+          color={primaryColor}
+        />
       );
     }
 
     if (item.type === "city") {
       return (
-        <Pressable onPress={() => go(`/city/${item.item.slug}`)} className={ROW_CLASS}>
+        <Pressable
+          onPress={() => go(`/city/${item.item.slug}`)}
+          className={ROW_CLASS}
+        >
           <View className="min-w-0 flex-1 flex-row items-center gap-3">
             <ItemIcon name="location" color={primaryColor} />
             <Text
@@ -217,7 +224,10 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
 
     // cinema
     return (
-      <Pressable onPress={() => go(`/cinema/${item.item.slug}`)} className={ROW_CLASS}>
+      <Pressable
+        onPress={() => go(`/cinema/${item.item.slug}`)}
+        className={ROW_CLASS}
+      >
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
           <ItemIcon name="videocam" color={primaryColor} />
           <View className="min-w-0 flex-1">
@@ -227,7 +237,10 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
             >
               {item.item.name}
             </Text>
-            <Text numberOfLines={1} className="text-muted-foreground mt-px text-xs">
+            <Text
+              numberOfLines={1}
+              className="text-muted-foreground mt-px text-xs"
+            >
               in {item.item.city.name}
             </Text>
           </View>
@@ -265,7 +278,9 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
           />
         </View>
         <Pressable onPress={onClose} hitSlop={8}>
-          <Text className="text-primary text-base font-semibold">Abbrechen</Text>
+          <Text className="text-primary text-base font-semibold">
+            Abbrechen
+          </Text>
         </Pressable>
       </View>
 
@@ -309,7 +324,10 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
             </View>
           )}
           renderItem={({ item }) => (
-            <Pressable onPress={() => go(`/city/${item.slug}`)} className={ROW_CLASS}>
+            <Pressable
+              onPress={() => go(`/city/${item.slug}`)}
+              className={ROW_CLASS}
+            >
               <View className="min-w-0 flex-1 flex-row items-center gap-3">
                 <ItemIcon name="location" color={primaryColor} />
                 <View className="min-w-0 flex-1">

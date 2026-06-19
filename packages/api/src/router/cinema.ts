@@ -13,6 +13,7 @@ import {
 import { Prisma } from "@waslaeuftin/db";
 import {
   CinemaBySlugInputSchema,
+  FavoriteMoviesInputSchema,
   NearbyCinemasForMovieInputSchema,
   NearbyCinemasInputSchema,
 } from "@waslaeuftin/validators";
@@ -495,5 +496,99 @@ export const cinemaRouter = createTRPCRouter({
     .input(NearbyCinemasForMovieInputSchema)
     .query(async ({ input, ctx }) => {
       return getNearbyMovieByTmdbId(input, ctx.db);
+    }),
+  getFavoriteMovies: publicProcedure
+    .input(FavoriteMoviesInputSchema)
+    .query(async ({ input, ctx }) => {
+      const { cinemaIds, date } = input;
+      if (cinemaIds.length === 0) {
+        return [];
+      }
+
+      const scheduleDate = getScheduleDate(date);
+      const todayStart = scheduleDate.clone().startOf("day").toDate();
+      const endDate = scheduleDate.clone().endOf("day").toDate();
+
+      const cinemas = await ctx.db.cinema.findMany({
+        where: {
+          id: { in: cinemaIds },
+        },
+        include: {
+          city: {
+            select: {
+              name: true,
+              slug: true,
+            },
+          },
+          showings: {
+            where: {
+              dateTime: {
+                gte: todayStart,
+                lte: endDate,
+              },
+            },
+            orderBy: {
+              dateTime: "asc",
+            },
+            include: {
+              movie: {
+                select: {
+                  id: true,
+                  name: true,
+                  coverUrl: true,
+                  tmdbMetadata: {
+                    select: {
+                      popularity: true,
+                      overview: true,
+                      trailerUrl: true,
+                      certification: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const mappedCinemas = cinemas.map((cinema) => {
+        const movieMap: Record<
+          number,
+          {
+            name: string;
+            coverUrl: string | null;
+            tmdbMetadata: { popularity: number | null } | null;
+            showings: typeof cinema.showings;
+          }
+        > = {};
+
+        for (const showing of cinema.showings) {
+          const existing = movieMap[showing.movie.id];
+          if (existing !== undefined) {
+            existing.showings.push(showing);
+          } else {
+            movieMap[showing.movie.id] = {
+              name: showing.movie.name,
+              coverUrl: showing.movie.coverUrl,
+              tmdbMetadata: showing.movie.tmdbMetadata,
+              showings: [showing],
+            };
+          }
+        }
+
+        const movies = Object.values(movieMap).sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+
+        const { showings: _showings, ...cinemaWithoutShowings } = cinema;
+
+        return {
+          ...cinemaWithoutShowings,
+          movies,
+          distanceKm: 0,
+        };
+      });
+
+      return buildNearbyMovies(mappedCinemas);
     }),
 });

@@ -1,9 +1,6 @@
 import type { ColorValue, ViewProps } from "react-native";
 import { View } from "react-native";
-import {
-  GlassView,
-  isLiquidGlassAvailable,
-} from "expo-glass-effect";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
 // Resolved once per app load — depends only on OS / build capabilities.
 const glassSupported = isLiquidGlassAvailable();
