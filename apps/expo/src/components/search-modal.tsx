@@ -118,8 +118,9 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
-  const go = (path: any) => {
+  const go = (path: string) => {
     onClose();
+    // @ts-expect-error - Expo router typings can be overly strict
     setTimeout(() => router.push(path), 200);
   };
 
