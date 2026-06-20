@@ -1,3 +1,4 @@
+import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import type { Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
