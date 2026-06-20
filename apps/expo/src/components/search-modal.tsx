@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import type { Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
@@ -118,9 +119,8 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
-  const go = (path: string) => {
+  const go = (path: Href<string>) => {
     onClose();
-    // @ts-expect-error - Expo router typings can be overly strict
     setTimeout(() => router.push(path), 200);
   };
 
