@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -8,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
@@ -66,11 +68,19 @@ export default function CinemaScreen() {
               hitSlop={12}
               className="p-1"
             >
-              <SymbolView
-                name={isFavorite ? "star.fill" : "star"}
-                tintColor={primaryColor}
-                size={22}
-              />
+              {Platform.OS === "ios" ? (
+                <SymbolView
+                  name={isFavorite ? "star.fill" : "star"}
+                  tintColor={primaryColor}
+                  size={22}
+                />
+              ) : (
+                <Ionicons
+                  name={isFavorite ? "star" : "star-outline"}
+                  color={primaryColor}
+                  size={22}
+                />
+              )}
             </Pressable>
           )
         : undefined,
