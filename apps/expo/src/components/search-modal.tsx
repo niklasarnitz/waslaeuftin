@@ -1,3 +1,4 @@
+import type { Href } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -118,7 +119,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
-  const go = (path: any) => {
+  const go = (path: Href<string>) => {
     onClose();
     setTimeout(() => router.push(path), 200);
   };
