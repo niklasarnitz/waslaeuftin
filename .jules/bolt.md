@@ -1,0 +1,3 @@
+## 2024-06-27 - O(N^2) Bottleneck in React Render Loops via indexOf
+**Learning:** In React render loops, computing indices using `.indexOf()` on concatenated arrays creates an O(N^2) bottleneck. When looping through partitions of an array (e.g., `.filter(typeA)` followed by `.filter(typeB)`), finding the flat index from the original array is slow.
+**Action:** Always compute the flat index in O(1) time directly using the map's current index and the length of the preceding arrays (e.g., `flatIndex = prevArray.length + index`), completely eliminating the overhead of `.indexOf()` calls within render cycles.
