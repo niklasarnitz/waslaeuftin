@@ -32,6 +32,7 @@
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "catalog:",
     "@turbo/gen": "^2.5.8",
+    "@types/react-native": "^0.73.0",
     "@waslaeuftin/prettier-config": "workspace:*",
     "dotenv-cli": "catalog:",
     "prettier": "catalog:",

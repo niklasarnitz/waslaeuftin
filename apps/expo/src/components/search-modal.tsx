@@ -118,7 +118,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
-  const go = (path: any) => {
+  const go = (path: Parameters<typeof router.push>[0]) => {
     onClose();
     setTimeout(() => router.push(path), 200);
   };
