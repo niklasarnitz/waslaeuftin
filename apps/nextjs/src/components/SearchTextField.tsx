@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useQueryState } from "nuqs";
 
@@ -12,6 +12,8 @@ export const SearchTextField = () => {
     defaultValue: "",
   });
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div className="group relative flex w-full flex-1 flex-row items-center">
       <Search
@@ -19,6 +21,7 @@ export const SearchTextField = () => {
         className="text-sidebar-foreground/60 group-focus-within:text-primary pointer-events-none absolute left-3 h-4 w-4 transition-colors"
       />
       <Input
+        ref={inputRef}
         value={searchQuery ?? undefined}
         onChange={(event) => {
           void setSearchQuery(event.target.value);
@@ -32,6 +35,7 @@ export const SearchTextField = () => {
           type="button"
           onClick={() => {
             void setSearchQuery("");
+            inputRef.current?.focus();
           }}
           className="text-sidebar-foreground/60 hover:text-sidebar-foreground focus-visible:ring-ring absolute right-3 inline-flex h-5 w-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
           aria-label="Suche zurücksetzen"

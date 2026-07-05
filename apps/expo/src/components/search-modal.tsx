@@ -118,6 +118,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
   );
 
   // Navigation helpers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   const go = (path: any) => {
     onClose();
     setTimeout(() => router.push(path), 200);

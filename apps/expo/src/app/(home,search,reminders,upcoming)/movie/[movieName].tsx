@@ -191,10 +191,12 @@ export default function MovieDetailScreen() {
           </View>
         </View>
 
+        {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
         {(movie.tmdbMetadata?.overview || movie.tmdbMetadata?.trailerUrl) && (
           <>
             <View className="bg-border/40 h-[1px]" />
             <View className="gap-3">
+              {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
               {movie.tmdbMetadata?.trailerUrl && (
                 <View className="flex-row">
                   <Pressable
@@ -212,6 +214,7 @@ export default function MovieDetailScreen() {
                   </Pressable>
                 </View>
               )}
+              {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
               {movie.tmdbMetadata?.overview && (
                 <View className="gap-1">
                   <Text className="text-foreground text-sm font-bold tracking-tight">
