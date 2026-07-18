@@ -198,11 +198,12 @@ export default function MovieDetailScreen() {
               {movie.tmdbMetadata.trailerUrl && (
                 <View className="flex-row">
                   <Pressable
-                    onPress={() =>
-                      movie.tmdbMetadata.trailerUrl
-                        ? Linking.openURL(movie.tmdbMetadata.trailerUrl)
-                        : undefined
-                    }
+                    onPress={() => {
+                      const url = movie.tmdbMetadata?.trailerUrl;
+                      if (url) {
+                        void Linking.openURL(url);
+                      }
+                    }}
                     className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-1.5 active:opacity-80"
                     style={{ borderCurve: "continuous" }}
                   >
