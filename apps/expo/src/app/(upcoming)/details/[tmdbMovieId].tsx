@@ -3,8 +3,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import type { UpcomingMovieCardData } from "@waslaeuftin/expo/components/upcoming-movie-card";
+import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { formatReleaseDate } from "@waslaeuftin/expo/components/upcoming-movie-card";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
