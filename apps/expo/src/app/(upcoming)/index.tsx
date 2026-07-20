@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { UpcomingMovieCard } from "@waslaeuftin/expo/components/upcoming-movie-card";
@@ -18,6 +19,7 @@ import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 
 export default function UpcomingScreen() {
+  const router = useRouter();
   const primaryColor = usePrimaryColor();
   const { refreshing, onRefresh } = useRefresh();
   useTrackMobileScreen("upcoming");
@@ -78,6 +80,22 @@ export default function UpcomingScreen() {
               tmdbMovieId: item.tmdbMovieId,
               title: item.title,
               posterPath: item.posterPath,
+            })
+          }
+          onPress={() =>
+            router.push({
+              pathname: "/details/[tmdbMovieId]",
+              params: {
+                tmdbMovieId: String(item.tmdbMovieId),
+                movie: JSON.stringify({
+                  tmdbMovieId: item.tmdbMovieId,
+                  title: item.title,
+                  posterUrl: item.posterUrl,
+                  posterPath: item.posterPath,
+                  releaseDate: item.releaseDate,
+                  overview: item.overview,
+                }),
+              },
             })
           }
         />
