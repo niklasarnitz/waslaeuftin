@@ -191,17 +191,18 @@ export default function MovieDetailScreen() {
           </View>
         </View>
 
-        {(movie.tmdbMetadata?.overview || movie.tmdbMetadata?.trailerUrl) && (
+        {(movie.tmdbMetadata?.overview ?? movie.tmdbMetadata?.trailerUrl) && (
           <>
             <View className="bg-border/40 h-[1px]" />
             <View className="gap-3">
               {movie.tmdbMetadata?.trailerUrl && (
                 <View className="flex-row">
                   <Pressable
-                    onPress={() =>
-                      movie.tmdbMetadata?.trailerUrl &&
-                      Linking.openURL(movie.tmdbMetadata.trailerUrl)
-                    }
+                    onPress={() => {
+                      if (movie.tmdbMetadata?.trailerUrl) {
+                        Linking.openURL(movie.tmdbMetadata.trailerUrl);
+                      }
+                    }}
                     className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-1.5 active:opacity-80"
                     style={{ borderCurve: "continuous" }}
                   >
