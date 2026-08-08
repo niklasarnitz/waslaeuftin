@@ -55,17 +55,21 @@ export const devicesRouter = createTRPCRouter({
       });
 
       const now = new Date();
-      await ctx.db.$transaction(
-        cinemaIds.map((cinemaId) =>
-          ctx.db.deviceCinemaPopularity.upsert({
-            where: {
-              deviceId_cinemaId: { deviceId: input.deviceId, cinemaId },
-            },
-            create: { deviceId: input.deviceId, cinemaId, lastSeenAt: now },
-            update: { count: { increment: 1 }, lastSeenAt: now },
-          }),
-        ),
-      );
+      // ⚡ Bolt: Batch sequential transaction promises to prevent exceeding Prisma's 5000ms timeout
+      for (let i = 0; i < cinemaIds.length; i += 50) {
+        const batch = cinemaIds.slice(i, i + 50);
+        await ctx.db.$transaction(
+          batch.map((cinemaId) =>
+            ctx.db.deviceCinemaPopularity.upsert({
+              where: {
+                deviceId_cinemaId: { deviceId: input.deviceId, cinemaId },
+              },
+              create: { deviceId: input.deviceId, cinemaId, lastSeenAt: now },
+              update: { count: { increment: 1 }, lastSeenAt: now },
+            }),
+          ),
+        );
+      }
 
       // Prune to the most popular cinemas for this device.
       const kept = await ctx.db.deviceCinemaPopularity.findMany({
