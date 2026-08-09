@@ -140,7 +140,7 @@ export function CommandSearch() {
       >
         <DialogContent className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg [&>button:last-child]:hidden">
           <DialogTitle className="sr-only">Suche</DialogTitle>
-          <div className="flex relative items-center border-b px-3">
+          <div className="relative flex items-center border-b px-3">
             <Search
               aria-hidden="true"
               className="text-muted-foreground mr-2 h-4 w-4 shrink-0"
