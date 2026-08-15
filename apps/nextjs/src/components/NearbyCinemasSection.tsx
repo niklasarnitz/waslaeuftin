@@ -133,8 +133,8 @@ export const NearbyCinemasSection = () => {
   };
 
   const nearbyMovies = useMemo(
-    () => groupMoviesByTitle(filteredCinemas, { sortBy: "name" }),
-    [filteredCinemas],
+    () => groupMoviesByTitle(filteredCinemas, { sortBy }),
+    [filteredCinemas, sortBy],
   );
 
   const totalShowings = useMemo(() => {
