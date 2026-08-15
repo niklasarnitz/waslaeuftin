@@ -45,6 +45,7 @@ const db = {
       createdShowings.push(...params.data);
       return { count: params.data.length };
     }),
+    deleteMany: mock(async () => ({ count: 0 })),
   },
 };
 

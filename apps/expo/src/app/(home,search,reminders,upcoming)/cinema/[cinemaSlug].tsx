@@ -9,10 +9,9 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
@@ -68,19 +67,11 @@ export default function CinemaScreen() {
               hitSlop={12}
               className="p-1"
             >
-              {Platform.OS === "ios" ? (
-                <SymbolView
-                  name={isFavorite ? "star.fill" : "star"}
-                  tintColor={primaryColor}
-                  size={22}
-                />
-              ) : (
-                <Ionicons
-                  name={isFavorite ? "star" : "star-outline"}
-                  color={primaryColor}
-                  size={22}
-                />
-              )}
+              <AppIcon
+                name={isFavorite ? "star.fill" : "star"}
+                tintColor={primaryColor}
+                size={22}
+              />
             </Pressable>
           )
         : undefined,

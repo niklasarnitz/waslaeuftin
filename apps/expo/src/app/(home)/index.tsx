@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
@@ -329,7 +329,7 @@ export default function HomeIndex() {
           <View>
             <View className="mb-3 flex-row items-center justify-between gap-2">
               <View className="min-w-0 flex-1 flex-row items-center gap-2">
-                <SymbolView
+                <AppIcon
                   name={isFavoritesMode ? "star.fill" : "location.fill"}
                   tintColor={primaryColor}
                   size={18}
@@ -349,7 +349,7 @@ export default function HomeIndex() {
                   hitSlop={8}
                   className="bg-primary/10 flex-row items-center gap-1 rounded-full px-2.5 py-1"
                 >
-                  <SymbolView
+                  <AppIcon
                     name="slider.horizontal.3"
                     tintColor={primaryColor}
                     size={14}
@@ -367,7 +367,7 @@ export default function HomeIndex() {
                   className="bg-muted/40 border-border/40 items-center justify-center rounded-2xl border p-6"
                   style={{ borderCurve: "continuous" }}
                 >
-                  <SymbolView name="star" tintColor={primaryColor} size={28} />
+                  <AppIcon name="star" tintColor={primaryColor} size={28} />
                   <Text className="text-foreground mt-2 text-sm font-semibold">
                     Keine Favoriten gespeichert
                   </Text>

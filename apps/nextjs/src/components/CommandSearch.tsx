@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Loader2, MapPin, Search } from "lucide-react";
+import { Building2, Film, Loader2, MapPin, Search } from "lucide-react";
 
 import {
   Dialog,
@@ -16,7 +16,7 @@ import { api } from "@waslaeuftin/trpc/react";
 type SearchItem = {
   id: string;
   href: string;
-  type: "city" | "cinema";
+  type: "city" | "cinema" | "movie";
   name: string;
   subtitle?: string;
 };
@@ -51,6 +51,15 @@ export function CommandSearch() {
         type: "cinema",
         name: cinema.name,
         subtitle: cinema.city.name,
+      });
+    }
+    for (const movie of data.movies ?? []) {
+      result.push({
+        id: `movie-${movie.id}`,
+        href: `/?searchQuery=${encodeURIComponent(movie.name)}`,
+        type: "movie",
+        name: movie.name,
+        subtitle: "Film",
       });
     }
     return result;
@@ -110,6 +119,7 @@ export function CommandSearch() {
   // Group items for rendering with section headers
   const cityItems = items.filter((i) => i.type === "city");
   const cinemaItems = items.filter((i) => i.type === "cinema");
+  const movieItems = items.filter((i) => i.type === "movie");
 
   return (
     <>
@@ -151,8 +161,8 @@ export function CommandSearch() {
                 setActiveIndex(0);
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Stadt oder Kino suchen…"
-              aria-label="Stadt oder Kino suchen"
+              placeholder="Stadt, Kino oder Film suchen…"
+              aria-label="Stadt, Kino oder Film suchen"
               role="combobox"
               aria-expanded="true"
               aria-controls="search-results"
@@ -190,14 +200,45 @@ export function CommandSearch() {
               </p>
             )}
 
+            {movieItems.length > 0 && (
+              <div className="px-1 py-2">
+                <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
+                  Filme
+                </p>
+                {movieItems.map((item, index) => {
+                  const flatIndex = index;
+                  return (
+                    <button
+                      key={item.id}
+                      id={`cmd-item-${flatIndex}`}
+                      type="button"
+                      role="option"
+                      tabIndex={-1}
+                      aria-selected={flatIndex === activeIndex}
+                      onClick={() => navigate(item.href)}
+                      onMouseEnter={() => setActiveIndex(flatIndex)}
+                      onFocus={() => setActiveIndex(flatIndex)}
+                      data-active={flatIndex === activeIndex}
+                      className="data-[active=true]:bg-accent focus-visible:ring-ring flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+                    >
+                      <Film
+                        aria-hidden="true"
+                        className="text-muted-foreground h-4 w-4"
+                      />
+                      <span>{item.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {cityItems.length > 0 && (
               <div className="px-1 py-2">
                 <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
                   {query.length > 0 ? "Städte" : "Städte in der Nähe"}
                 </p>
                 {cityItems.map((item, index) => {
-                  // O(1) index calculation instead of O(N) items.indexOf(item) in render loop
-                  const flatIndex = index;
+                  const flatIndex = movieItems.length + index;
                   return (
                     <button
                       key={item.id}
@@ -229,8 +270,7 @@ export function CommandSearch() {
                   {query.length > 0 ? "Kinos" : "Kinos in der Nähe"}
                 </p>
                 {cinemaItems.map((item, index) => {
-                  // O(1) index calculation instead of O(N) items.indexOf(item) in render loop
-                  const flatIndex = cityItems.length + index;
+                  const flatIndex = movieItems.length + cityItems.length + index;
                   return (
                     <button
                       key={item.id}

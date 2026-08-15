@@ -203,6 +203,17 @@ export const citiesRouter = createTRPCRouter({
         ? { name: { contains: query, mode: "insensitive" as const } }
         : undefined;
 
+      const movieWhere = query
+        ? {
+            name: { contains: query, mode: "insensitive" as const },
+            showings: {
+              some: {
+                dateTime: { gte: new Date() },
+              },
+            },
+          }
+        : undefined;
+
       const cities = await ctx.db.city.findMany({
         where: cityWhere,
         select: { id: true, name: true, slug: true },
@@ -222,7 +233,21 @@ export const citiesRouter = createTRPCRouter({
         take: 5,
       });
 
-      return { cities, cinemas };
+      const movies = movieWhere
+        ? await ctx.db.movie.findMany({
+            where: movieWhere,
+            select: {
+              id: true,
+              name: true,
+              coverUrl: true,
+              tmdbMovieId: true,
+            },
+            orderBy: { name: "asc" },
+            take: 5,
+          })
+        : [];
+
+      return { cities, cinemas, movies };
     }),
   getCityById: publicProcedure
     .input(CityIdSchema)
