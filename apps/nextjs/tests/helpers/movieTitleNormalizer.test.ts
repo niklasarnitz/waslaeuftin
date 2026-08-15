@@ -232,5 +232,28 @@ describe("normalizeMovieTitle", () => {
       tags: ["Mein erster Kinobesuch"],
     });
   });
+
+  test("Extracting extended edition, open air, eberhofer krimi, and 70mm affixes", () => {
+    expect(
+      normalizeMovieTitle("Backrooms Everything Must Go (Extended Version)"),
+    ).toEqual({
+      normalizedTitle: "Backrooms",
+      tags: ["Extended Version", "Everything Must Go"],
+    });
+    expect(normalizeMovieTitle("Die Odyssee 70 mm")).toEqual({
+      normalizedTitle: "Die Odyssee",
+      tags: ["70mm"],
+    });
+    expect(
+      normalizeMovieTitle("Steckerlfischfiasko - Ein Eberhofer Krimi"),
+    ).toEqual({
+      normalizedTitle: "Steckerlfischfiasko",
+      tags: ["Eberhofer-Krimi"],
+    });
+    expect(normalizeMovieTitle("Steckerlfischfiasko - Open Air")).toEqual({
+      normalizedTitle: "Steckerlfischfiasko",
+      tags: ["Open Air"],
+    });
+  });
 });
 
