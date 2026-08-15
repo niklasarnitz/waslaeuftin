@@ -133,27 +133,40 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     type: "cinema";
     item: { id: number; name: string; slug: string; city: { name: string } };
   }
+  interface MovieItem {
+    type: "movie";
+    item: {
+      id: number;
+      name: string;
+      coverUrl: string | null;
+      tmdbMovieId: number | null;
+    };
+  }
   interface HeaderItem {
     type: "header";
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
   }
-  type ListItem = CityItem | CinemaItem | HeaderItem;
+  type ListItem = CityItem | CinemaItem | MovieItem | HeaderItem;
 
   // Build flat list for search results
   const searchResultsData = useMemo((): ListItem[] => {
     if (!isSearching) return [];
     const data: ListItem[] = [];
-    const cities = citiesSearchQuery.data;
+    const searchData = citiesSearchQuery.data;
 
-    if (cities) {
-      if (cities.cities.length > 0) {
-        data.push({ type: "header", icon: "location", title: "Städte" });
-        cities.cities.forEach((c) => data.push({ type: "city", item: c }));
+    if (searchData) {
+      if (searchData.movies && searchData.movies.length > 0) {
+        data.push({ type: "header", icon: "film", title: "Filme" });
+        searchData.movies.forEach((m) => data.push({ type: "movie", item: m }));
       }
-      if (cities.cinemas.length > 0) {
+      if (searchData.cities.length > 0) {
+        data.push({ type: "header", icon: "location", title: "Städte" });
+        searchData.cities.forEach((c) => data.push({ type: "city", item: c }));
+      }
+      if (searchData.cinemas.length > 0) {
         data.push({ type: "header", icon: "videocam", title: "Kinos" });
-        cities.cinemas.forEach((c) => data.push({ type: "cinema", item: c }));
+        searchData.cinemas.forEach((c) => data.push({ type: "cinema", item: c }));
       }
     }
     return data;
@@ -177,12 +190,14 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     }
 
     trackedQueriesRef.current.add(normalizedQuery);
+    const movieCount = citiesSearchQuery.data.movies?.length ?? 0;
     trackMobileEvent({
       name: "mobile-search-submitted",
       screen: "home",
       resultCount:
         citiesSearchQuery.data.cities.length +
-        citiesSearchQuery.data.cinemas.length,
+        citiesSearchQuery.data.cinemas.length +
+        movieCount,
     });
   }, [citiesSearchQuery.data, debouncedQuery]);
 
@@ -195,6 +210,41 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
           title={item.title}
           color={primaryColor}
         />
+      );
+    }
+
+    if (item.type === "movie") {
+      return (
+        <Pressable
+          onPress={() =>
+            go({
+              pathname: "/movie/[movieName]",
+              params: {
+                movieName: item.item.name,
+                tmdbMovieId: item.item.tmdbMovieId
+                  ? String(item.item.tmdbMovieId)
+                  : undefined,
+              },
+            })
+          }
+          className={ROW_CLASS}
+        >
+          <View className="min-w-0 flex-1 flex-row items-center gap-3">
+            <ItemIcon name="film" color={primaryColor} />
+            <Text
+              numberOfLines={1}
+              className="text-foreground flex-1 text-[15px] font-semibold"
+            >
+              {item.item.name}
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={14}
+            color={mutedColor}
+            style={{ marginLeft: 8 }}
+          />
+        </Pressable>
       );
     }
 

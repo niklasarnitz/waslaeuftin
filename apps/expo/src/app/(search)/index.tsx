@@ -8,9 +8,9 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useQuery } from "@tanstack/react-query";
 
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { useSearch } from "@waslaeuftin/expo/hooks/use-search";
 import {
   trackMobileEvent,
@@ -27,7 +27,7 @@ export default function SearchIndex() {
   useTrackMobileScreen("search");
   const searchOptions = useMemo(
     () => ({
-      placeholder: "Stadt oder Kino suchen",
+      placeholder: "Stadt, Kino oder Film suchen",
       autoFocus: true,
       // Tapping the search field's cancel (×) returns to the main (Filme) tab.
       onCancelButtonPress: () => router.navigate("/"),
@@ -71,6 +71,16 @@ export default function SearchIndex() {
     });
   };
 
+  const handleMoviePress = (movieName: string, tmdbMovieId?: number | null) => {
+    router.push({
+      pathname: "/movie/[movieName]",
+      params: {
+        movieName,
+        tmdbMovieId: tmdbMovieId ? String(tmdbMovieId) : undefined,
+      },
+    });
+  };
+
   interface SearchCityItem {
     type: "city";
     item: { id: number; name: string; slug: string };
@@ -81,12 +91,26 @@ export default function SearchIndex() {
     item: { id: number; name: string; slug: string; city: { name: string } };
   }
 
+  interface SearchMovieItem {
+    type: "movie";
+    item: {
+      id: number;
+      name: string;
+      coverUrl: string | null;
+      tmdbMovieId: number | null;
+    };
+  }
+
   interface SearchHeaderItem {
     type: "header";
     title: string;
   }
 
-  type SearchListItem = SearchCityItem | SearchCinemaItem | SearchHeaderItem;
+  type SearchListItem =
+    | SearchCityItem
+    | SearchCinemaItem
+    | SearchMovieItem
+    | SearchHeaderItem;
 
   // Build list data based on whether we are searching or listing all cities
   const searchResultsData = useMemo(() => {
@@ -96,6 +120,13 @@ export default function SearchIndex() {
     const results = searchQuery.data;
 
     if (results) {
+      if (results.movies && results.movies.length > 0) {
+        data.push({ type: "header", title: "Filme" });
+        results.movies.forEach((movie) => {
+          data.push({ type: "movie", item: movie });
+        });
+      }
+
       if (results.cities.length > 0) {
         data.push({ type: "header", title: "Städte" });
         results.cities.forEach((city) => {
@@ -126,11 +157,14 @@ export default function SearchIndex() {
     }
 
     trackedQueriesRef.current.add(normalizedQuery);
+    const movieCount = searchQuery.data.movies?.length ?? 0;
     trackMobileEvent({
       name: "mobile-search-submitted",
       screen: "search",
       resultCount:
-        searchQuery.data.cities.length + searchQuery.data.cinemas.length,
+        searchQuery.data.cities.length +
+        searchQuery.data.cinemas.length +
+        movieCount,
     });
   }, [debouncedQuery, searchQuery.data]);
 
@@ -178,7 +212,7 @@ export default function SearchIndex() {
                   {item._count.cinemas === 1 ? "Kino" : "Kinos"}
                 </Text>
               </View>
-              <SymbolView
+              <AppIcon
                 name="chevron.right"
                 tintColor="#8E8E93"
                 size={14}
@@ -210,6 +244,38 @@ export default function SearchIndex() {
               );
             }
 
+            if (item.type === "movie") {
+              return (
+                <Pressable
+                  onPress={() =>
+                    handleMoviePress(item.item.name, item.item.tmdbMovieId)
+                  }
+                  className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
+                  style={{ borderCurve: "continuous" }}
+                >
+                  <View className="min-w-0 flex-1 flex-row items-center gap-3">
+                    <AppIcon
+                      name="film.fill"
+                      tintColor={primaryColor}
+                      size={18}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      className="text-foreground min-w-0 flex-1 text-base font-semibold"
+                    >
+                      {item.item.name}
+                    </Text>
+                  </View>
+                  <AppIcon
+                    name="chevron.right"
+                    tintColor="#8E8E93"
+                    size={14}
+                    style={{ marginLeft: 8 }}
+                  />
+                </Pressable>
+              );
+            }
+
             if (item.type === "city") {
               return (
                 <Pressable
@@ -218,7 +284,7 @@ export default function SearchIndex() {
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
-                    <SymbolView
+                    <AppIcon
                       name="mappin.circle.fill"
                       tintColor={primaryColor}
                       size={18}
@@ -230,7 +296,7 @@ export default function SearchIndex() {
                       {item.item.name}
                     </Text>
                   </View>
-                  <SymbolView
+                  <AppIcon
                     name="chevron.right"
                     tintColor="#8E8E93"
                     size={14}
@@ -248,8 +314,8 @@ export default function SearchIndex() {
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
-                    <SymbolView
-                      name="film.fill"
+                    <AppIcon
+                      name="film"
                       tintColor={primaryColor}
                       size={18}
                     />
@@ -268,7 +334,7 @@ export default function SearchIndex() {
                       </Text>
                     </View>
                   </View>
-                  <SymbolView
+                  <AppIcon
                     name="chevron.right"
                     tintColor="#8E8E93"
                     size={14}
@@ -277,19 +343,17 @@ export default function SearchIndex() {
                 </Pressable>
               );
             }
-
-            return null;
           }}
         />
       ) : (
         // Empty state
         <View className="flex-1 items-center justify-center p-6">
-          <SymbolView name="magnifyingglass" tintColor="#8E8E93" size={48} />
+          <AppIcon name="magnifyingglass" tintColor="#8E8E93" size={48} />
           <Text className="text-foreground mt-4 text-base font-semibold">
             Keine Ergebnisse für "{debouncedQuery}"
           </Text>
           <Text className="text-muted-foreground mt-1 max-w-[240px] text-center text-xs">
-            Versuche es mit einem anderen Suchbegriff oder Städtenamen.
+            Versuche es mit einem anderen Suchbegriff oder Film-/Städtenamen.
           </Text>
         </View>
       )}

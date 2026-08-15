@@ -53,36 +53,89 @@ export const runReminderMatching = async (
     },
   });
 
+  // Collect all unique tmdbMovieIds and cinemaIds across candidate reminders
+  const candidateReminders = reminders.filter((r) => {
+    const token = r.device.expoPushToken;
+    const cinemaIds = r.device.cinemaPopularity.map((e) => e.cinemaId);
+    return Boolean(token && cinemaIds.length > 0);
+  });
+
+  if (candidateReminders.length === 0) {
+    return { candidates: reminders.length, matched: 0 };
+  }
+
+  const allTmdbMovieIds = Array.from(
+    new Set(candidateReminders.map((r) => r.tmdbMovieId)),
+  );
+  const allCinemaIds = Array.from(
+    new Set(
+      candidateReminders.flatMap((r) =>
+        r.device.cinemaPopularity.map((e) => e.cinemaId),
+      ),
+    ),
+  );
+
+  // Fetch all matching future showings in a single query
+  const matchingShowings = await db.showing.findMany({
+    where: {
+      dateTime: { gte: now, lte: fourDaysFromNow },
+      cinemaId: { in: allCinemaIds },
+      movie: { tmdbMovieId: { in: allTmdbMovieIds } },
+    },
+    orderBy: { dateTime: "asc" },
+    include: {
+      cinema: { select: { name: true } },
+      movie: { select: { tmdbMovieId: true } },
+    },
+  });
+
+  // Map of "${cinemaId}:${tmdbMovieId}" -> earliest showing
+  const earliestShowingMap = new Map<
+    string,
+    (typeof matchingShowings)[number]
+  >();
+  for (const showing of matchingShowings) {
+    const tmdbId = showing.movie.tmdbMovieId;
+    if (!tmdbId) continue;
+    const key = `${showing.cinemaId}:${tmdbId}`;
+    if (!earliestShowingMap.has(key)) {
+      earliestShowingMap.set(key, showing);
+    }
+  }
+
   const messages: ReminderPushMessage[] = [];
   const matchedReminderIds: number[] = [];
 
-  for (const reminder of reminders) {
-    const token = reminder.device.expoPushToken;
+  for (const reminder of candidateReminders) {
+    const token = reminder.device.expoPushToken!;
     const cinemaIds = reminder.device.cinemaPopularity.map(
       (entry) => entry.cinemaId,
     );
-    if (!token || cinemaIds.length === 0) {
-      continue;
+
+    // Find the earliest showing across the device's favorite/nearby cinemas
+    let bestShowing: (typeof matchingShowings)[number] | undefined;
+    for (const cinemaId of cinemaIds) {
+      const candidate = earliestShowingMap.get(
+        `${cinemaId}:${reminder.tmdbMovieId}`,
+      );
+      if (candidate) {
+        if (
+          !bestShowing ||
+          candidate.dateTime.getTime() < bestShowing.dateTime.getTime()
+        ) {
+          bestShowing = candidate;
+        }
+      }
     }
 
-    const showing = await db.showing.findFirst({
-      where: {
-        dateTime: { gte: now, lte: fourDaysFromNow },
-        cinemaId: { in: cinemaIds },
-        movie: { tmdbMovieId: reminder.tmdbMovieId },
-      },
-      orderBy: { dateTime: "asc" },
-      include: { cinema: { select: { name: true } } },
-    });
-
-    if (!showing) {
+    if (!bestShowing) {
       continue;
     }
 
     messages.push({
       to: token,
       title: `🎬 ${reminder.title} läuft jetzt in deiner Nähe`,
-      body: `${reminder.title} wird im ${showing.cinema.name} gezeigt. Tippe für Vorstellungen in deiner Nähe.`,
+      body: `${reminder.title} wird im ${bestShowing.cinema.name} gezeigt. Tippe für Vorstellungen in deiner Nähe.`,
       data: {
         type: "reminder",
         tmdbMovieId: reminder.tmdbMovieId,

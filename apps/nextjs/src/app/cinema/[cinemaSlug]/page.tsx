@@ -1,4 +1,5 @@
 import { type Metadata } from "next";
+import { notFound } from "next/navigation";
 import moment from "moment-timezone";
 
 import { CinemaMovies } from "@waslaeuftin/components/CinemaMovies";
@@ -61,7 +62,7 @@ export default async function CinemaPage({
   const pathname = await getPathName();
 
   if (!cinemaSlug) {
-    return <div>{Constants["not-found"].page}</div>;
+    notFound();
   }
 
   const cinema = await api.cinemas.getCinemaBySlug({
@@ -70,7 +71,7 @@ export default async function CinemaPage({
   });
 
   if (!cinema) {
-    return <div>{Constants["not-found"].page}</div>;
+    notFound();
   }
 
   const jsonLd = {

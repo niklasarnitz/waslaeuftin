@@ -571,6 +571,20 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     `[Resolver] Created ${createdCount} new showings (${showingData.length - createdCount} duplicates skipped)`,
   );
 
+  // Phase 5: Prune past showings older than 3 days to avoid indefinite table bloat
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  const deletedOldShowings = await db.showing?.deleteMany?.({
+    where: {
+      dateTime: { lt: threeDaysAgo },
+    },
+  });
+
+  if (deletedOldShowings && deletedOldShowings.count > 0) {
+    console.info(
+      `[Resolver] Pruned ${deletedOldShowings.count} past showings older than 3 days`,
+    );
+  }
+
   return {
     canonicalMovies: canonicalMovieMap.size,
     totalShowings: createdCount,

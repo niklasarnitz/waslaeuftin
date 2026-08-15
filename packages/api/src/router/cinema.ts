@@ -28,11 +28,22 @@ const getScheduleDate = (date: Date | undefined) => {
     : moment.tz(SCHEDULE_TIMEZONE);
 };
 
-// Find nearby cinema IDs + distances using a raw SQL haversine query.
+// Find nearby cinema IDs + distances using a raw SQL haversine query with bounding-box prefilter.
 const getNearbyCinemaDistances = async (
   input: Pick<NearbyCinemasInput, "latitude" | "longitude" | "maxDistanceKm">,
   db: DbClient,
 ) => {
+  // Approximate degree deltas for bounding box pre-filtering
+  const latDelta = (input.maxDistanceKm / 111.0) * 1.05;
+  const cosLat = Math.cos((input.latitude * Math.PI) / 180);
+  const lngDelta =
+    (input.maxDistanceKm / (111.0 * Math.max(0.1, Math.abs(cosLat)))) * 1.05;
+
+  const minLat = input.latitude - latDelta;
+  const maxLat = input.latitude + latDelta;
+  const minLng = input.longitude - lngDelta;
+  const maxLng = input.longitude + lngDelta;
+
   const nearbyCinemaRows = await db.$queryRaw<
     { id: number; distance_km: number }[]
   >(Prisma.sql`
@@ -53,8 +64,8 @@ const getNearbyCinemaDistances = async (
         ) AS distance_km
       FROM "Cinema" c
       JOIN "City" city ON city.id = c."cityId"
-      WHERE COALESCE(c.latitude, city.latitude) IS NOT NULL
-        AND COALESCE(c.longitude, city.longitude) IS NOT NULL
+      WHERE COALESCE(c.latitude, city.latitude) BETWEEN ${minLat} AND ${maxLat}
+        AND COALESCE(c.longitude, city.longitude) BETWEEN ${minLng} AND ${maxLng}
     ) sub
     WHERE sub.distance_km <= ${input.maxDistanceKm}
     ORDER BY sub.distance_km ASC
