@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "wasläuft.in",
   slug: "waslauftin",
   scheme: "waslauftin",
-  version: "0.1.0",
+  version: "0.1.1",
   orientation: "portrait",
   icon: "./assets/icon-light.png",
   runtimeVersion: {
