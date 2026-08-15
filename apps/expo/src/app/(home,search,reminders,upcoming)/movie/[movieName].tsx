@@ -270,44 +270,49 @@ export default function MovieDetailScreen() {
           </View>
         </View>
 
-        <View className="bg-border/40 h-[1px]" />
-
         {/* Overview & Metadata Sections */}
-        <View className="gap-3">
-          {meta?.overview && (
-            <View className="gap-1">
-              <Text className="text-foreground text-sm font-bold tracking-tight">
-                Beschreibung
-              </Text>
-              <Text className="text-muted-foreground text-sm leading-relaxed">
-                {meta.overview}
-              </Text>
-            </View>
-          )}
+        {(meta?.overview ||
+          directors.length > 0 ||
+          cast.length > 0 ||
+          productionCompanies.length > 0 ||
+          keywords.length > 0) && (
+          <>
+            <View className="bg-border/40 h-[1px]" />
+            <View className="gap-3">
+              {meta?.overview && (
+                <View className="gap-1">
+                  <Text className="text-foreground text-sm font-bold tracking-tight">
+                    Beschreibung
+                  </Text>
+                  <Text className="text-muted-foreground text-sm leading-relaxed">
+                    {meta.overview}
+                  </Text>
+                </View>
+              )}
 
-          {/* Directors */}
-          {directors.length > 0 && (
-            <View className="gap-1.5">
-              <Text className="text-foreground text-xs font-bold tracking-tight">
-                Regie
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {directors.map((d) => (
-                  <Pressable
-                    key={`dir-${d.id}`}
-                    onPress={() =>
-                      openWebUrl(`https://www.themoviedb.org/person/${d.id}`)
-                    }
-                    className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
-                  >
-                    <Text className="text-foreground text-xs font-medium">
-                      {d.name}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+              {/* Directors */}
+              {directors.length > 0 && (
+                <View className="gap-1.5">
+                  <Text className="text-foreground text-xs font-bold tracking-tight">
+                    Regie
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5">
+                    {directors.map((d) => (
+                      <Pressable
+                        key={`dir-${d.id}`}
+                        onPress={() =>
+                          openWebUrl(`https://www.themoviedb.org/person/${d.id}`)
+                        }
+                        className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
+                      >
+                        <Text className="text-foreground text-xs font-medium">
+                          {d.name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
 
           {/* Cast */}
           {cast.length > 0 && (
@@ -386,9 +391,11 @@ export default function MovieDetailScreen() {
             </View>
           )}
         </View>
-      </View>
+      </>
+    )}
+  </View>
 
-      {/* Showings per Cinema */}
+  {/* Showings per Cinema */}
       <View className="gap-3">
         <Text className="text-foreground text-lg font-bold tracking-tight">
           Kinos & Vorstellungen
