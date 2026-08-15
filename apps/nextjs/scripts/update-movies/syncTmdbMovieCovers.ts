@@ -508,17 +508,28 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
       const showingsToMove = await db.showing.findMany({
         where: { movieId: movie.id },
-        select: { id: true },
+        select: { id: true, cinemaId: true, dateTime: true },
       });
 
       for (const showing of showingsToMove) {
-        try {
+        const existingTargetShowing = await db.showing.findUnique({
+          where: {
+            cinemaId_movieId_dateTime: {
+              cinemaId: showing.cinemaId,
+              movieId: existingMovieWithTmdbId.id,
+              dateTime: showing.dateTime,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (existingTargetShowing) {
+          await db.showing.delete({ where: { id: showing.id } });
+        } else {
           await db.showing.update({
             where: { id: showing.id },
             data: { movieId: existingMovieWithTmdbId.id },
           });
-        } catch {
-          await db.showing.delete({ where: { id: showing.id } });
         }
       }
 
