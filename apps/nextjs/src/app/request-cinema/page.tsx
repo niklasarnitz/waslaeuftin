@@ -14,7 +14,7 @@ import { RequestCinemaSchema } from "@waslaeuftin/validators";
 
 export default function RequestCinemaPage() {
   const form = useForm<RequestCinemaFormData>({
-    resolver: zodResolver(RequestCinemaSchema),
+    resolver: zodResolver(RequestCinemaSchema as any),
   });
 
   const { mutateAsync: createMovieRequest } =

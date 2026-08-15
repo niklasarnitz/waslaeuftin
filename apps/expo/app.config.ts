@@ -8,8 +8,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "0.1.0",
   orientation: "portrait",
   icon: "./assets/icon-light.png",
-  userInterfaceStyle: "automatic",
+  runtimeVersion: {
+    policy: "appVersion",
+  },
   updates: {
+    url: "https://u.expo.dev/6e8988f3-eb9e-4beb-a4ad-3465c7f6a278",
     fallbackToCacheTimeout: 0,
   },
   assetBundlePatterns: ["**/*"],
