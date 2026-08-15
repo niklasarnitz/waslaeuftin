@@ -16,6 +16,11 @@ import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { SettingsModal } from "@waslaeuftin/expo/components/settings-modal";
+import { ShowingFilterBar } from "@waslaeuftin/expo/components/showing-filter-bar";
+import {
+  isShowingMatchingFilters,
+  type ShowingFilterOptions,
+} from "@waslaeuftin/expo/utils/showing-tags";
 import {
   trackMobileEvent,
   useTrackMobileScreen,
@@ -49,6 +54,10 @@ export default function HomeIndex() {
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
   );
+  const [filters, setFilters] = useState<ShowingFilterOptions>({
+    selectedTags: [],
+    timeWindow: "all",
+  });
   const [searchVisible, setSearchVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const viewMode = useSettingsStore((s) => s.lastViewMode);
@@ -194,6 +203,34 @@ export default function HomeIndex() {
       .catch((err) => console.error("Failed to report nearby cinemas", err));
   }, [deviceId, nearbyMoviesData]);
 
+  const filterMovies = (movies: typeof groupedMovies) => {
+    if (filters.selectedTags.length === 0 && filters.timeWindow === "all") {
+      return movies;
+    }
+    return movies
+      .map((movie) => {
+        const filteredCinemas = movie.cinemas
+          .map((entry) => {
+            const matchingShowings = entry.showings.filter((s) =>
+              isShowingMatchingFilters(s.dateTime, s.showingAdditionalData, filters),
+            );
+            return { ...entry, showings: matchingShowings };
+          })
+          .filter((entry) => entry.showings.length > 0);
+        return {
+          ...movie,
+          cinemas: filteredCinemas,
+          showingsCount: filteredCinemas.reduce(
+            (acc, c) => acc + c.showings.length,
+            0,
+          ),
+        };
+      })
+      .filter((movie) => movie.cinemas.length > 0);
+  };
+
+  const displayedGroupedMovies = filterMovies(groupedMovies);
+
   const handleCityPress = (citySlug: string) => {
     router.push(`/city/${citySlug}`);
   };
@@ -213,6 +250,11 @@ export default function HomeIndex() {
       >
         {/* Date Picker Bar */}
         <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
+
+        {/* Format & Time Filter Bar */}
+        <View className="mt-2">
+          <ShowingFilterBar filters={filters} onChangeFilters={setFilters} />
+        </View>
 
         {/* View Mode Segmented Control */}
         <View
@@ -320,8 +362,8 @@ export default function HomeIndex() {
                     Lade Lieblingskinos...
                   </Text>
                 </View>
-              ) : groupedMovies.length > 0 ? (
-                groupedMovies.map((movie) => (
+              ) : displayedGroupedMovies.length > 0 ? (
+                displayedGroupedMovies.map((movie) => (
                   <MovieCard key={movie.name} movie={movie} />
                 ))
               ) : (
@@ -330,7 +372,7 @@ export default function HomeIndex() {
                   style={{ borderCurve: "continuous" }}
                 >
                   <Text className="text-muted-foreground text-center text-xs italic">
-                    Keine Vorstellungen für dieses Datum in deinen
+                    Keine Vorstellungen für dieses Datum / Filter in deinen
                     Lieblingskinos gefunden.
                   </Text>
                 </View>
@@ -368,8 +410,8 @@ export default function HomeIndex() {
                   Suche Kinos in der Umgebung...
                 </Text>
               </View>
-            ) : groupedMovies.length > 0 ? (
-              groupedMovies.map((movie) => (
+            ) : displayedGroupedMovies.length > 0 ? (
+              displayedGroupedMovies.map((movie) => (
                 <MovieCard key={movie.name} movie={movie} />
               ))
             ) : (

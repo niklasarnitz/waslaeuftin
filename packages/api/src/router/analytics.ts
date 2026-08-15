@@ -13,7 +13,7 @@ export const analyticsRouter = createTRPCRouter({
         return { ok: true };
       }
 
-      await trackMobileEvent(input);
+      await trackMobileEvent(input, ctx.ip);
       return { ok: true };
     }),
 });

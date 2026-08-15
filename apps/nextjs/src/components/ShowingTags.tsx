@@ -1,8 +1,14 @@
+"use client";
+
 import { useMemo } from "react";
 
-const KNOWN_TAGS = new Set(["imax", "omu", "omu spezial", "d-box", "atmos"]);
-
-const isKnownTag = (value: string) => KNOWN_TAGS.has(value.toLowerCase());
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@waslaeuftin/components/ui/tooltip";
+import { categorizeShowingTags } from "@waslaeuftin/helpers/showingTags/categorizeShowingTags";
 
 export const ShowingTags = ({
   showingId,
@@ -13,67 +19,67 @@ export const ShowingTags = ({
   titleTags: string[];
   additionalData?: string[] | null;
 }) => {
-  const { tags, otherParts } = useMemo(() => {
-    const parts = additionalData ?? [];
+  const { prominentTags, infoItems } = useMemo(
+    () => categorizeShowingTags(titleTags, additionalData),
+    [titleTags, additionalData],
+  );
 
-    const matchedTags: string[] = [];
-    const otherParts: string[] = [];
-
-    for (const part of parts) {
-      if (isKnownTag(part)) {
-        matchedTags.push(part);
-      } else {
-        otherParts.push(part);
-      }
-    }
-
-    const seen = new Set<string>();
-    const merged: string[] = [];
-
-    for (const tag of titleTags) {
-      const key = tag.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        merged.push(tag);
-      }
-    }
-
-    for (const tag of matchedTags) {
-      const key = tag.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        merged.push(tag);
-      }
-    }
-
-    return {
-      tags: merged.sort((a, b) => a.localeCompare(b)),
-      otherParts,
-    };
-  }, [titleTags, additionalData]);
-
-  if (tags.length === 0 && otherParts.length === 0) {
+  if (prominentTags.length === 0 && infoItems.length === 0) {
     return null;
   }
 
   return (
-    <>
-      {tags.map((tag) => (
+    <span className="inline-flex items-center gap-1">
+      {prominentTags.map((tag) => (
         <span
           key={`tag-${showingId}-${tag}`}
-          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold whitespace-nowrap uppercase"
+          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold uppercase whitespace-nowrap"
         >
           {tag}
         </span>
       ))}
-      {otherParts.map((part, index) => (
-        <span
-          key={`other-${showingId}-${part}-${index}`}
-          className="border-border/80 text-muted-foreground dark:bg-muted/50 rounded-full border bg-white px-1.5 py-0.5 text-[10px] leading-none font-medium whitespace-nowrap"
-        >
-          {part}
-        </span>
-      ))}
-    </>
+      {infoItems.length > 0 && (
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger
+              asChild
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <span
+                role="button"
+                tabIndex={0}
+                className="border-border/80 text-muted-foreground hover:border-foreground/50 hover:bg-muted/80 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border bg-muted/30 text-[10px] leading-none font-bold italic transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                aria-label="Vorstellungsinformationen"
+              >
+                i
+              </span>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className="bg-popover text-popover-foreground max-w-xs border border-border px-2.5 py-1.5 shadow-md"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <div className="flex flex-col gap-1 text-[11px]">
+                {infoItems.map((item, index) => (
+                  <div
+                    key={`info-${showingId}-${index}`}
+                    className="flex items-center gap-1.5"
+                  >
+                    <span className="bg-primary h-1 w-1 shrink-0 rounded-full" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </span>
   );
 };

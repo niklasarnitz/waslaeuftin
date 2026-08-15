@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
-import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
+import { useTrackCinemaView } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 import { useFavoritesStore } from "@waslaeuftin/expo/utils/favorites";
@@ -27,11 +27,11 @@ export default function CinemaScreen() {
   const navigation = useNavigation();
   const primaryColor = usePrimaryColor();
   const { refreshing, onRefresh } = useRefresh();
-  useTrackMobileScreen("cinema");
   const { cinemaSlug, name } = useLocalSearchParams<{
     cinemaSlug: string;
     name?: string;
   }>();
+  useTrackCinemaView(cinemaSlug);
 
   const favoriteCinemaIds = useFavoritesStore((s) => s.favoriteCinemaIds);
   const toggleFavoriteCinema = useFavoritesStore((s) => s.toggleFavoriteCinema);

@@ -17,7 +17,7 @@ type SourceShowing = {
 type SourceMovie = {
   name: string;
   coverUrl: string | null;
-  tmdbMetadata?: { popularity: number | null } | null;
+  tmdbMetadata?: any | null;
   showings: SourceShowing[];
 };
 
@@ -29,9 +29,14 @@ export function groupMoviesByTitle(
   cinemas: SourceCinema[],
   options?: {
     sortBy?: "popularity" | "name";
+    filters?: {
+      selectedTags?: string[];
+      timeWindow?: "all" | "14" | "18" | "21";
+    };
   },
 ): ListingMovieCard[] {
   const sortBy = options?.sortBy ?? "name";
+  const filters = options?.filters;
   const nowTime = new Date().getTime();
 
   const groupedMoviesMap = new Map<
@@ -40,6 +45,7 @@ export function groupMoviesByTitle(
       name: string;
       coverUrl: string | null;
       tmdbPopularity: number | null;
+      tmdbMetadata?: any | null;
       cinemaEntries: ListingCinemaEntry[];
       showingsCount: number;
       nextShowing?: ListingShowing;
@@ -59,6 +65,63 @@ export function groupMoviesByTitle(
           if (!tags) {
             tags = normalizeMovieTitle(showing.rawMovieName).tags;
             tagsCache.set(showing.rawMovieName, tags);
+          }
+
+          // Check filters
+          if (filters) {
+            if (filters.timeWindow && filters.timeWindow !== "all") {
+              const hour = showing.dateTime.getHours();
+              const minHour = parseInt(filters.timeWindow, 10);
+              if (hour < minHour) continue;
+            }
+
+            if (filters.selectedTags && filters.selectedTags.length > 0) {
+              const allTagsStr = [...tags, ...(showing.showingAdditionalData ?? [])]
+                .join(" ")
+                .toUpperCase();
+
+              let matchesAll = true;
+              for (const filterTag of filters.selectedTags) {
+                const target = filterTag.toUpperCase();
+                if (target === "OV") {
+                  if (!/\b(OV|ORIGINALVERSION|ENGLISH|ENGLISCH)\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else if (target === "OMU") {
+                  if (!/\b(OMU|OMUD|UNTERTITEL)\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else if (target === "3D") {
+                  if (!/\b3D\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else if (target === "IMAX") {
+                  if (!/\bIMAX\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else if (target === "70MM/35MM" || target === "70MM" || target === "35MM") {
+                  if (!/\b(70\s*-?\s*MM|35\s*-?\s*MM)\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else if (target === "ATMOS") {
+                  if (!/\b(ATMOS|DOLBY\s*ATMOS)\b/i.test(allTagsStr)) {
+                    matchesAll = false;
+                    break;
+                  }
+                } else {
+                  if (!allTagsStr.includes(target)) {
+                    matchesAll = false;
+                    break;
+                  }
+                }
+              }
+              if (!matchesAll) continue;
+            }
           }
 
           showingsWithTags.push({
@@ -85,6 +148,7 @@ export function groupMoviesByTitle(
           name: movie.name,
           coverUrl: movie.coverUrl,
           tmdbPopularity: moviePopularity,
+          tmdbMetadata: movie.tmdbMetadata,
           cinemaEntries: [
             {
               cinema,
@@ -108,6 +172,10 @@ export function groupMoviesByTitle(
 
       if (!existingMovie.coverUrl && movie.coverUrl) {
         existingMovie.coverUrl = movie.coverUrl;
+      }
+
+      if (!existingMovie.tmdbMetadata && movie.tmdbMetadata) {
+        existingMovie.tmdbMetadata = movie.tmdbMetadata;
       }
 
       if (

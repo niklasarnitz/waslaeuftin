@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
-import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
+import { useTrackCityView } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
 import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
@@ -22,8 +22,8 @@ export default function CityScreen() {
   const navigation = useNavigation();
   const primaryColor = usePrimaryColor();
   const { refreshing, onRefresh } = useRefresh();
-  useTrackMobileScreen("city");
   const { citySlug } = useLocalSearchParams<{ citySlug: string }>();
+  useTrackCityView(citySlug);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),

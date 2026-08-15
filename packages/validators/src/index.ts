@@ -108,6 +108,9 @@ export const MobileAnalyticsScreenSchema = z.enum([
 ]);
 
 export const MobileAnalyticsEventNameSchema = z.enum([
+  "app-opened",
+  "cinema-view",
+  "city-view",
   "mobile-app-opened",
   "mobile-screen-viewed",
   "mobile-location-permission-result",
@@ -118,6 +121,7 @@ export const MobileAnalyticsEventNameSchema = z.enum([
 export const MobileAnalyticsEventInputSchema = z.object({
   name: MobileAnalyticsEventNameSchema,
   screen: MobileAnalyticsScreenSchema.optional(),
+  slug: z.string().optional(),
   result: z.enum(["granted", "denied", "error"]).optional(),
   action: z.enum(["add", "remove"]).optional(),
   targetType: z.enum(["city", "cinema", "movie"]).optional(),

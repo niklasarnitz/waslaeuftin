@@ -16,8 +16,15 @@ export const canonicalizeTag = (tag: string): string => {
     english: "English",
     englisch: "English",
     "engl.": "English",
+    "englische fassung": "English",
+    "deutsche fassung": "Deutsche Fassung",
+    "dt fassung": "Deutsche Fassung",
     "70mm": "70mm",
+    "70 mm": "70mm",
+    "70-mm": "70mm",
     "35mm": "35mm",
+    "35 mm": "35mm",
+    "35-mm": "35mm",
     "4k": "4K",
     hfr: "HFR",
     screenx: "ScreenX",
@@ -65,10 +72,39 @@ export const canonicalizeTag = (tag: string): string => {
     "türk.": "Türkisch",
     mehrspr: "Mehrsprachig",
     "mehrspr.": "Mehrsprachig",
+    "live action": "Live Action",
+    "extended version": "Extended Version",
+    "extended edition": "Extended Edition",
+    extended: "Extended Version",
+    "ext. version": "Extended Version",
+    "ext version": "Extended Version",
+    ext: "Extended Version",
+    "director's cut": "Director's Cut",
+    "directors cut": "Director's Cut",
+    uncut: "Uncut",
+    wiederaufführung: "Wiederaufführung",
+    wa: "Wiederaufführung",
+    "4k remastered": "4K Remastered",
+    remastered: "Remastered",
+    restored: "Restored",
+    df: "DF",
+    of: "OF",
+    met: "MET Opera",
+    "met opera": "MET Opera",
+    rbo: "RBO Live",
+    "rbo live": "RBO Live",
   };
 
   if (normalized.startsWith("cinestricken")) {
     return cleaned.replace(/cinestricken/i, "CineStricken");
+  }
+
+  if (normalized.startsWith("met")) {
+    return "MET Opera";
+  }
+
+  if (normalized.startsWith("rbo")) {
+    return "RBO Live";
   }
 
   return mapping[normalized] ?? cleaned;

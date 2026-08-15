@@ -7,6 +7,10 @@ import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types"
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
+import {
+  ShowingFilterBar,
+  type WebShowingFilterOptions,
+} from "@waslaeuftin/components/ShowingFilterBar";
 import { type api } from "@waslaeuftin/trpc/server";
 
 type CityMoviesAndShowings = NonNullable<
@@ -21,6 +25,10 @@ export const MoviesByCinemaList = ({
   date?: string;
 }) => {
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
+  const [showingFilters, setShowingFilters] = useState<WebShowingFilterOptions>({
+    selectedTags: [],
+    timeWindow: "all",
+  });
 
   const normalizedCinemas: (ListingCinema & {
     movies: CityMoviesAndShowings["cinemas"][number]["movies"];
@@ -67,8 +75,12 @@ export const MoviesByCinemaList = ({
   };
 
   const groupedMovies = useMemo(
-    () => groupMoviesByTitle(filteredCinemas, { sortBy: "popularity" }),
-    [filteredCinemas],
+    () =>
+      groupMoviesByTitle(filteredCinemas, {
+        sortBy: "popularity",
+        filters: showingFilters,
+      }),
+    [filteredCinemas, showingFilters],
   );
 
   const totalShowings = useMemo(() => {
@@ -81,14 +93,26 @@ export const MoviesByCinemaList = ({
 
   if (groupedMovies.length === 0 && !isCinemaFilterActive) {
     return (
-      <div className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-sm">
-        Für den ausgewählten Tag wurden keine Vorstellungen gefunden.
+      <div className="space-y-4">
+        <ShowingFilterBar
+          filters={showingFilters}
+          onChangeFilters={setShowingFilters}
+        />
+        <div className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-sm">
+          Für den ausgewählten Tag / Filter wurden keine Vorstellungen gefunden.
+        </div>
       </div>
     );
   }
 
   return (
     <div>
+      <div className="mb-3">
+        <ShowingFilterBar
+          filters={showingFilters}
+          onChangeFilters={setShowingFilters}
+        />
+      </div>
       <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
         <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
           {groupedMovies.length} Filme

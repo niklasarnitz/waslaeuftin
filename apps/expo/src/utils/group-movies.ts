@@ -6,10 +6,35 @@ export interface Showing {
 }
 
 export interface TmdbMetadata {
-  popularity?: number | null;
+  tmdbId?: number | null;
+  title?: string | null;
+  originalTitle?: string | null;
+  originalLanguage?: string | null;
   overview?: string | null;
-  trailerUrl?: string | null;
+  tagline?: string | null;
+  posterPath?: string | null;
+  backdropPath?: string | null;
+  releaseDate?: string | null;
+  runtime?: number | null;
+  budget?: any;
+  revenue?: any;
+  popularity?: number | null;
+  voteAverage?: number | null;
+  voteCount?: number | null;
+  status?: string | null;
+  homepage?: string | null;
+  imdbId?: string | null;
+  genres?: string | null;
   certification?: string | null;
+  trailerUrl?: string | null;
+  directors?: Array<{ id: number; name: string; profilePath?: string | null }> | null;
+  cast?: Array<{ id: number; name: string; character?: string | null; profilePath?: string | null }> | null;
+  crew?: Array<{ id: number; name: string; job: string; department: string; profilePath?: string | null }> | null;
+  productionCompanies?: Array<{ id: number; name: string; logoPath?: string | null; originCountry?: string }> | null;
+  productionCountries?: Array<{ iso_3166_1: string; name: string }> | null;
+  spokenLanguages?: Array<{ iso_639_1: string; name: string; englishName?: string }> | null;
+  collectionJson?: { id: number; name: string; posterPath?: string | null; backdropPath?: string | null } | null;
+  keywordsJson?: Array<{ id: number; name: string }> | null;
 }
 
 export interface Movie {

@@ -5,8 +5,10 @@ import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetai
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
+import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
 import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
 import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 
 type TmdbMovieSearchResponse = {
@@ -134,35 +136,6 @@ const extractYear = (value: string) => {
   return yearMatch ? Number(yearMatch[0]) : null;
 };
 
-const buildTmdbSearchQueries = (
-  originalTitle: string,
-  normalizedTitle: string,
-) => {
-  const queries = [
-    normalizedTitle,
-    originalTitle,
-    normalizeMovieTitle(originalTitle).normalizedTitle,
-  ];
-
-  const colonIndex = normalizedTitle.indexOf(":");
-  if (colonIndex > 0) {
-    queries.push(normalizedTitle.slice(0, colonIndex));
-  }
-
-  const dashIndex = normalizedTitle.indexOf(" - ");
-  if (dashIndex > 0) {
-    queries.push(normalizedTitle.slice(0, dashIndex));
-  }
-
-  return Array.from(
-    new Set(
-      queries
-        .map((query) => sanitizeWhitespace(query))
-        .filter((query) => query.length >= 2),
-    ),
-  ).slice(0, 3);
-};
-
 const getTmdbPosterUrl = (posterPath: string) => {
   const normalizedBaseUrl = env.TMDB_IMAGE_BASE_URL.replace(/\/+$/, "");
   const normalizedPosterPath = posterPath.replace(/^\/+/, "");
@@ -201,62 +174,6 @@ const slugifyForObjectKey = (value: string) => {
   return normalized.length > 0 ? normalized : "movie";
 };
 
-const scoreTmdbCandidate = (
-  requestedNormalizedTitle: string,
-  result: TmdbMovieSearchResult,
-) => {
-  const candidateTitle = normalizeForComparison(result.title);
-  const candidateOriginalTitle = normalizeForComparison(result.original_title);
-
-  const titleDice = getDiceSimilarity(requestedNormalizedTitle, candidateTitle);
-  const originalTitleDice = getDiceSimilarity(
-    requestedNormalizedTitle,
-    candidateOriginalTitle,
-  );
-  const bestDice = Math.max(titleDice, originalTitleDice);
-
-  const titleOverlap = getTokenOverlapScore(
-    requestedNormalizedTitle,
-    candidateTitle,
-  );
-  const originalTitleOverlap = getTokenOverlapScore(
-    requestedNormalizedTitle,
-    candidateOriginalTitle,
-  );
-  const bestTokenOverlap = Math.max(titleOverlap, originalTitleOverlap);
-
-  const candidateForInclusion =
-    titleDice >= originalTitleDice ? candidateTitle : candidateOriginalTitle;
-
-  const inclusionBoost =
-    candidateForInclusion.includes(requestedNormalizedTitle) ||
-    requestedNormalizedTitle.includes(candidateForInclusion)
-      ? 0.08
-      : 0;
-
-  const exactMatchBoost =
-    requestedNormalizedTitle === candidateForInclusion ? 0.18 : 0;
-
-  const requestedYear = extractYear(requestedNormalizedTitle);
-  const releaseYear = extractYear(result.release_date ?? "");
-  const releaseYearBoost =
-    requestedYear && releaseYear && requestedYear === releaseYear ? 0.06 : 0;
-
-  const popularityBoost = Math.min(result.popularity / 150, 1) * 0.06;
-  const posterPenalty = result.poster_path ? 0 : -0.2;
-
-  const score =
-    0.58 * bestDice +
-    0.28 * bestTokenOverlap +
-    inclusionBoost +
-    exactMatchBoost +
-    releaseYearBoost +
-    popularityBoost +
-    posterPenalty;
-
-  return clampScore(score);
-};
-
 class TmdbMovieMatcher {
   private readonly searchCache = new Map<string, TmdbMatchEvaluation>();
 
@@ -268,9 +185,6 @@ class TmdbMovieMatcher {
 
     const cached = this.searchCache.get(cacheKey);
     if (cached) {
-      console.info(
-        `[TMDB Cover Sync]   → Cache hit for normalized title: "${cacheKey}"`,
-      );
       return {
         ...cached,
         requestedTitle: title,
@@ -480,6 +394,7 @@ const uploadTmdbPosterToMinio = async (
 
 export const syncTmdbMovieCoversForAllMovies = async (options?: {
   forceRefreshExistingCovers?: boolean;
+  unmatchedOnly?: boolean;
 }): Promise<SyncMovieCoversResult> => {
   const matcher = new TmdbMovieMatcher();
   const minioClient = createMinioClient();
@@ -488,11 +403,15 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
   await ensureMinioFolder(minioClient, normalizedPrefix);
 
+  const unmatchedOnly = options?.unmatchedOnly ?? false;
+
   const allMovies = await db.movie.findMany({
+    where: unmatchedOnly ? { tmdbMovieId: null } : undefined,
     select: {
       id: true,
       name: true,
       coverUrl: true,
+      tmdbMovieId: true,
     },
   });
 
@@ -517,9 +436,9 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
       `[TMDB Cover Sync] [${index + 1}/${allMovies.length}] Processing: ${movie.name}`,
     );
 
-    if (!forceRefreshExistingCovers && movie.coverUrl) {
+    if (!forceRefreshExistingCovers && movie.coverUrl && movie.tmdbMovieId) {
       result.skippedExistingCover += 1;
-      console.info(`[TMDB Cover Sync]   → Skipped (existing cover)`);
+      console.info(`[TMDB Cover Sync]   → Skipped (existing cover & TMDB match)`);
       continue;
     }
 
@@ -568,28 +487,42 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
       );
     }
 
-    try {
-      await db.movie.update({
-        where: { id: movie.id },
-        data: {
-          coverUrl: uploadedCover.publicUrl,
-          coverStorageKey: uploadedCover.objectKey,
-          coverConfidence: evaluation.acceptedCandidate.confidence,
-          ...(tmdbMetadataStored
-            ? { tmdbMovieId: evaluation.acceptedCandidate.tmdbMovieId }
-            : {}),
-        },
-      });
-    } catch (error) {
-      const isUniqueConstraint =
-        error instanceof Error &&
-        (error.message.includes("Unique constraint failed") ||
-          error.message.includes("P2002"));
+    const targetTmdbMovieId = evaluation.acceptedCandidate.tmdbMovieId;
 
-      if (isUniqueConstraint) {
-        console.warn(
-          `[TMDB Cover Sync]   → Warning: tmdbMovieId ${evaluation.acceptedCandidate.tmdbMovieId} is already assigned. Updating cover without tmdbMovieId.`,
-        );
+    const existingMovieWithTmdbId = tmdbMetadataStored
+      ? await db.movie.findFirst({
+          where: {
+            tmdbMovieId: targetTmdbMovieId,
+            id: { not: movie.id },
+          },
+          select: { id: true, name: true },
+        })
+      : null;
+
+    if (existingMovieWithTmdbId) {
+      console.info(
+        `[TMDB Cover Sync]   → tmdbMovieId ${targetTmdbMovieId} already assigned to movie ${existingMovieWithTmdbId.id} ("${existingMovieWithTmdbId.name}"). Merging showings.`,
+      );
+
+      const showingsToMove = await db.showing.findMany({
+        where: { movieId: movie.id },
+        select: { id: true },
+      });
+
+      for (const showing of showingsToMove) {
+        try {
+          await db.showing.update({
+            where: { id: showing.id },
+            data: { movieId: existingMovieWithTmdbId.id },
+          });
+        } catch {
+          await db.showing.delete({ where: { id: showing.id } });
+        }
+      }
+
+      try {
+        await db.movie.delete({ where: { id: movie.id } });
+      } catch {
         await db.movie.update({
           where: { id: movie.id },
           data: {
@@ -598,9 +531,17 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
             coverConfidence: evaluation.acceptedCandidate.confidence,
           },
         });
-      } else {
-        throw error;
       }
+    } else {
+      await db.movie.update({
+        where: { id: movie.id },
+        data: {
+          coverUrl: uploadedCover.publicUrl,
+          coverStorageKey: uploadedCover.objectKey,
+          coverConfidence: evaluation.acceptedCandidate.confidence,
+          ...(tmdbMetadataStored ? { tmdbMovieId: targetTmdbMovieId } : {}),
+        },
+      });
     }
 
     result.updatedMovies += 1;

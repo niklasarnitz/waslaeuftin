@@ -122,17 +122,34 @@ type MobileAnalyticsEventInput = z.infer<
   typeof MobileAnalyticsEventInputSchema
 >;
 
-export const trackMobileEvent = async (event: MobileAnalyticsEventInput) => {
+export const trackMobileEvent = async (
+  event: MobileAnalyticsEventInput,
+  ip?: string,
+) => {
   if (process.env.NODE_ENV !== "production" || !umamiClient) {
     return;
   }
 
   const input = MobileAnalyticsEventInputSchema.parse(event);
+
+  if (input.name === "cinema-view" && input.slug) {
+    await trackCinemaView({ slug: input.slug } as Cinema, ip, "mobile");
+    return;
+  }
+
+  if (input.name === "city-view" && input.slug) {
+    await trackCityView({ slug: input.slug } as City, ip, "mobile");
+    return;
+  }
+
+  const name =
+    input.name === "mobile-app-opened" ? "app-opened" : input.name;
   const url = input.screen ? `/app/${input.screen}` : "/app";
   const data = Object.fromEntries(
     Object.entries({
       source: "mobile",
       screen: input.screen,
+      slug: input.slug,
       result: input.result,
       action: input.action,
       targetType: input.targetType,
@@ -142,7 +159,7 @@ export const trackMobileEvent = async (event: MobileAnalyticsEventInput) => {
 
   await umamiClient.track({
     url,
-    name: input.name,
+    name,
     data,
   });
 };
