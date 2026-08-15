@@ -9,8 +9,8 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { SymbolView } from "expo-symbols";
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
