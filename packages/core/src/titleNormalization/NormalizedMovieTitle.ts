@@ -1,4 +1,4 @@
-export type NormalizedMovieTitle = {
+export interface NormalizedMovieTitle {
   normalizedTitle: string;
   tags: string[];
-};
+}

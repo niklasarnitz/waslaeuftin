@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Clock3, Film, Play, Star } from "lucide-react";
 
-import type { ListingMovieCard } from "@waslaeuftin/components/movie-listing/types";
+import {
+  formatShowingTime,
+  type ListingMovieCard,
+} from "@waslaeuftin/core";
 import { CinemaShowingsCard } from "@waslaeuftin/components/movie-listing/CinemaShowingsCard";
-import { formatShowingTime } from "@waslaeuftin/components/movie-listing/formatters";
 import { MovieCover } from "@waslaeuftin/components/MovieCover";
-import { TmdbWebviewModal } from "@waslaeuftin/components/TmdbWebviewModal";
 
 type MovieCardProps = {
   movie: ListingMovieCard;
@@ -15,28 +15,19 @@ type MovieCardProps = {
   eagerCover?: boolean;
 };
 
-type WebviewState = {
-  isOpen: boolean;
-  url: string | null;
-  title: string;
-};
-
 export const MovieCard = ({
   movie,
   maxShowingsPerCinema = 5,
   eagerCover = false,
 }: MovieCardProps) => {
-  const [webview, setWebview] = useState<WebviewState>({
-    isOpen: false,
-    url: null,
-    title: "",
-  });
-
-  const sortedCinemas = [...movie.cinemaEntries].sort((left, right) => {
-    const leftTime =
-      left.nextShowing?.dateTime.getTime() ?? Number.POSITIVE_INFINITY;
-    const rightTime =
-      right.nextShowing?.dateTime.getTime() ?? Number.POSITIVE_INFINITY;
+  const cinemaEntries = movie.cinemaEntries ?? movie.cinemas;
+  const sortedCinemas = [...cinemaEntries].sort((left, right) => {
+    const leftTime = left.nextShowing
+      ? new Date(left.nextShowing.dateTime).getTime()
+      : Number.POSITIVE_INFINITY;
+    const rightTime = right.nextShowing
+      ? new Date(right.nextShowing.dateTime).getTime()
+      : Number.POSITIVE_INFINITY;
 
     if (leftTime === rightTime) {
       return left.cinema.name.localeCompare(right.cinema.name);
@@ -49,15 +40,7 @@ export const MovieCard = ({
   const tmdbId = meta?.tmdbId;
   const tmdbMovieUrl = tmdbId
     ? `https://www.themoviedb.org/movie/${tmdbId}`
-    : `https://www.themoviedb.org/search/movie?query=${encodeURIComponent(movie.name)}`;
-
-  const openWebview = (url: string, title: string) => {
-    setWebview({ isOpen: true, url, title });
-  };
-
-  const closeWebview = () => {
-    setWebview((prev) => ({ ...prev, isOpen: false }));
-  };
+    : null;
 
   const directors: Array<{ id: number; name: string }> = Array.isArray(
     meta?.directors,
@@ -65,7 +48,7 @@ export const MovieCard = ({
     ? meta.directors
     : [];
 
-  const cast: Array<{ id: number; name: string; character?: string }> =
+  const cast: Array<{ id: number; name: string; character?: string | null }> =
     Array.isArray(meta?.cast) ? meta.cast.slice(0, 5) : [];
 
   const productionCompanies: Array<{ id: number; name: string }> =
@@ -79,8 +62,8 @@ export const MovieCard = ({
           {movie.name}
         </h4>
         <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold">
-          {movie.cinemaEntries.length}{" "}
-          {movie.cinemaEntries.length === 1 ? "Kino" : "Kinos"}
+          {cinemaEntries.length}{" "}
+          {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
         </span>
       </div>
 
@@ -106,13 +89,17 @@ export const MovieCard = ({
                 <span>Trailer</span>
               </a>
             )}
-            <button
-              onClick={() => openWebview(tmdbMovieUrl, `${movie.name} (TMDB)`)}
-              className="bg-secondary/80 hover:bg-secondary text-secondary-foreground flex items-center justify-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold transition-colors"
-            >
-              <Film className="h-3 w-3" />
-              <span>TMDB</span>
-            </button>
+            {tmdbMovieUrl && (
+              <a
+                href={tmdbMovieUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-secondary/80 hover:bg-secondary text-secondary-foreground flex items-center justify-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+              >
+                <Film className="h-3 w-3" />
+                <span>TMDB</span>
+              </a>
+            )}
           </div>
         </div>
 
@@ -123,8 +110,8 @@ export const MovieCard = ({
               {movie.name}
             </h4>
             <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
-              {movie.cinemaEntries.length}{" "}
-              {movie.cinemaEntries.length === 1 ? "Kino" : "Kinos"}
+              {cinemaEntries.length}{" "}
+              {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
             </span>
           </div>
 
@@ -168,18 +155,15 @@ export const MovieCard = ({
                     Regie:
                   </span>
                   {directors.map((director) => (
-                    <button
+                    <a
                       key={`dir-${director.id}`}
-                      onClick={() =>
-                        openWebview(
-                          `https://www.themoviedb.org/person/${director.id}`,
-                          director.name,
-                        )
-                      }
+                      href={`https://www.themoviedb.org/person/${director.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
                     >
                       {director.name}
-                    </button>
+                    </a>
                   ))}
                 </div>
               )}
@@ -190,19 +174,16 @@ export const MovieCard = ({
                     Besetzung:
                   </span>
                   {cast.map((actor) => (
-                    <button
+                    <a
                       key={`actor-${actor.id}`}
-                      onClick={() =>
-                        openWebview(
-                          `https://www.themoviedb.org/person/${actor.id}`,
-                          actor.name,
-                        )
-                      }
+                      href={`https://www.themoviedb.org/person/${actor.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
                     >
                       {actor.name}
                       {actor.character ? ` (${actor.character})` : ""}
-                    </button>
+                    </a>
                   ))}
                 </div>
               )}
@@ -213,18 +194,15 @@ export const MovieCard = ({
                     Studio:
                   </span>
                   {productionCompanies.map((studio) => (
-                    <button
+                    <a
                       key={`studio-${studio.id}`}
-                      onClick={() =>
-                        openWebview(
-                          `https://www.themoviedb.org/company/${studio.id}`,
-                          studio.name,
-                        )
-                      }
+                      href={`https://www.themoviedb.org/company/${studio.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
                     >
                       {studio.name}
-                    </button>
+                    </a>
                   ))}
                 </div>
               )}
@@ -263,14 +241,6 @@ export const MovieCard = ({
           />
         ))}
       </div>
-
-      {/* TMDB Webview Modal */}
-      <TmdbWebviewModal
-        url={webview.url}
-        title={webview.title}
-        isOpen={webview.isOpen}
-        onClose={closeWebview}
-      />
     </article>
   );
 };

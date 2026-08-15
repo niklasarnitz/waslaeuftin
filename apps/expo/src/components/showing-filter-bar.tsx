@@ -1,33 +1,25 @@
-import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import type { ShowingFilterOptions } from "@waslaeuftin/expo/utils/showing-tags";
+import type { SortByOption } from "@waslaeuftin/expo/utils/settings";
+import {
+  TAG_OPTIONS,
+  TIME_OPTIONS,
+  type ShowingFilterOptions,
+} from "@waslaeuftin/core";
 
 interface ShowingFilterBarProps {
   filters: ShowingFilterOptions;
   onChangeFilters: (filters: ShowingFilterOptions) => void;
+  sortBy?: SortByOption;
+  onChangeSortBy?: (sortBy: SortByOption) => void;
 }
-
-const TAG_OPTIONS = [
-  { id: "OV", label: "OV" },
-  { id: "OmU", label: "OmU" },
-  { id: "3D", label: "3D" },
-  { id: "IMAX", label: "IMAX" },
-  { id: "70mm/35mm", label: "70mm / 35mm" },
-  { id: "Atmos", label: "Atmos" },
-];
-
-const TIME_OPTIONS: Array<{ id: ShowingFilterOptions["timeWindow"]; label: string }> = [
-  { id: "all", label: "Alle Zeiten" },
-  { id: "14", label: "Ab 14:00" },
-  { id: "18", label: "Ab 18:00" },
-  { id: "21", label: "Ab 21:00" },
-];
 
 export function ShowingFilterBar({
   filters,
   onChangeFilters,
+  sortBy,
+  onChangeSortBy,
 }: ShowingFilterBarProps) {
   const toggleTag = (tagId: string) => {
     void Haptics.selectionAsync();
@@ -66,6 +58,21 @@ export function ShowingFilterBar({
           >
             <Text className="text-primary text-xs font-bold">
               ✕ Filter ({activeCount})
+            </Text>
+          </Pressable>
+        )}
+
+        {/* Sort Pill */}
+        {sortBy && onChangeSortBy && (
+          <Pressable
+            onPress={() => {
+              void Haptics.selectionAsync();
+              onChangeSortBy(sortBy === "popularity" ? "name" : "popularity");
+            }}
+            className="bg-primary/15 border-primary/40 rounded-full border px-3 py-1.5 flex-row items-center gap-1 active:opacity-75"
+          >
+            <Text className="text-primary text-xs font-semibold">
+              Sortierung: {sortBy === "popularity" ? "🔥 Beliebtheit" : "🔤 Name"}
             </Text>
           </Pressable>
         )}

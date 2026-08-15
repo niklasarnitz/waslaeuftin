@@ -1,9 +1,11 @@
 import { Alert, Pressable, Share, Text } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import type { Showing } from "@waslaeuftin/expo/utils/group-movies";
+import {
+  categorizeShowingTags,
+  type ListingShowing as Showing,
+} from "@waslaeuftin/core";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
-import { categorizeShowingTags } from "@waslaeuftin/expo/utils/showing-tags";
 
 interface ShowingTimePillProps {
   showing: Showing;
@@ -68,7 +70,7 @@ export function ShowingTimePill({
 
   return (
     <Pressable
-      onPress={() => openBooking(showing.bookingUrl)}
+      onPress={() => openBooking(showing.bookingUrl ?? null)}
       onLongPress={handleLongPress}
       delayLongPress={350}
       className="bg-primary/10 border-primary/20 flex-row items-center gap-1.5 rounded-xl border px-3 py-2.5 active:opacity-75"

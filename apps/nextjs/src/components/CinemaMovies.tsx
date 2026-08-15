@@ -1,7 +1,9 @@
-import { Film } from "lucide-react";
+"use client";
 
-import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types";
-import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
+import { ArrowUpDown, Film } from "lucide-react";
+
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
+import { groupMoviesByTitle, type ListingCinema } from "@waslaeuftin/core";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { type api } from "@waslaeuftin/trpc/server";
 
@@ -10,6 +12,8 @@ export type CinemaMoviesProps = {
 };
 
 export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
+  const [sortBy, setSortBy] = useSortPreference("popularity");
+
   const normalizedCinema: ListingCinema & {
     movies: typeof cinema.movies;
   } = {
@@ -23,7 +27,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
   };
 
   const groupedMovies = groupMoviesByTitle([normalizedCinema], {
-    sortBy: "popularity",
+    sortBy,
   });
 
   let totalShowings = 0;
@@ -41,13 +45,42 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
 
   return (
     <div>
-      <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
-        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
-          {groupedMovies.length} Filme
-        </span>
-        <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
-          {totalShowings} Vorstellungen heute
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
+          <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
+            {groupedMovies.length} Filme
+          </span>
+          <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
+            {totalShowings} Vorstellungen heute
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground ml-auto">
+          <ArrowUpDown className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Sortierung:</span>
+          <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+            <button
+              onClick={() => setSortBy("popularity")}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                sortBy === "popularity"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Beliebtheit
+            </button>
+            <button
+              onClick={() => setSortBy("name")}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                sortBy === "name"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Name
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -57,7 +90,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
             Filme im {cinema.name}
           </h3>
           <span className="text-muted-foreground text-xs">
-            Sortiert nach Beliebtheit
+            Sortiert nach {sortBy === "popularity" ? "Beliebtheit" : "Name"}
           </span>
         </div>
 

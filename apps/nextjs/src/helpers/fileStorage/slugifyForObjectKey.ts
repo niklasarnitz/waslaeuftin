@@ -1,4 +1,4 @@
-import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
+import { normalizeForComparison } from "@waslaeuftin/core";
 
 export const slugifyForObjectKey = (value: string) => {
   const normalized = normalizeForComparison(value)

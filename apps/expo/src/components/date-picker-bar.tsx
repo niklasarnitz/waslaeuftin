@@ -13,7 +13,7 @@ import {
   createScheduleDate,
   isSameScheduleDay,
   SCHEDULE_TIME_ZONE,
-} from "@waslaeuftin/expo/utils/date";
+} from "@waslaeuftin/core";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface DatePickerBarProps {

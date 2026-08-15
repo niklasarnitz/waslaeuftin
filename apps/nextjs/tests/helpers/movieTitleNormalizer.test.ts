@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import { normalizeMovieTitle } from "@waslaeuftin/core";
 
 describe("normalizeMovieTitle", () => {
   test("Basic movie titles with no tags", () => {

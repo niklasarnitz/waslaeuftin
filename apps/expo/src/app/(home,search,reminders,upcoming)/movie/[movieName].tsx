@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
 import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
-import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
+import type { ListingMovieCard as GroupedMovie } from "@waslaeuftin/core";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
@@ -44,27 +44,31 @@ type NearbyMovie = NonNullable<
 >;
 
 function toGroupedMovie(data: NearbyMovie): GroupedMovie {
+  const cinemas = data.cinemas.map(({ cinema, showings }) => ({
+    cinema: {
+      id: cinema.id,
+      name: cinema.name,
+      slug: cinema.slug,
+      distanceKm: cinema.distanceKm,
+      city: cinema.city,
+    },
+    showings: showings.map((showing) => ({
+      id: showing.id,
+      dateTime: showing.dateTime,
+      bookingUrl: showing.bookingUrl,
+      showingAdditionalData: showing.showingAdditionalData,
+    })),
+  }));
+
   return {
     name: data.name,
     coverUrl: data.coverUrl,
+    tmdbPopularity: data.tmdbMetadata?.popularity ?? null,
+    tmdbMetadata: data.tmdbMetadata,
     showingsCount: data.showingsCount,
     nextShowingDate: data.nextShowingDate,
-    tmdbMetadata: data.tmdbMetadata,
-    cinemas: data.cinemas.map(({ cinema, showings }) => ({
-      cinema: {
-        id: cinema.id,
-        name: cinema.name,
-        slug: cinema.slug,
-        distanceKm: cinema.distanceKm,
-        city: cinema.city,
-      },
-      showings: showings.map((showing) => ({
-        id: showing.id,
-        dateTime: showing.dateTime,
-        bookingUrl: showing.bookingUrl,
-        showingAdditionalData: showing.showingAdditionalData,
-      })),
-    })),
+    cinemas,
+    cinemaEntries: cinemas,
   };
 }
 
@@ -144,7 +148,7 @@ export default function MovieDetailScreen() {
   const activeTmdbId = meta?.tmdbId ?? (hasTmdbId ? tmdbMovieId : null);
   const tmdbMovieUrl = activeTmdbId
     ? `https://www.themoviedb.org/movie/${activeTmdbId}`
-    : `https://www.themoviedb.org/search/movie?query=${encodeURIComponent(movie.name)}`;
+    : null;
 
   const openWebUrl = (url: string) => {
     void openExternalUrl(url);
@@ -250,16 +254,18 @@ export default function MovieDetailScreen() {
                 </Pressable>
               )}
 
-              <Pressable
-                onPress={() => openWebUrl(tmdbMovieUrl)}
-                className="bg-secondary/90 border-border/80 flex-row items-center gap-1.5 rounded-xl border px-3 py-2 active:opacity-80"
-                style={{ borderCurve: "continuous" }}
-              >
-                <Ionicons name="film-outline" size={14} className="text-foreground" />
-                <Text className="text-foreground text-xs font-semibold">
-                  TMDB öffnen
-                </Text>
-              </Pressable>
+              {tmdbMovieUrl ? (
+                <Pressable
+                  onPress={() => openWebUrl(tmdbMovieUrl)}
+                  className="bg-secondary/90 border-border/80 flex-row items-center gap-1.5 rounded-xl border px-3 py-2 active:opacity-80"
+                  style={{ borderCurve: "continuous" }}
+                >
+                  <Ionicons name="film-outline" size={14} className="text-foreground" />
+                  <Text className="text-foreground text-xs font-semibold">
+                    TMDB öffnen
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </View>

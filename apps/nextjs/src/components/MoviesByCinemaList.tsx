@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { Film } from "lucide-react";
 
-import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types";
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
+import { groupMoviesByTitle, type ListingCinema } from "@waslaeuftin/core";
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
-import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import {
   ShowingFilterBar,
@@ -17,52 +17,53 @@ type CityMoviesAndShowings = NonNullable<
   Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>
 >;
 
-export const MoviesByCinemaList = ({
-  city,
-  date,
-}: {
+export type MoviesByCinemaListProps = {
   city: CityMoviesAndShowings;
   date?: string;
-}) => {
+};
+
+export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
+  void date;
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
   const [showingFilters, setShowingFilters] = useState<WebShowingFilterOptions>({
     selectedTags: [],
     timeWindow: "all",
   });
+  const [sortBy, setSortBy] = useSortPreference("popularity");
 
-  const normalizedCinemas: (ListingCinema & {
-    movies: CityMoviesAndShowings["cinemas"][number]["movies"];
-  })[] = useMemo(() => {
-    return city.cinemas.map((cinema) => ({
-      id: cinema.id,
-      slug: cinema.slug,
-      name: cinema.name,
-      city: { slug: city.slug, name: city.name },
-      distanceKm: null,
-      href: `/cinema/${cinema.slug}${date ? `?date=${date}` : ""}`,
-      movies: cinema.movies,
-    }));
-  }, [city, date]);
+  const normalizedCinemas: Array<
+    ListingCinema & {
+      movies: (typeof city.cinemas)[number]["movies"];
+    }
+  > = useMemo(
+    () =>
+      city.cinemas.map((cinema) => ({
+        id: cinema.id,
+        slug: cinema.slug,
+        name: cinema.name,
+        city: { slug: city.slug, name: city.name },
+        distanceKm: null,
+        href: `/cinema/${cinema.slug}`,
+        movies: cinema.movies,
+      })),
+    [city.cinemas],
+  );
 
   const effectiveSelectedCinemaSlugs = useMemo(() => {
-    if (selectedCinemaSlugs.length === 0) {
-      return [];
-    }
-
-    const availableSlugs = new Set(normalizedCinemas.map((c) => c.slug));
-    return selectedCinemaSlugs.filter((slug) => availableSlugs.has(slug));
+    const validSlugs = new Set(normalizedCinemas.map((cinema) => cinema.slug));
+    return selectedCinemaSlugs.filter((slug) => validSlugs.has(slug));
   }, [normalizedCinemas, selectedCinemaSlugs]);
 
+  const isCinemaFilterActive = effectiveSelectedCinemaSlugs.length > 0;
+
   const filteredCinemas = useMemo(() => {
-    if (effectiveSelectedCinemaSlugs.length === 0) {
+    if (!isCinemaFilterActive) {
       return normalizedCinemas;
     }
 
-    const selected = new Set(effectiveSelectedCinemaSlugs);
-    return normalizedCinemas.filter((cinema) => selected.has(cinema.slug));
-  }, [effectiveSelectedCinemaSlugs, normalizedCinemas]);
-
-  const isCinemaFilterActive = effectiveSelectedCinemaSlugs.length > 0;
+    const selectedSet = new Set(effectiveSelectedCinemaSlugs);
+    return normalizedCinemas.filter((cinema) => selectedSet.has(cinema.slug));
+  }, [effectiveSelectedCinemaSlugs, isCinemaFilterActive, normalizedCinemas]);
 
   const toggleCinemaFilter = (cinemaSlug: string) => {
     setSelectedCinemaSlugs((prev) => {
@@ -77,10 +78,10 @@ export const MoviesByCinemaList = ({
   const groupedMovies = useMemo(
     () =>
       groupMoviesByTitle(filteredCinemas, {
-        sortBy: "popularity",
+        sortBy,
         filters: showingFilters,
       }),
-    [filteredCinemas, showingFilters],
+    [filteredCinemas, showingFilters, sortBy],
   );
 
   const totalShowings = useMemo(() => {
@@ -97,6 +98,8 @@ export const MoviesByCinemaList = ({
         <ShowingFilterBar
           filters={showingFilters}
           onChangeFilters={setShowingFilters}
+          sortBy={sortBy}
+          onChangeSortBy={setSortBy}
         />
         <div className="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-sm">
           Für den ausgewählten Tag / Filter wurden keine Vorstellungen gefunden.
@@ -111,6 +114,8 @@ export const MoviesByCinemaList = ({
         <ShowingFilterBar
           filters={showingFilters}
           onChangeFilters={setShowingFilters}
+          sortBy={sortBy}
+          onChangeSortBy={setSortBy}
         />
       </div>
       <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
@@ -147,7 +152,7 @@ export const MoviesByCinemaList = ({
             Filme in {city.name}
           </h3>
           <span className="text-muted-foreground text-xs">
-            Sortiert nach Beliebtheit
+            Sortiert nach {sortBy === "popularity" ? "Beliebtheit" : "Name"}
           </span>
         </div>
 

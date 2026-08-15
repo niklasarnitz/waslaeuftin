@@ -12,11 +12,15 @@ declare const localStorage: {
 export const SEARCH_RADIUS_OPTIONS = [5, 10, 25, 50, 100] as const;
 export const DEFAULT_SEARCH_RADIUS_KM = 25;
 
+export type SortByOption = "popularity" | "name";
+
 interface SettingsState {
   searchRadiusKm: number;
   setSearchRadiusKm: (km: number) => void;
   lastViewMode: "nearby" | "favorites";
   setLastViewMode: (mode: "nearby" | "favorites") => void;
+  sortBy: SortByOption;
+  setSortBy: (sortBy: SortByOption) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -26,6 +30,8 @@ export const useSettingsStore = create<SettingsState>()(
       setSearchRadiusKm: (km) => set({ searchRadiusKm: km }),
       lastViewMode: "nearby",
       setLastViewMode: (mode) => set({ lastViewMode: mode }),
+      sortBy: "popularity",
+      setSortBy: (sortBy) => set({ sortBy }),
     }),
     {
       name: "waslaeuftin_settings",

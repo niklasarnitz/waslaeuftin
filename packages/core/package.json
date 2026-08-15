@@ -1,0 +1,35 @@
+{
+  "name": "@waslaeuftin/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./showingTags": "./src/showingTags/categorizeShowingTags.ts",
+    "./titleNormalization": "./src/titleNormalization/normalizeMovieTitle.ts",
+    "./movieGrouping": "./src/movieGrouping/groupMoviesByTitle.ts",
+    "./date": "./src/date/index.ts",
+    "./tmdb": "./src/tmdb/getTmdbPosterUrl.ts",
+    "./hooks": "./src/hooks/useShowingFilters.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:react19",
+    "@waslaeuftin/eslint-config": "workspace:*",
+    "@waslaeuftin/prettier-config": "workspace:*",
+    "@waslaeuftin/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "react": "catalog:react19",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "prettier": "@waslaeuftin/prettier-config"
+}

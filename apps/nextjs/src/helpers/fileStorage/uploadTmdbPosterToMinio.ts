@@ -3,8 +3,7 @@ import { Client as MinioClient } from "minio";
 import { env } from "@waslaeuftin/env";
 import { buildStorageKey } from "@waslaeuftin/helpers/fileStorage/buildStorageKey";
 import { encodeObjectKeyForPublicUrl } from "@waslaeuftin/helpers/fileStorage/encodeObjectKeyForPublicUrl";
-import { getUrlPathJoin } from "@waslaeuftin/helpers/titleNormalization/getUrlPathJoin";
-import { getTmdbPosterUrl } from "@waslaeuftin/helpers/tmdb/getTmdbPosterUrl";
+import { getTmdbPosterUrl, getUrlPathJoin } from "@waslaeuftin/core";
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 import { UploadedCover } from "@waslaeuftin/types/UploadedCover";
 
@@ -25,6 +24,9 @@ export const uploadTmdbPosterToMinio = async (
   }
 
   const posterUrl = getTmdbPosterUrl(match.posterPath);
+  if (!posterUrl) {
+    throw new Error("Invalid poster path");
+  }
   const posterResponse = await fetch(posterUrl);
 
   if (!posterResponse.ok) {

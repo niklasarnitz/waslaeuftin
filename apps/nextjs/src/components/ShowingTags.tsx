@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@waslaeuftin/components/ui/tooltip";
-import { categorizeShowingTags } from "@waslaeuftin/helpers/showingTags/categorizeShowingTags";
+import { categorizeShowingTags } from "@waslaeuftin/core";
 
 export const ShowingTags = ({
   showingId,

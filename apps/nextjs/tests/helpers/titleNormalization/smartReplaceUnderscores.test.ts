@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { smartReplaceUnderscores } from "@waslaeuftin/helpers/titleNormalization/smartReplaceUnderscores";
+import { smartReplaceUnderscores } from "@waslaeuftin/core";
 
 describe("smartReplaceUnderscores", () => {
   test("returns string unmodified if there are no underscores", () => {

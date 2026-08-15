@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { categorizeShowingTags } from "@waslaeuftin/helpers/showingTags/categorizeShowingTags";
+import { categorizeShowingTags } from "@waslaeuftin/core";
 
 describe("categorizeShowingTags", () => {
   test("categorizes 70mm and format tags correctly", () => {

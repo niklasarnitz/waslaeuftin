@@ -11,12 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
+import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
 import { useTrackCityView } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
-import { normalizeToStartOfDay } from "@waslaeuftin/expo/utils/date";
-import { groupCinemasByMovie } from "@waslaeuftin/expo/utils/group-movies";
 import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
+
+import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
 
 export default function CityScreen() {
   const navigation = useNavigation();
@@ -24,6 +25,8 @@ export default function CityScreen() {
   const { refreshing, onRefresh } = useRefresh();
   const { citySlug } = useLocalSearchParams<{ citySlug: string }>();
   useTrackCityView(citySlug);
+
+  const sortBy = useSettingsStore((s) => s.sortBy);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     normalizeToStartOfDay(new Date()),
@@ -48,9 +51,12 @@ export default function CityScreen() {
 
   const groupedMovies = React.useMemo(() => {
     return cityQuery.data?.cinemas
-      ? groupCinemasByMovie(cityQuery.data.cinemas)
+      ? groupMoviesByTitle(cityQuery.data.cinemas, {
+          filterPastShowings: false,
+          sortBy,
+        })
       : [];
-  }, [cityQuery.data]);
+  }, [cityQuery.data, sortBy]);
 
   const isLoading = cityQuery.isLoading;
 

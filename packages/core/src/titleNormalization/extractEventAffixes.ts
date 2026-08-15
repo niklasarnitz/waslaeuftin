@@ -21,7 +21,7 @@ export const extractEventAffixes = (
     changed = false;
     for (const regex of prefixPatterns) {
       const match = base.match(regex);
-      if (match && match[1]) {
+      if (match?.[1]) {
         extracted.push(match[1]);
         base = base.replace(regex, "");
         changed = true;
@@ -29,7 +29,7 @@ export const extractEventAffixes = (
     }
     for (const regex of suffixPatterns) {
       const match = base.match(regex);
-      if (match && match[1]) {
+      if (match?.[1]) {
         extracted.push(match[1]);
         base = base.replace(regex, "");
         changed = true;

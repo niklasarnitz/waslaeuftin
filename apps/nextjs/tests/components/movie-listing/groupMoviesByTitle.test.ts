@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
+import { groupMoviesByTitle } from "@waslaeuftin/core";
 
 describe("groupMoviesByTitle", () => {
   const futureDate = new Date(Date.now() + 1000 * 60 * 60 * 24); // 1 day in the future
@@ -97,8 +97,8 @@ describe("groupMoviesByTitle", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0]?.showingsCount).toBe(1);
-    expect(result[0]?.cinemaEntries[0]?.showings).toHaveLength(1);
-    expect(result[0]?.cinemaEntries[0]?.showings[0]?.id).toBe(102);
+    expect(result[0]?.cinemaEntries![0]?.showings).toHaveLength(1);
+    expect(result[0]?.cinemaEntries![0]?.showings[0]?.id).toBe(102);
   });
 
   it("should ignore movies with only past showings", () => {

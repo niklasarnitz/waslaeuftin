@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -18,18 +18,17 @@ import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { SettingsModal } from "@waslaeuftin/expo/components/settings-modal";
 import { ShowingFilterBar } from "@waslaeuftin/expo/components/showing-filter-bar";
 import {
+  createScheduleDate,
   isShowingMatchingFilters,
+  normalizeToStartOfDay,
+  type ListingMovieCard as GroupedMovie,
   type ShowingFilterOptions,
-} from "@waslaeuftin/expo/utils/showing-tags";
+} from "@waslaeuftin/core";
 import {
   trackMobileEvent,
   useTrackMobileScreen,
 } from "@waslaeuftin/expo/utils/analytics";
 import { apiClient, queryClient, trpc } from "@waslaeuftin/expo/utils/api";
-import {
-  createScheduleDate,
-  normalizeToStartOfDay,
-} from "@waslaeuftin/expo/utils/date";
 import { useDeviceStore } from "@waslaeuftin/expo/utils/device";
 import { useFavoritesStore } from "@waslaeuftin/expo/utils/favorites";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
@@ -62,6 +61,8 @@ export default function HomeIndex() {
   const [settingsVisible, setSettingsVisible] = useState(false);
   const viewMode = useSettingsStore((s) => s.lastViewMode);
   const setViewMode = useSettingsStore((s) => s.setLastViewMode);
+  const sortBy = useSettingsStore((s) => s.sortBy);
+  const setSortBy = useSettingsStore((s) => s.setSortBy);
 
   const searchRadiusKm = useSettingsStore((s) => s.searchRadiusKm);
 
@@ -203,7 +204,7 @@ export default function HomeIndex() {
       .catch((err) => console.error("Failed to report nearby cinemas", err));
   }, [deviceId, nearbyMoviesData]);
 
-  const filterMovies = (movies: typeof groupedMovies) => {
+  const filterMovies = (movies: GroupedMovie[]): GroupedMovie[] => {
     if (filters.selectedTags.length === 0 && filters.timeWindow === "all") {
       return movies;
     }
@@ -212,7 +213,7 @@ export default function HomeIndex() {
         const filteredCinemas = movie.cinemas
           .map((entry) => {
             const matchingShowings = entry.showings.filter((s) =>
-              isShowingMatchingFilters(s.dateTime, s.showingAdditionalData, filters),
+              isShowingMatchingFilters(s.dateTime, s.showingAdditionalData ?? [], filters),
             );
             return { ...entry, showings: matchingShowings };
           })
@@ -220,6 +221,7 @@ export default function HomeIndex() {
         return {
           ...movie,
           cinemas: filteredCinemas,
+          cinemaEntries: filteredCinemas,
           showingsCount: filteredCinemas.reduce(
             (acc, c) => acc + c.showings.length,
             0,
@@ -229,7 +231,21 @@ export default function HomeIndex() {
       .filter((movie) => movie.cinemas.length > 0);
   };
 
-  const displayedGroupedMovies = filterMovies(groupedMovies);
+  const rawDisplayedGroupedMovies = filterMovies(groupedMovies);
+
+  const displayedGroupedMovies = useMemo(() => {
+    const list = [...rawDisplayedGroupedMovies];
+    return list.sort((left, right) => {
+      if (sortBy === "popularity") {
+        const leftPop = left.tmdbMetadata?.popularity ?? 0;
+        const rightPop = right.tmdbMetadata?.popularity ?? 0;
+        if (leftPop !== rightPop) {
+          return rightPop - leftPop;
+        }
+      }
+      return left.name.localeCompare(right.name);
+    });
+  }, [rawDisplayedGroupedMovies, sortBy]);
 
   const handleCityPress = (citySlug: string) => {
     router.push(`/city/${citySlug}`);
@@ -253,7 +269,12 @@ export default function HomeIndex() {
 
         {/* Format & Time Filter Bar */}
         <View className="mt-2">
-          <ShowingFilterBar filters={filters} onChangeFilters={setFilters} />
+          <ShowingFilterBar
+            filters={filters}
+            onChangeFilters={setFilters}
+            sortBy={sortBy}
+            onChangeSortBy={setSortBy}
+          />
         </View>
 
         {/* View Mode Segmented Control */}
