@@ -15,6 +15,7 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "geocode:cinemas": "bun run scripts/geocode-cinemas-osm.ts",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "reevaluate:unmatched:movies": "bun run with-env -- bun scripts/update-movies/reevaluateUnmatchedMovies.ts",
     "start": "bun run with-env -- next start",
     "sync:covers:all": "bun run scripts/update-movies/syncAllMovieCovers.ts",
     "test": "bun test",

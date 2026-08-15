@@ -116,14 +116,7 @@ const getNearbyCinemasForInput = async (
               id: true,
               name: true,
               coverUrl: true,
-              tmdbMetadata: {
-                select: {
-                  popularity: true,
-                  overview: true,
-                  trailerUrl: true,
-                  certification: true,
-                },
-              },
+              tmdbMetadata: true,
             },
           },
         },
@@ -139,7 +132,7 @@ const getNearbyCinemasForInput = async (
         {
           name: string;
           coverUrl: string | null;
-          tmdbMetadata: { popularity: number | null } | null;
+          tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
           showings: typeof cinema.showings;
         }
       > = {};
@@ -305,13 +298,7 @@ const getNearbyMovieByTmdbId = async (
               id: true,
               name: true,
               coverUrl: true,
-              tmdbMetadata: {
-                select: {
-                  overview: true,
-                  trailerUrl: true,
-                  certification: true,
-                },
-              },
+              tmdbMetadata: true,
             },
           },
         },
@@ -323,11 +310,7 @@ const getNearbyMovieByTmdbId = async (
 
   let name: string | null = null;
   let coverUrl: string | null = null;
-  let tmdbMetadata: {
-    overview: string | null;
-    trailerUrl: string | null;
-    certification: string | null;
-  } | null = null;
+  let tmdbMetadata: GroupedShowing["movie"]["tmdbMetadata"] = null;
   let showingsCount = 0;
   let nextShowingDate: Date | undefined;
   const groupedCinemas: {
@@ -417,14 +400,7 @@ export const cinemaRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   coverUrl: true,
-                  tmdbMetadata: {
-                    select: {
-                      popularity: true,
-                      overview: true,
-                      trailerUrl: true,
-                      certification: true,
-                    },
-                  },
+              tmdbMetadata: true,
                 },
               },
             },
@@ -442,7 +418,7 @@ export const cinemaRouter = createTRPCRouter({
         {
           name: string;
           coverUrl: string | null;
-          tmdbMetadata: { popularity: number | null } | null;
+          tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
           showings: typeof cinema.showings;
         }
       > = {};
@@ -536,14 +512,7 @@ export const cinemaRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   coverUrl: true,
-                  tmdbMetadata: {
-                    select: {
-                      popularity: true,
-                      overview: true,
-                      trailerUrl: true,
-                      certification: true,
-                    },
-                  },
+                  tmdbMetadata: true,
                 },
               },
             },
@@ -557,7 +526,7 @@ export const cinemaRouter = createTRPCRouter({
           {
             name: string;
             coverUrl: string | null;
-            tmdbMetadata: { popularity: number | null } | null;
+            tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
             showings: typeof cinema.showings;
           }
         > = {};

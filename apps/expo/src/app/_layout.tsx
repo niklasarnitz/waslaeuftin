@@ -24,7 +24,7 @@ function RootLayoutInner() {
   const primaryColor = usePrimaryColor();
 
   useEffect(() => {
-    trackMobileEvent({ name: "mobile-app-opened" });
+    trackMobileEvent({ name: "app-opened" });
   }, []);
 
   useDeviceRegistration();

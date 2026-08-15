@@ -22,3 +22,19 @@ export const useTrackMobileScreen = (
     trackMobileEvent({ name: "mobile-screen-viewed", screen });
   }, [screen]);
 };
+
+export const useTrackCinemaView = (cinemaSlug?: string) => {
+  useEffect(() => {
+    if (cinemaSlug) {
+      trackMobileEvent({ name: "cinema-view", slug: cinemaSlug });
+    }
+  }, [cinemaSlug]);
+};
+
+export const useTrackCityView = (citySlug?: string) => {
+  useEffect(() => {
+    if (citySlug) {
+      trackMobileEvent({ name: "city-view", slug: citySlug });
+    }
+  }, [citySlug]);
+};

@@ -8,6 +8,7 @@ interface CinemaShowingsCardProps {
   showings: Showing[];
   hideCinemaHeader?: boolean;
   onCinemaPress?: () => void;
+  movieName?: string;
 }
 
 export function CinemaShowingsCard({
@@ -15,6 +16,7 @@ export function CinemaShowingsCard({
   showings,
   hideCinemaHeader = false,
   onCinemaPress,
+  movieName,
 }: CinemaShowingsCardProps) {
   return (
     <View
@@ -47,7 +49,12 @@ export function CinemaShowingsCard({
 
       <View className="flex-row flex-wrap gap-1.5">
         {showings.map((showing, index) => (
-          <ShowingTimePill key={`${showing.id}-${index}`} showing={showing} />
+          <ShowingTimePill
+            key={`${showing.id}-${index}`}
+            showing={showing}
+            movieName={movieName}
+            cinemaName={cinema.name}
+          />
         ))}
       </View>
     </View>

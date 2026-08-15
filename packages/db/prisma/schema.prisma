@@ -71,6 +71,15 @@ model TmdbMetadata {
   genres           String?
   certification    String?
   trailerUrl       String?
+  rawDetails       Json?
+  directors        Json?
+  cast             Json?
+  crew             Json?
+  productionCompanies Json?
+  productionCountries Json?
+  spokenLanguages  Json?
+  collectionJson   Json?
+  keywordsJson     Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
   movie            Movie?

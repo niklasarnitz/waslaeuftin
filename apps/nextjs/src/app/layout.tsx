@@ -6,6 +6,7 @@ import moment from "moment-timezone";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Analytics } from "@waslaeuftin/components/Analytics";
+import { IosAppBanner } from "@waslaeuftin/components/IosAppBanner";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 
 const rubik = Rubik({
@@ -26,6 +27,9 @@ export const metadata = {
   title: "wasläuft․in",
   description:
     "wasläuft․in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
+  other: {
+    "apple-itunes-app": "app-id=6740626359",
+  },
 };
 
 moment().tz("Europe/Berlin");
@@ -39,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={libre_franklin.variable + " " + rubik.variable}>
+        <IosAppBanner />
         <NuqsAdapter>
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </NuqsAdapter>

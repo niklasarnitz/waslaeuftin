@@ -7,8 +7,9 @@ import {
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
-import { FieldGroup, Host, Picker, Text } from "@expo/ui";
+import { Button, FieldGroup, Host, Picker, Text } from "@expo/ui";
 
+import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import {
   SEARCH_RADIUS_OPTIONS,
   useSettingsStore,
@@ -97,6 +98,28 @@ function SettingsModalContent({
                 <Picker.Item key={km} label={`${km} km`} value={km} />
               ))}
             </Picker>
+          </FieldGroup.Section>
+
+          <FieldGroup.Section title="Rechtliches & Datenschutz">
+            <Button
+              onPress={() =>
+                void openExternalUrl("https://waslaeuftin.de/legal#impressum")
+              }
+            >
+              Impressum
+            </Button>
+            <Button
+              onPress={() =>
+                void openExternalUrl("https://waslaeuftin.de/legal#datenschutz")
+              }
+            >
+              Datenschutzerklärung
+            </Button>
+            <FieldGroup.SectionFooter>
+              <Text>
+                Filmdaten & Poster werden von The Movie Database (TMDB) bereitgestellt. WasLäuftIn wird nicht von TMDB unterstützt oder zertifiziert.
+              </Text>
+            </FieldGroup.SectionFooter>
           </FieldGroup.Section>
         </FieldGroup>
       </Host>

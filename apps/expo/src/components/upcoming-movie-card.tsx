@@ -2,6 +2,7 @@ import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
+import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export interface UpcomingMovieCardData {
@@ -39,6 +40,12 @@ export function UpcomingMovieCard({
   const primaryColor = usePrimaryColor();
   const releaseLabel = formatReleaseDate(movie.releaseDate);
 
+  const openTmdb = () => {
+    void openExternalUrl(
+      `https://www.themoviedb.org/movie/${movie.tmdbMovieId}`,
+    );
+  };
+
   return (
     <Pressable
       onPress={onPress}
@@ -66,26 +73,36 @@ export function UpcomingMovieCard({
           ) : null}
         </View>
 
-        <Pressable
-          onPress={onToggleReminder}
-          hitSlop={8}
-          className={`flex-row items-center gap-1.5 self-start rounded-lg px-3 py-1.5 ${
-            isReminded ? "bg-primary" : "bg-primary/10"
-          }`}
-        >
-          <Ionicons
-            name={isReminded ? "notifications" : "notifications-outline"}
-            size={14}
-            color={isReminded ? "#fff" : primaryColor}
-          />
-          <Text
-            className={`text-xs font-bold ${
-              isReminded ? "text-white" : "text-primary"
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={onToggleReminder}
+            hitSlop={8}
+            className={`flex-row items-center gap-1.5 rounded-lg px-3 py-1.5 ${
+              isReminded ? "bg-primary" : "bg-primary/10"
             }`}
           >
-            {isReminded ? "Erinnerung aktiv" : "Erinnern"}
-          </Text>
-        </Pressable>
+            <Ionicons
+              name={isReminded ? "notifications" : "notifications-outline"}
+              size={14}
+              color={isReminded ? "#fff" : primaryColor}
+            />
+            <Text
+              className={`text-xs font-bold ${
+                isReminded ? "text-white" : "text-primary"
+              }`}
+            >
+              {isReminded ? "Erinnerung aktiv" : "Erinnern"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={openTmdb}
+            className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2.5 py-1.5"
+          >
+            <Ionicons name="film-outline" size={12} className="text-foreground" />
+            <Text className="text-foreground text-xs font-semibold">TMDB</Text>
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );

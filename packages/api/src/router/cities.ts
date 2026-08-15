@@ -129,11 +129,7 @@ export const citiesRouter = createTRPCRouter({
                       id: true,
                       name: true,
                       coverUrl: true,
-                      tmdbMetadata: {
-                        select: {
-                          popularity: true,
-                        },
-                      },
+                      tmdbMetadata: true,
                     },
                   },
                 },
@@ -161,7 +157,7 @@ export const citiesRouter = createTRPCRouter({
             {
               name: string;
               coverUrl: string | null;
-              tmdbMetadata: { popularity: number | null } | null;
+              tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
               showings: typeof cinema.showings;
             }
           > = {};

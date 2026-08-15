@@ -31,6 +31,7 @@ export type ListingMovieCard = {
   name: string;
   coverUrl: string | null;
   tmdbPopularity: number | null;
+  tmdbMetadata?: any | null;
   cinemaEntries: ListingCinemaEntry[];
   showingsCount: number;
   nextShowing?: ListingShowing;

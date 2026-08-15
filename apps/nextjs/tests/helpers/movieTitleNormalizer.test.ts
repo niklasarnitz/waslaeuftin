@@ -49,6 +49,10 @@ describe("normalizeMovieTitle", () => {
       normalizedTitle: "Oppenheimer",
       tags: ["70mm"],
     });
+    expect(normalizeMovieTitle("Die Odyssee 70 mm")).toEqual({
+      normalizedTitle: "Die Odyssee",
+      tags: ["70mm"],
+    });
     expect(normalizeMovieTitle("Tenet IMAX")).toEqual({
       normalizedTitle: "Tenet",
       tags: ["IMAX"],
@@ -99,7 +103,7 @@ describe("normalizeMovieTitle", () => {
       tags: [],
     });
     expect(normalizeMovieTitle("Some Movie (2024)")).toEqual({
-      normalizedTitle: "Some Movie (2024)",
+      normalizedTitle: "Some Movie",
       tags: [],
     });
   });
@@ -175,4 +179,58 @@ describe("normalizeMovieTitle", () => {
       tags: ["IMAX"],
     });
   });
+
+  test("HTML entity decoding and smart quote normalization", () => {
+    expect(normalizeMovieTitle("Minions &amp; Monster")).toEqual({
+      normalizedTitle: "Minions & Monster",
+      tags: [],
+    });
+    expect(normalizeMovieTitle("Mel Brook´s Spaceballs")).toEqual({
+      normalizedTitle: "Mel Brook's Spaceballs",
+      tags: [],
+    });
+    expect(normalizeMovieTitle("Virgina Woolf’s Night & Day")).toEqual({
+      normalizedTitle: "Virgina Woolf's Night & Day",
+      tags: [],
+    });
+  });
+
+  test("Extracting extended metadata tags (Live Action, Extended Version, englische Fassung, years)", () => {
+    expect(normalizeMovieTitle("Vaiana (Live Action)")).toEqual({
+      normalizedTitle: "Vaiana",
+      tags: ["Live Action"],
+    });
+    expect(normalizeMovieTitle("Backrooms (Extended Version)")).toEqual({
+      normalizedTitle: "Backrooms",
+      tags: ["Extended Version"],
+    });
+    expect(normalizeMovieTitle("Paw Patrol 3 (englische Fassung)")).toEqual({
+      normalizedTitle: "Paw Patrol 3",
+      tags: ["English"],
+    });
+    expect(
+      normalizeMovieTitle(
+        "Lustiges Pettersson und Findus Mitmachkino 2 (2026)",
+      ),
+    ).toEqual({
+      normalizedTitle: "Lustiges Pettersson und Findus Mitmachkino 2",
+      tags: [],
+    });
+  });
+
+  test("Extracting opera and event cinema affixes", () => {
+    expect(
+      normalizeMovieTitle("MET 2026/27 Giuseppe Verdi: OTELLO"),
+    ).toEqual({
+      normalizedTitle: "OTELLO",
+      tags: ["MET Opera", "Giuseppe Verdi"],
+    });
+    expect(
+      normalizeMovieTitle("Lotte und Totte - Mein erster Kinobesuch"),
+    ).toEqual({
+      normalizedTitle: "Lotte und Totte",
+      tags: ["Mein erster Kinobesuch"],
+    });
+  });
 });
+

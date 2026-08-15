@@ -1,9 +1,11 @@
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
+import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 
 interface MovieCardProps {
   movie: GroupedMovie;
@@ -41,6 +43,11 @@ export function MovieCard({
     });
   };
 
+  const meta = movie.tmdbMetadata;
+  const tmdbMovieUrl = meta?.tmdbId
+    ? `https://www.themoviedb.org/movie/${meta.tmdbId}`
+    : `https://www.themoviedb.org/search/movie?query=${encodeURIComponent(movie.name)}`;
+
   return (
     <View
       className="bg-card border-border/40 mb-4 rounded-2xl border p-4 shadow-sm"
@@ -48,10 +55,34 @@ export function MovieCard({
     >
       {/* Two-column layout: cover | title + cinemas */}
       <View className="flex-row gap-3">
-        {/* Left: Movie cover */}
-        <Pressable onPress={openMovieDetail} disabled={!showDetailsLink}>
-          <MoviePoster coverUrl={movie.coverUrl} />
-        </Pressable>
+        {/* Left: Movie cover & Action buttons */}
+        <View className="items-center gap-2">
+          <Pressable onPress={openMovieDetail} disabled={!showDetailsLink}>
+            <MoviePoster coverUrl={movie.coverUrl} />
+          </Pressable>
+
+          <View className="flex-row gap-1">
+            {meta?.trailerUrl ? (
+              <Pressable
+                onPress={() =>
+                  meta.trailerUrl && void openExternalUrl(meta.trailerUrl)
+                }
+                className="bg-primary/90 active:bg-primary rounded-lg px-2 py-1 flex-row items-center gap-1"
+              >
+                <Ionicons name="play" color="#FFF" size={10} />
+                <Text className="text-[10px] font-bold text-white">Trailer</Text>
+              </Pressable>
+            ) : null}
+
+            <Pressable
+              onPress={() => void openExternalUrl(tmdbMovieUrl)}
+              className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2 py-1 flex-row items-center gap-1"
+            >
+              <Ionicons name="film-outline" size={10} className="text-foreground" />
+              <Text className="text-[10px] font-semibold text-foreground">TMDB</Text>
+            </Pressable>
+          </View>
+        </View>
 
         {/* Right: title + meta + cinemas */}
         <View className="min-w-0 flex-1">
@@ -85,6 +116,21 @@ export function MovieCard({
                 </Text>
               </View>
             )}
+            {meta?.certification && (
+              <View className="bg-muted border-border rounded-full border px-2 py-0.5">
+                <Text className="text-muted-foreground text-[10px] font-bold uppercase">
+                  FSK {meta.certification}
+                </Text>
+              </View>
+            )}
+            {meta?.voteAverage ? (
+              <View className="bg-amber-500/10 border-amber-500/30 flex-row items-center gap-0.5 rounded-full border px-2 py-0.5">
+                <Ionicons name="star" color="#F59E0B" size={10} />
+                <Text className="text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                  {meta.voteAverage.toFixed(1)}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Cinemas & showings */}
@@ -97,6 +143,7 @@ export function MovieCard({
                   cinema={cinema}
                   showings={showings}
                   hideCinemaHeader={hideCinemaHeader}
+                  movieName={movie.name}
                   onCinemaPress={() =>
                     router.push({
                       pathname: "/cinema/[cinemaSlug]",

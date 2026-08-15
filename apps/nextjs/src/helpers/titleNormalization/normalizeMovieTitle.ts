@@ -11,19 +11,30 @@ import { TAG_PATTERN } from "@waslaeuftin/helpers/titleNormalization/TAG_PATTERN
 const cache = new Map<string, NormalizedMovieTitle>();
 const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
 
+const decodeHtmlAndCleanQuotes = (input: string): string => {
+  return input
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/[’‘`´]/g, "'");
+};
+
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
   if (cache.has(rawTitle)) {
     return cache.get(rawTitle)!;
   }
 
-  let title = smartReplaceUnderscores(rawTitle);
+  let title = decodeHtmlAndCleanQuotes(smartReplaceUnderscores(rawTitle));
   const bracketTags = extractBracketTags(title);
 
   let withoutMetadataBrackets = title
     .replace(/\(([^)]*)\)/g, (_full, section: string) => {
       const normalized = normalizeForTagCheck(section);
       if (normalized.length === 0) return " ";
-      const isMetadata = METADATA_REGEX.test(normalized);
+      const isYear = /\b(19|20)\d{2}\b/.test(normalized);
+      const isMetadata = isYear || METADATA_REGEX.test(normalized);
       return isMetadata ? " " : _full;
     })
     .trim();

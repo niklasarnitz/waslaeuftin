@@ -51,3 +51,5 @@ tsconfig.tsbuildinfo
 # Local secrets (never commit)
 password.md
 apps/expo/build-output/waslaeuftin-altstore.ipa
+.claude/settings.local.json
+apps/expo/.claude/settings.local.json
