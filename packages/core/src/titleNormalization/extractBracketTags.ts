@@ -1,5 +1,5 @@
-import { METADATA_REGEX } from "@waslaeuftin/helpers/titleNormalization/METADATA_MARKERS";
-import { normalizeForTagCheck } from "@waslaeuftin/helpers/titleNormalization/normalizeForTagCheck";
+import { METADATA_REGEX } from "./METADATA_MARKERS";
+import { normalizeForTagCheck } from "./normalizeForTagCheck";
 
 export const extractBracketTags = (title: string): string[] => {
   const tags: string[] = [];

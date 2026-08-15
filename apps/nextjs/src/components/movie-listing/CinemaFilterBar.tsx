@@ -1,6 +1,6 @@
 "use client";
 
-import type { CinemaFilterOption } from "@waslaeuftin/components/movie-listing/types";
+import type { CinemaFilterOption } from "@waslaeuftin/core";
 
 type CinemaFilterBarProps = {
   options: CinemaFilterOption[];

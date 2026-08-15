@@ -1,37 +1,28 @@
 "use client";
 
 import React from "react";
-import { Clock, Filter, X } from "lucide-react";
+import { ArrowUpDown, Clock, Filter } from "lucide-react";
+import {
+  TAG_OPTIONS,
+  TIME_OPTIONS,
+  type ShowingFilterOptions as WebShowingFilterOptions,
+} from "@waslaeuftin/core";
+import type { SortByOption } from "@waslaeuftin/hooks/useSortPreference";
 
-export type WebShowingFilterOptions = {
-  selectedTags: string[];
-  timeWindow: "all" | "14" | "18" | "21";
-};
+export type { WebShowingFilterOptions };
 
 interface ShowingFilterBarProps {
   filters: WebShowingFilterOptions;
   onChangeFilters: (filters: WebShowingFilterOptions) => void;
+  sortBy?: SortByOption;
+  onChangeSortBy?: (sortBy: SortByOption) => void;
 }
-
-const TAG_OPTIONS = [
-  { id: "OV", label: "OV" },
-  { id: "OmU", label: "OmU" },
-  { id: "3D", label: "3D" },
-  { id: "IMAX", label: "IMAX" },
-  { id: "70mm/35mm", label: "70mm / 35mm" },
-  { id: "Atmos", label: "Atmos" },
-];
-
-const TIME_OPTIONS: Array<{ id: WebShowingFilterOptions["timeWindow"]; label: string }> = [
-  { id: "all", label: "Alle Zeiten" },
-  { id: "14", label: "Ab 14:00" },
-  { id: "18", label: "Ab 18:00" },
-  { id: "21", label: "Ab 21:00" },
-];
 
 export function ShowingFilterBar({
   filters,
   onChangeFilters,
+  sortBy,
+  onChangeSortBy,
 }: ShowingFilterBarProps) {
   const toggleTag = (tagId: string) => {
     const exists = filters.selectedTags.includes(tagId);
@@ -107,6 +98,39 @@ export function ShowingFilterBar({
           </button>
         );
       })}
+
+      {/* Sort Options */}
+      {sortBy && onChangeSortBy && (
+        <>
+          <div className="h-4 w-[1px] bg-border/60 mx-1 hidden sm:block" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:ml-auto">
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sortierung:</span>
+            <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+              <button
+                onClick={() => onChangeSortBy("popularity")}
+                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                  sortBy === "popularity"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Beliebtheit
+              </button>
+              <button
+                onClick={() => onChangeSortBy("name")}
+                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                  sortBy === "name"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Name
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

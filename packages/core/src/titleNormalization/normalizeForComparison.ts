@@ -1,4 +1,4 @@
-import { sanitizeWhitespace } from "@waslaeuftin/helpers/titleNormalization/sanitizeWhitespace";
+import { sanitizeWhitespace } from "./sanitizeWhitespace";
 
 export const normalizeForComparison = (value: string) => {
   return sanitizeWhitespace(

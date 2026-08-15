@@ -1,0 +1,11 @@
+{
+  "extends": "@waslaeuftin/tsconfig/base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "paths": {
+      "@waslaeuftin/core/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

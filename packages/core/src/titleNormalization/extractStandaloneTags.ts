@@ -1,4 +1,4 @@
-import { TAG_PATTERN } from "@waslaeuftin/helpers/titleNormalization/TAG_PATTERN";
+import { TAG_PATTERN } from "./TAG_PATTERN";
 
 export const extractStandaloneTags = (title: string): string[] => {
   const tags: string[] = [];
@@ -16,8 +16,10 @@ export const extractStandaloneTags = (title: string): string[] => {
       title.lastIndexOf("(", match.index) > title.lastIndexOf(")", match.index);
 
     if (!isInsideBrackets) {
-      const isBoundary = (index: number) =>
-        index < 0 || index >= title.length || /[\s,/|;–—-]/.test(title[index]!);
+      const isBoundary = (index: number) => {
+        const char = title[index];
+        return index < 0 || index >= title.length || (char !== undefined && /[\s,/|;–—-]/.test(char));
+      };
 
       if (isBoundary(beforeIndex) && isBoundary(afterIndex)) {
         tags.push(tag);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowUpDown,
   Compass,
   Film,
   Loader2,
@@ -11,13 +12,14 @@ import {
   Ticket,
 } from "lucide-react";
 
-import type { ListingCinema } from "@waslaeuftin/components/movie-listing/types";
-import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
 import {
   formatDistance,
   formatShowingTime,
-} from "@waslaeuftin/components/movie-listing/formatters";
-import { groupMoviesByTitle } from "@waslaeuftin/components/movie-listing/groupMoviesByTitle";
+  groupMoviesByTitle,
+  type ListingCinema,
+} from "@waslaeuftin/core";
+import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { api } from "@waslaeuftin/trpc/react";
 
@@ -47,6 +49,7 @@ export const NearbyCinemasSection = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useSortPreference("popularity");
   const [radiusKm, setRadiusKm] = useState(getInitialRadius);
   const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
   const hasRequestedLocation = useRef(false);
@@ -303,9 +306,32 @@ export const NearbyCinemasSection = () => {
                 <Film className="text-primary h-4 w-4" />
                 Filme in deiner Nähe
               </h3>
-              <span className="text-muted-foreground text-xs">
-                Sortiert nach Name
-              </span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                <span>Sortierung:</span>
+                <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+                  <button
+                    onClick={() => setSortBy("popularity")}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                      sortBy === "popularity"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Beliebtheit
+                  </button>
+                  <button
+                    onClick={() => setSortBy("name")}
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                      sortBy === "name"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Name
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3">

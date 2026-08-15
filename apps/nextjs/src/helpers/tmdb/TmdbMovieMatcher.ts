@@ -1,8 +1,7 @@
 import { env } from "@waslaeuftin/env";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
-import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import { normalizeForComparison, normalizeMovieTitle } from "@waslaeuftin/core";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
 import { TmdbMovieSearchResponse } from "@waslaeuftin/types/TmdbMovieSearchResponse";
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";

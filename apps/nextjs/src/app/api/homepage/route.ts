@@ -6,7 +6,7 @@ import {
   createTRPCContext,
   getClientIp,
 } from "@waslaeuftin/api/server";
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import { normalizeMovieTitle } from "@waslaeuftin/core";
 import {
   LocationInputSchema,
   RawLocationInputSchema,

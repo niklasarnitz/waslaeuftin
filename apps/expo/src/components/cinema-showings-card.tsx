@@ -1,6 +1,10 @@
 import { Pressable, Text, View } from "react-native";
 
-import type { Cinema, Showing } from "@waslaeuftin/expo/utils/group-movies";
+import {
+  formatDistance,
+  type ListingCinema as Cinema,
+  type ListingShowing as Showing,
+} from "@waslaeuftin/core";
 import { ShowingTimePill } from "@waslaeuftin/expo/components/showing-time-pill";
 
 interface CinemaShowingsCardProps {
@@ -39,9 +43,9 @@ export function CinemaShowingsCard({
               </Text>
             )}
           </View>
-          {cinema.distanceKm !== undefined && (
+          {formatDistance(cinema.distanceKm) && (
             <Text className="text-primary text-xs font-semibold">
-              {cinema.distanceKm.toFixed(1)} km
+              {formatDistance(cinema.distanceKm)}
             </Text>
           )}
         </Pressable>

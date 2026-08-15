@@ -1,12 +1,12 @@
-import { canonicalizeTag } from "@waslaeuftin/helpers/titleNormalization/canonicalizeTag";
-import { extractBracketTags } from "@waslaeuftin/helpers/titleNormalization/extractBracketTags";
-import { extractEventAffixes } from "@waslaeuftin/helpers/titleNormalization/extractEventAffixes";
-import { extractStandaloneTags } from "@waslaeuftin/helpers/titleNormalization/extractStandaloneTags";
-import { METADATA_REGEX } from "@waslaeuftin/helpers/titleNormalization/METADATA_MARKERS";
-import { NormalizedMovieTitle } from "@waslaeuftin/helpers/titleNormalization/NormalizedMovieTitle";
-import { normalizeForTagCheck } from "@waslaeuftin/helpers/titleNormalization/normalizeForTagCheck";
-import { smartReplaceUnderscores } from "@waslaeuftin/helpers/titleNormalization/smartReplaceUnderscores";
-import { TAG_PATTERN } from "@waslaeuftin/helpers/titleNormalization/TAG_PATTERN";
+import { canonicalizeTag } from "./canonicalizeTag";
+import { extractBracketTags } from "./extractBracketTags";
+import { extractEventAffixes } from "./extractEventAffixes";
+import { extractStandaloneTags } from "./extractStandaloneTags";
+import { METADATA_REGEX } from "./METADATA_MARKERS";
+import type { NormalizedMovieTitle } from "./NormalizedMovieTitle";
+import { normalizeForTagCheck } from "./normalizeForTagCheck";
+import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
+import { TAG_PATTERN } from "./TAG_PATTERN";
 
 const cache = new Map<string, NormalizedMovieTitle>();
 const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
@@ -22,14 +22,15 @@ const decodeHtmlAndCleanQuotes = (input: string): string => {
 };
 
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
-  if (cache.has(rawTitle)) {
-    return cache.get(rawTitle)!;
+  const cached = cache.get(rawTitle);
+  if (cached) {
+    return cached;
   }
 
-  let title = decodeHtmlAndCleanQuotes(smartReplaceUnderscores(rawTitle));
+  const title = decodeHtmlAndCleanQuotes(smartReplaceUnderscores(rawTitle));
   const bracketTags = extractBracketTags(title);
 
-  let withoutMetadataBrackets = title
+  const withoutMetadataBrackets = title
     .replace(/\(([^)]*)\)/g, (_full, section: string) => {
       const normalized = normalizeForTagCheck(section);
       if (normalized.length === 0) return " ";
@@ -41,7 +42,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
 
   const affixResult = extractEventAffixes(withoutMetadataBrackets);
   const affixTags = affixResult.extracted;
-  let baseTitleStr = affixResult.base;
+  const baseTitleStr = affixResult.base;
 
   const standaloneTags = extractStandaloneTags(baseTitleStr);
 
@@ -49,7 +50,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
     .replace(TAG_PATTERN, " ")
     .replace(/^:\s*/, "")
     .replace(/[–—]/g, "-")
-    .replace(/[\s,\-]+$/, "")
+    .replace(/[\s,-]+$/, "")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -71,7 +72,7 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
   const finalTitle = baseTitle || title.trim();
 
   const result = {
-    normalizedTitle: finalTitle.replace(/[\s,\-]+$/, ""), // Make sure no trailing commas/dashes remain even after fallbacks
+    normalizedTitle: finalTitle.replace(/[\s,-]+$/, ""), // Make sure no trailing commas/dashes remain even after fallbacks
     tags: uniqueTags,
   };
 

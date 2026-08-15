@@ -1,5 +1,4 @@
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
-import { sanitizeWhitespace } from "@waslaeuftin/helpers/titleNormalization/sanitizeWhitespace";
+import { normalizeMovieTitle, sanitizeWhitespace } from "@waslaeuftin/core";
 
 export const buildTmdbSearchQueries = (
   originalTitle: string,

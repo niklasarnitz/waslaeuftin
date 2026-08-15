@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { getUrlPathJoin } from "@waslaeuftin/helpers/titleNormalization/getUrlPathJoin";
+import { getUrlPathJoin } from "@waslaeuftin/core";
 
 describe("getUrlPathJoin", () => {
   test("handles empty inputs", () => {

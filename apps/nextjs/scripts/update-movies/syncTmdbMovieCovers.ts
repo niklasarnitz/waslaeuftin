@@ -6,8 +6,10 @@ import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
-import { normalizeForComparison } from "@waslaeuftin/helpers/titleNormalization/normalizeForComparison";
-import { normalizeMovieTitle } from "@waslaeuftin/helpers/titleNormalization/normalizeMovieTitle";
+import {
+  normalizeForComparison,
+  normalizeMovieTitle,
+} from "@waslaeuftin/core";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 

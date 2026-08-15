@@ -49,6 +49,7 @@
     "@umami/node": "catalog:",
     "@waslaeuftin/api": "workspace:*",
     "@waslaeuftin/cinema-providers": "workspace:*",
+    "@waslaeuftin/core": "workspace:*",
     "@waslaeuftin/db": "workspace:*",
     "@waslaeuftin/validators": "workspace:*",
     "class-variance-authority": "catalog:",

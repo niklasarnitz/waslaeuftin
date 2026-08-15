@@ -1,8 +1,8 @@
 export const smartReplaceUnderscores = (str: string): string => {
   if (!str.includes("_")) return str;
 
-  const spaces = (str.match(/ /g) || []).length;
-  const underscores = (str.match(/_/g) || []).length;
+  const spaces = (str.match(/ /g) ?? []).length;
+  const underscores = (str.match(/_/g) ?? []).length;
 
   // Wenn der String stark von Unterstrichen dominiert wird (Dateinamen-/URL-Stil)
   if (underscores > spaces) {

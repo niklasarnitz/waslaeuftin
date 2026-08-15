@@ -28,6 +28,7 @@
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",
+    "@waslaeuftin/core": "workspace:*",
     "expo": "^56.0.12",
     "expo-constants": "~56.0.18",
     "expo-crypto": "~56.0.4",

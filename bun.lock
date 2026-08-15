@@ -28,6 +28,7 @@
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
         "@trpc/tanstack-react-query": "catalog:",
+        "@waslaeuftin/core": "workspace:*",
         "expo": "^56.0.12",
         "expo-constants": "~56.0.18",
         "expo-crypto": "~56.0.4",
@@ -103,6 +104,7 @@
         "@umami/node": "catalog:",
         "@waslaeuftin/api": "workspace:*",
         "@waslaeuftin/cinema-providers": "workspace:*",
+        "@waslaeuftin/core": "workspace:*",
         "@waslaeuftin/db": "workspace:*",
         "@waslaeuftin/validators": "workspace:*",
         "class-variance-authority": "catalog:",
@@ -194,6 +196,22 @@
         "eslint": "catalog:",
         "prettier": "catalog:",
         "typescript": "catalog:",
+      },
+    },
+    "packages/core": {
+      "name": "@waslaeuftin/core",
+      "devDependencies": {
+        "@types/react": "catalog:react19",
+        "@waslaeuftin/eslint-config": "workspace:*",
+        "@waslaeuftin/prettier-config": "workspace:*",
+        "@waslaeuftin/tsconfig": "workspace:*",
+        "eslint": "catalog:",
+        "prettier": "catalog:",
+        "react": "catalog:react19",
+        "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
       },
     },
     "packages/db": {
@@ -1271,6 +1289,8 @@
     "@waslaeuftin/api": ["@waslaeuftin/api@workspace:packages/api"],
 
     "@waslaeuftin/cinema-providers": ["@waslaeuftin/cinema-providers@workspace:packages/cinema-providers"],
+
+    "@waslaeuftin/core": ["@waslaeuftin/core@workspace:packages/core"],
 
     "@waslaeuftin/db": ["@waslaeuftin/db@workspace:packages/db"],
 

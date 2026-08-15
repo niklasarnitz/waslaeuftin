@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { normalizeForTagCheck } from "@waslaeuftin/helpers/titleNormalization/normalizeForTagCheck";
+import { normalizeForTagCheck } from "@waslaeuftin/core";
 
 describe("normalizeForTagCheck", () => {
   test("handles empty inputs", () => {

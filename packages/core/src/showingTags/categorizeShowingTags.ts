@@ -1,14 +1,14 @@
-export type CategorizedShowingTags = {
+export interface CategorizedShowingTags {
   prominentTags: string[];
   infoItems: string[];
-};
+}
 
-type ProminentRule = {
+interface ProminentRule {
   id: string;
   label: string;
   regex: RegExp;
   order: number;
-};
+}
 
 const PROMINENT_RULES: ProminentRule[] = [
   // Version / Language
@@ -95,10 +95,10 @@ export function categorizeShowingTags(
   };
 }
 
-export type ShowingFilterOptions = {
+export interface ShowingFilterOptions {
   selectedTags: string[]; // e.g. ["OV", "OmU", "3D", "IMAX", "70mm/35mm", "Atmos"]
   timeWindow: "all" | "14" | "18" | "21"; // "14" = ab 14:00, "18" = ab 18:00, "21" = ab 21:00
-};
+}
 
 export function isShowingMatchingFilters(
   showingDateTime: Date | string,
@@ -145,4 +145,3 @@ export function isShowingMatchingFilters(
 
   return true;
 }
-

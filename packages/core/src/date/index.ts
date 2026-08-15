@@ -46,3 +46,39 @@ export function isSameScheduleDay(left: Date, right: Date): boolean {
 export function normalizeToStartOfDay(date: Date): Date {
   return createScheduleDate(0, date);
 }
+
+export function formatTime(dateTimeStr: Date | string): string {
+  const d = dateTimeStr instanceof Date ? dateTimeStr : new Date(dateTimeStr);
+  if (isNaN(d.getTime())) return "??:??";
+  const hours = d.getHours().toString().padStart(2, "0");
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+export function formatShowingTime(dateTimeStr: Date | string): string {
+  const d = dateTimeStr instanceof Date ? dateTimeStr : new Date(dateTimeStr);
+  if (isNaN(d.getTime())) return "??:??";
+  const now = new Date();
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  const time = formatTime(d);
+
+  if (isToday) {
+    return time;
+  }
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}. ${time}`;
+}
+
+export function formatDistance(distanceKm: number | null | undefined): string | null {
+  if (distanceKm === null || distanceKm === undefined) return null;
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)} m`;
+  }
+  return `${distanceKm.toFixed(1)} km`;
+}

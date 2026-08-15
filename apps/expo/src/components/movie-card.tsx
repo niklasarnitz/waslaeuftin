@@ -2,7 +2,7 @@ import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { GroupedMovie } from "@waslaeuftin/expo/utils/group-movies";
+import type { ListingMovieCard as GroupedMovie } from "@waslaeuftin/core";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
@@ -44,9 +44,10 @@ export function MovieCard({
   };
 
   const meta = movie.tmdbMetadata;
-  const tmdbMovieUrl = meta?.tmdbId
-    ? `https://www.themoviedb.org/movie/${meta.tmdbId}`
-    : `https://www.themoviedb.org/search/movie?query=${encodeURIComponent(movie.name)}`;
+  const tmdbId = meta?.tmdbId;
+  const tmdbMovieUrl = tmdbId
+    ? `https://www.themoviedb.org/movie/${tmdbId}`
+    : null;
 
   return (
     <View
@@ -74,13 +75,15 @@ export function MovieCard({
               </Pressable>
             ) : null}
 
-            <Pressable
-              onPress={() => void openExternalUrl(tmdbMovieUrl)}
-              className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2 py-1 flex-row items-center gap-1"
-            >
-              <Ionicons name="film-outline" size={10} className="text-foreground" />
-              <Text className="text-[10px] font-semibold text-foreground">TMDB</Text>
-            </Pressable>
+            {tmdbMovieUrl ? (
+              <Pressable
+                onPress={() => void openExternalUrl(tmdbMovieUrl)}
+                className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2 py-1 flex-row items-center gap-1"
+              >
+                <Ionicons name="film-outline" size={10} className="text-foreground" />
+                <Text className="text-[10px] font-semibold text-foreground">TMDB</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
