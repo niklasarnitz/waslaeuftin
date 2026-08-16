@@ -1,9 +1,13 @@
 import { describe, expect, test } from "bun:test";
+
 import { categorizeShowingTags } from "@waslaeuftin/core";
 
 describe("categorizeShowingTags", () => {
   test("categorizes 70mm and format tags correctly", () => {
-    const result = categorizeShowingTags(["70mm"], ["Saal 1", "Barrierefrei", "Rollstuhl"]);
+    const result = categorizeShowingTags(
+      ["70mm"],
+      ["Saal 1", "Barrierefrei", "Rollstuhl"],
+    );
     expect(result.prominentTags).toEqual(["70mm"]);
     expect(result.infoItems).toEqual(["Saal 1", "Barrierefrei", "Rollstuhl"]);
   });
@@ -15,7 +19,10 @@ describe("categorizeShowingTags", () => {
   });
 
   test("categorizes OV, IMAX, Atmos, and 3D properly", () => {
-    const result = categorizeShowingTags(["IMAX"], ["OV", "Dolby Atmos", "FSK 12"]);
+    const result = categorizeShowingTags(
+      ["IMAX"],
+      ["OV", "Dolby Atmos", "FSK 12"],
+    );
     expect(result.prominentTags).toEqual(["OV", "IMAX", "Atmos"]);
     expect(result.infoItems).toEqual(["FSK 12"]);
   });
@@ -23,7 +30,17 @@ describe("categorizeShowingTags", () => {
   test("deduplicates redundant format tags and places remaining metadata in infoItems", () => {
     const result = categorizeShowingTags(
       ["OV"],
-      ["Spanisch", "Sondervorstellung", "V-MAX", "OV (Originalversion)", "OmU", "2D", "FSK 6", "Barrierefrei", "Rollstuhl"]
+      [
+        "Spanisch",
+        "Sondervorstellung",
+        "V-MAX",
+        "OV (Originalversion)",
+        "OmU",
+        "2D",
+        "FSK 6",
+        "Barrierefrei",
+        "Rollstuhl",
+      ],
     );
     expect(result.prominentTags).toEqual(["OV", "OmU", "2D", "V-MAX"]);
     expect(result.infoItems).toEqual([

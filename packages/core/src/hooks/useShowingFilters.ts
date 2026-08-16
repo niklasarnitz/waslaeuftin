@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+
 import type { ShowingFilterOptions } from "../showingTags/categorizeShowingTags";
 
 export const TAG_OPTIONS = [
@@ -12,7 +13,10 @@ export const TAG_OPTIONS = [
   { id: "Atmos", label: "Atmos" },
 ] as const;
 
-export const TIME_OPTIONS: { id: ShowingFilterOptions["timeWindow"]; label: string }[] = [
+export const TIME_OPTIONS: {
+  id: ShowingFilterOptions["timeWindow"];
+  label: string;
+}[] = [
   { id: "all", label: "Alle Zeiten" },
   { id: "14", label: "Ab 14:00" },
   { id: "18", label: "Ab 18:00" },
@@ -20,7 +24,10 @@ export const TIME_OPTIONS: { id: ShowingFilterOptions["timeWindow"]; label: stri
 ] as const;
 
 export function useShowingFilters(
-  initialFilters: ShowingFilterOptions = { selectedTags: [], timeWindow: "all" },
+  initialFilters: ShowingFilterOptions = {
+    selectedTags: [],
+    timeWindow: "all",
+  },
 ) {
   const [filters, setFilters] = useState<ShowingFilterOptions>(initialFilters);
 
@@ -34,9 +41,12 @@ export function useShowingFilters(
     });
   }, []);
 
-  const selectTime = useCallback((timeId: ShowingFilterOptions["timeWindow"]) => {
-    setFilters((prev) => ({ ...prev, timeWindow: timeId }));
-  }, []);
+  const selectTime = useCallback(
+    (timeId: ShowingFilterOptions["timeWindow"]) => {
+      setFilters((prev) => ({ ...prev, timeWindow: timeId }));
+    },
+    [],
+  );
 
   const resetFilters = useCallback(() => {
     setFilters({ selectedTags: [], timeWindow: "all" });

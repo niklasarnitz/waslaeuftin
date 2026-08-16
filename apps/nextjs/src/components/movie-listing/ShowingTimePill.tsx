@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Clock3 } from "lucide-react";
 
-import {
-  formatShowingTime,
-  type ListingShowing,
-} from "@waslaeuftin/core";
+import type { ListingShowing } from "@waslaeuftin/core";
 import { ShowingTags } from "@waslaeuftin/components/ShowingTags";
+import { formatShowingTime } from "@waslaeuftin/core";
 
 type ShowingTimePillProps = {
   showing: ListingShowing;

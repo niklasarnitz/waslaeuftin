@@ -1,9 +1,9 @@
+import type { NormalizedMovieTitle } from "./NormalizedMovieTitle";
 import { canonicalizeTag } from "./canonicalizeTag";
 import { extractBracketTags } from "./extractBracketTags";
 import { extractEventAffixes } from "./extractEventAffixes";
 import { extractStandaloneTags } from "./extractStandaloneTags";
 import { METADATA_REGEX } from "./METADATA_MARKERS";
-import type { NormalizedMovieTitle } from "./NormalizedMovieTitle";
 import { normalizeForTagCheck } from "./normalizeForTagCheck";
 import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
 import { TAG_PATTERN } from "./TAG_PATTERN";

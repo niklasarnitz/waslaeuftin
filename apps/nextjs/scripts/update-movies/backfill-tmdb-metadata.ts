@@ -1,6 +1,6 @@
 import { db } from "@waslaeuftin/db/client";
-import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
+import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 
 async function backfill() {
   console.log("=== STARTING TMDB METADATA BACKFILL ===");

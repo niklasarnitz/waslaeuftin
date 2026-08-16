@@ -65,10 +65,34 @@ export interface TmdbMetadata {
   genres?: string | null;
   certification?: string | null;
   trailerUrl?: string | null;
-  directors?: { id: number; name: string; profilePath?: string | null }[] | null;
-  cast?: { id: number; name: string; character?: string | null; profilePath?: string | null }[] | null;
-  crew?: { id: number; name: string; job: string; department: string; profilePath?: string | null }[] | null;
-  productionCompanies?: { id: number; name: string; logoPath?: string | null; originCountry?: string }[] | null;
+  directors?:
+    | { id: number; name: string; profilePath?: string | null }[]
+    | null;
+  cast?:
+    | {
+        id: number;
+        name: string;
+        character?: string | null;
+        profilePath?: string | null;
+      }[]
+    | null;
+  crew?:
+    | {
+        id: number;
+        name: string;
+        job: string;
+        department: string;
+        profilePath?: string | null;
+      }[]
+    | null;
+  productionCompanies?:
+    | {
+        id: number;
+        name: string;
+        logoPath?: string | null;
+        originCountry?: string;
+      }[]
+    | null;
   keywordsJson?: any;
   [key: string]: any;
 }

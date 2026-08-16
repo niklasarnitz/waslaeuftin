@@ -270,7 +270,8 @@ export function CommandSearch() {
                   {query.length > 0 ? "Kinos" : "Kinos in der Nähe"}
                 </p>
                 {cinemaItems.map((item, index) => {
-                  const flatIndex = movieItems.length + cityItems.length + index;
+                  const flatIndex =
+                    movieItems.length + cityItems.length + index;
                   return (
                     <button
                       key={item.id}

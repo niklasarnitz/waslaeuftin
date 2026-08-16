@@ -2,12 +2,10 @@
 
 import React from "react";
 import { ArrowUpDown, Clock, Filter } from "lucide-react";
-import {
-  TAG_OPTIONS,
-  TIME_OPTIONS,
-  type ShowingFilterOptions as WebShowingFilterOptions,
-} from "@waslaeuftin/core";
+
+import type { ShowingFilterOptions as WebShowingFilterOptions } from "@waslaeuftin/core";
 import type { SortByOption } from "@waslaeuftin/hooks/useSortPreference";
+import { TAG_OPTIONS, TIME_OPTIONS } from "@waslaeuftin/core";
 
 export type { WebShowingFilterOptions };
 
@@ -45,8 +43,8 @@ export function ShowingFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-2">
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mr-1">
-        <Filter className="w-3.5 h-3.5" />
+      <div className="text-muted-foreground mr-1 flex items-center gap-1.5 text-xs font-semibold">
+        <Filter className="h-3.5 w-3.5" />
         <span>Filter:</span>
       </div>
 
@@ -56,7 +54,7 @@ export function ShowingFilterBar({
           type="button"
           onClick={resetFilters}
           aria-label={`Filter zurücksetzen (${activeCount} aktiv)`}
-          className="focus-visible:ring-ring inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/20 px-2.5 py-1 text-xs font-bold text-primary transition-colors hover:bg-primary/30 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+          className="focus-visible:ring-ring border-primary/30 bg-primary/20 text-primary hover:bg-primary/30 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
         >
           <span>✕ Zurücksetzen ({activeCount})</span>
         </button>
@@ -82,7 +80,7 @@ export function ShowingFilterBar({
         );
       })}
 
-      <div className="h-4 w-[1px] bg-border/60 mx-1 hidden sm:block" />
+      <div className="bg-border/60 mx-1 hidden h-4 w-[1px] sm:block" />
 
       {/* Time Windows */}
       {TIME_OPTIONS.filter((t) => t.id !== "all").map((timeOpt) => {
@@ -95,11 +93,11 @@ export function ShowingFilterBar({
             aria-pressed={isSelected}
             className={`focus-visible:ring-ring inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
               isSelected
-                ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                ? "border-amber-600 bg-amber-600 text-white shadow-sm"
                 : "bg-muted/60 text-foreground border-border/60 hover:bg-muted"
             }`}
           >
-            <Clock className="w-3 h-3" />
+            <Clock className="h-3 w-3" />
             <span>{timeOpt.label}</span>
           </button>
         );
@@ -108,11 +106,11 @@ export function ShowingFilterBar({
       {/* Sort Options */}
       {sortBy && onChangeSortBy && (
         <>
-          <div className="h-4 w-[1px] bg-border/60 mx-1 hidden sm:block" />
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:ml-auto">
-            <ArrowUpDown className="w-3.5 h-3.5" />
+          <div className="bg-border/60 mx-1 hidden h-4 w-[1px] sm:block" />
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold sm:ml-auto">
+            <ArrowUpDown className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sortierung:</span>
-            <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+            <div className="bg-muted/80 border-border/60 inline-flex rounded-full border p-0.5">
               <button
                 type="button"
                 onClick={() => onChangeSortBy("popularity")}

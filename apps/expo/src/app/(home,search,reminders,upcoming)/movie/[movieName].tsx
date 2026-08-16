@@ -11,14 +11,14 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
-import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
 import type { ListingMovieCard as GroupedMovie } from "@waslaeuftin/core";
+import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
-import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import { useLocationStore } from "@waslaeuftin/expo/utils/location";
+import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
@@ -154,19 +154,22 @@ export default function MovieDetailScreen() {
     void openExternalUrl(url);
   };
 
-  const directors: Array<{ id: number; name: string }> = Array.isArray(
+  const directors: { id: number; name: string }[] = Array.isArray(
     meta?.directors,
   )
     ? meta.directors
     : [];
 
-  const cast: Array<{ id: number; name: string; character?: string | null }> =
+  const cast: { id: number; name: string; character?: string | null }[] =
     Array.isArray(meta?.cast) ? meta.cast : [];
 
-  const productionCompanies: Array<{ id: number; name: string }> =
-    Array.isArray(meta?.productionCompanies) ? meta.productionCompanies : [];
+  const productionCompanies: { id: number; name: string }[] = Array.isArray(
+    meta?.productionCompanies,
+  )
+    ? meta.productionCompanies
+    : [];
 
-  const keywords: Array<{ id: number; name: string }> = Array.isArray(
+  const keywords: { id: number; name: string }[] = Array.isArray(
     meta?.keywordsJson,
   )
     ? meta.keywordsJson
@@ -196,7 +199,7 @@ export default function MovieDetailScreen() {
               {movie.name}
             </Text>
             {meta?.tagline ? (
-              <Text className="text-muted-foreground italic text-xs">
+              <Text className="text-muted-foreground text-xs italic">
                 "{meta.tagline}"
               </Text>
             ) : null}
@@ -218,9 +221,9 @@ export default function MovieDetailScreen() {
                 </View>
               ) : null}
               {meta?.voteAverage ? (
-                <View className="bg-amber-500/10 border-amber-500/30 flex-row items-center gap-1 rounded-full border px-2 py-0.5">
+                <View className="flex-row items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5">
                   <Ionicons name="star" color="#F59E0B" size={10} />
-                  <Text className="text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                  <Text className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
                     {meta.voteAverage.toFixed(1)}
                   </Text>
                 </View>
@@ -244,7 +247,7 @@ export default function MovieDetailScreen() {
               {meta?.trailerUrl && (
                 <Pressable
                   onPress={() => meta.trailerUrl && openWebUrl(meta.trailerUrl)}
-                  className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-2 active:opacity-80 shadow-sm"
+                  className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-2 shadow-sm active:opacity-80"
                   style={{ borderCurve: "continuous" }}
                 >
                   <Ionicons name="play" color="#FFF" size={14} />
@@ -260,7 +263,11 @@ export default function MovieDetailScreen() {
                   className="bg-secondary/90 border-border/80 flex-row items-center gap-1.5 rounded-xl border px-3 py-2 active:opacity-80"
                   style={{ borderCurve: "continuous" }}
                 >
-                  <Ionicons name="film-outline" size={14} className="text-foreground" />
+                  <Ionicons
+                    name="film-outline"
+                    size={14}
+                    className="text-foreground"
+                  />
                   <Text className="text-foreground text-xs font-semibold">
                     TMDB öffnen
                   </Text>
@@ -301,7 +308,9 @@ export default function MovieDetailScreen() {
                       <Pressable
                         key={`dir-${d.id}`}
                         onPress={() =>
-                          openWebUrl(`https://www.themoviedb.org/person/${d.id}`)
+                          openWebUrl(
+                            `https://www.themoviedb.org/person/${d.id}`,
+                          )
                         }
                         className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
                       >
@@ -314,88 +323,90 @@ export default function MovieDetailScreen() {
                 </View>
               )}
 
-          {/* Cast */}
-          {cast.length > 0 && (
-            <View className="gap-1.5">
-              <Text className="text-foreground text-xs font-bold tracking-tight">
-                Besetzung
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {cast.map((a) => (
-                  <Pressable
-                    key={`cast-${a.id}`}
-                    onPress={() =>
-                      openWebUrl(`https://www.themoviedb.org/person/${a.id}`)
-                    }
-                    className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
-                  >
-                    <Text className="text-foreground text-xs font-medium">
-                      {a.name}
-                      {a.character ? ` (${a.character})` : ""}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+              {/* Cast */}
+              {cast.length > 0 && (
+                <View className="gap-1.5">
+                  <Text className="text-foreground text-xs font-bold tracking-tight">
+                    Besetzung
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5">
+                    {cast.map((a) => (
+                      <Pressable
+                        key={`cast-${a.id}`}
+                        onPress={() =>
+                          openWebUrl(
+                            `https://www.themoviedb.org/person/${a.id}`,
+                          )
+                        }
+                        className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
+                      >
+                        <Text className="text-foreground text-xs font-medium">
+                          {a.name}
+                          {a.character ? ` (${a.character})` : ""}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
 
-          {/* Production Companies / Studios */}
-          {productionCompanies.length > 0 && (
-            <View className="gap-1.5">
-              <Text className="text-foreground text-xs font-bold tracking-tight">
-                Studio / Produktion
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {productionCompanies.map((studio) => (
-                  <Pressable
-                    key={`studio-${studio.id}`}
-                    onPress={() =>
-                      openWebUrl(
-                        `https://www.themoviedb.org/company/${studio.id}`,
-                      )
-                    }
-                    className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
-                  >
-                    <Text className="text-foreground text-xs font-medium">
-                      {studio.name}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+              {/* Production Companies / Studios */}
+              {productionCompanies.length > 0 && (
+                <View className="gap-1.5">
+                  <Text className="text-foreground text-xs font-bold tracking-tight">
+                    Studio / Produktion
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5">
+                    {productionCompanies.map((studio) => (
+                      <Pressable
+                        key={`studio-${studio.id}`}
+                        onPress={() =>
+                          openWebUrl(
+                            `https://www.themoviedb.org/company/${studio.id}`,
+                          )
+                        }
+                        className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2.5 py-1"
+                      >
+                        <Text className="text-foreground text-xs font-medium">
+                          {studio.name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
 
-          {/* Keywords */}
-          {keywords.length > 0 && (
-            <View className="gap-1.5">
-              <Text className="text-foreground text-xs font-bold tracking-tight">
-                Stichwörter
-              </Text>
-              <View className="flex-row flex-wrap gap-1.5">
-                {keywords.map((kw) => (
-                  <Pressable
-                    key={`kw-${kw.id}`}
-                    onPress={() =>
-                      openWebUrl(
-                        `https://www.themoviedb.org/keyword/${kw.id}`,
-                      )
-                    }
-                    className="bg-muted/50 border-border/40 rounded-full border px-2 py-0.5"
-                  >
-                    <Text className="text-muted-foreground text-[10px] font-medium">
-                      #{kw.name}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              {/* Keywords */}
+              {keywords.length > 0 && (
+                <View className="gap-1.5">
+                  <Text className="text-foreground text-xs font-bold tracking-tight">
+                    Stichwörter
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5">
+                    {keywords.map((kw) => (
+                      <Pressable
+                        key={`kw-${kw.id}`}
+                        onPress={() =>
+                          openWebUrl(
+                            `https://www.themoviedb.org/keyword/${kw.id}`,
+                          )
+                        }
+                        className="bg-muted/50 border-border/40 rounded-full border px-2 py-0.5"
+                      >
+                        <Text className="text-muted-foreground text-[10px] font-medium">
+                          #{kw.name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
-          )}
-        </View>
-      </>
-    )}
-  </View>
+          </>
+        )}
+      </View>
 
-  {/* Showings per Cinema */}
+      {/* Showings per Cinema */}
       <View className="gap-3">
         <Text className="text-foreground text-lg font-bold tracking-tight">
           Kinos & Vorstellungen

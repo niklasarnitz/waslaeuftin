@@ -99,7 +99,11 @@ export function UpcomingMovieCard({
             onPress={openTmdb}
             className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2.5 py-1.5"
           >
-            <Ionicons name="film-outline" size={12} className="text-foreground" />
+            <Ionicons
+              name="film-outline"
+              size={12}
+              className="text-foreground"
+            />
             <Text className="text-foreground text-xs font-semibold">TMDB</Text>
           </Pressable>
         </View>

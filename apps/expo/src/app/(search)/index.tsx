@@ -314,11 +314,7 @@ export default function SearchIndex() {
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
-                    <AppIcon
-                      name="film"
-                      tintColor={primaryColor}
-                      size={18}
-                    />
+                    <AppIcon name="film" tintColor={primaryColor} size={18} />
                     <View className="min-w-0 flex-1">
                       <Text
                         numberOfLines={1}

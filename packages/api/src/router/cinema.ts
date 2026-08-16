@@ -411,7 +411,7 @@ export const cinemaRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   coverUrl: true,
-              tmdbMetadata: true,
+                  tmdbMetadata: true,
                 },
               },
             },

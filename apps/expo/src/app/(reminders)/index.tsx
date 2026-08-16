@@ -2,11 +2,11 @@ import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+import { getTmdbPosterUrl } from "@waslaeuftin/core";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
 import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
-import { getTmdbPosterUrl } from "@waslaeuftin/core";
 import { useReminders } from "@waslaeuftin/expo/utils/use-reminders";
 
 export default function FavoritesScreen() {
