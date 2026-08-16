@@ -53,8 +53,10 @@ export function ShowingFilterBar({
       {/* Active count & Reset */}
       {activeCount > 0 && (
         <button
+          type="button"
           onClick={resetFilters}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors"
+          aria-label={`Filter zurücksetzen (${activeCount} aktiv)`}
+          className="focus-visible:ring-ring inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/20 px-2.5 py-1 text-xs font-bold text-primary transition-colors hover:bg-primary/30 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
         >
           <span>✕ Zurücksetzen ({activeCount})</span>
         </button>
@@ -66,8 +68,10 @@ export function ShowingFilterBar({
         return (
           <button
             key={`web-filter-tag-${opt.id}`}
+            type="button"
             onClick={() => toggleTag(opt.id)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+            aria-pressed={isSelected}
+            className={`focus-visible:ring-ring rounded-full border px-3 py-1 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
               isSelected
                 ? "bg-primary text-primary-foreground border-primary shadow-sm"
                 : "bg-muted/60 text-foreground border-border/60 hover:bg-muted"
@@ -86,8 +90,10 @@ export function ShowingFilterBar({
         return (
           <button
             key={`web-filter-time-${timeOpt.id}`}
+            type="button"
             onClick={() => selectTime(isSelected ? "all" : timeOpt.id)}
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+            aria-pressed={isSelected}
+            className={`focus-visible:ring-ring inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
               isSelected
                 ? "bg-amber-600 text-white border-amber-600 shadow-sm"
                 : "bg-muted/60 text-foreground border-border/60 hover:bg-muted"
@@ -108,8 +114,10 @@ export function ShowingFilterBar({
             <span className="hidden sm:inline">Sortierung:</span>
             <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
               <button
+                type="button"
                 onClick={() => onChangeSortBy("popularity")}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                aria-pressed={sortBy === "popularity"}
+                className={`focus-visible:ring-ring rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
                   sortBy === "popularity"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -118,8 +126,10 @@ export function ShowingFilterBar({
                 Beliebtheit
               </button>
               <button
+                type="button"
                 onClick={() => onChangeSortBy("name")}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                aria-pressed={sortBy === "name"}
+                className={`focus-visible:ring-ring rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
                   sortBy === "name"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
