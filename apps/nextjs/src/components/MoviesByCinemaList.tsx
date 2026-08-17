@@ -3,14 +3,13 @@
 import { useMemo, useState } from "react";
 import { Film } from "lucide-react";
 
-import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
-import { groupMoviesByTitle, type ListingCinema } from "@waslaeuftin/core";
+import type { WebShowingFilterOptions } from "@waslaeuftin/components/ShowingFilterBar";
+import type { ListingCinema } from "@waslaeuftin/core";
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
-import {
-  ShowingFilterBar,
-  type WebShowingFilterOptions,
-} from "@waslaeuftin/components/ShowingFilterBar";
+import { ShowingFilterBar } from "@waslaeuftin/components/ShowingFilterBar";
+import { groupMoviesByTitle } from "@waslaeuftin/core";
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
 import { type api } from "@waslaeuftin/trpc/server";
 
 type CityMoviesAndShowings = NonNullable<
@@ -25,10 +24,12 @@ export type MoviesByCinemaListProps = {
 export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
   void date;
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
-  const [showingFilters, setShowingFilters] = useState<WebShowingFilterOptions>({
-    selectedTags: [],
-    timeWindow: "all",
-  });
+  const [showingFilters, setShowingFilters] = useState<WebShowingFilterOptions>(
+    {
+      selectedTags: [],
+      timeWindow: "all",
+    },
+  );
   const [sortBy, setSortBy] = useSortPreference("popularity");
 
   const normalizedCinemas: Array<

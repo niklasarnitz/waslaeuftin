@@ -11,19 +11,21 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
+import type {
+  ListingMovieCard as GroupedMovie,
+  ShowingFilterOptions,
+} from "@waslaeuftin/core";
+import {
+  createScheduleDate,
+  isShowingMatchingFilters,
+  normalizeToStartOfDay,
+} from "@waslaeuftin/core";
 import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
 import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { SettingsModal } from "@waslaeuftin/expo/components/settings-modal";
 import { ShowingFilterBar } from "@waslaeuftin/expo/components/showing-filter-bar";
-import {
-  createScheduleDate,
-  isShowingMatchingFilters,
-  normalizeToStartOfDay,
-  type ListingMovieCard as GroupedMovie,
-  type ShowingFilterOptions,
-} from "@waslaeuftin/core";
 import {
   trackMobileEvent,
   useTrackMobileScreen,
@@ -213,7 +215,11 @@ export default function HomeIndex() {
         const filteredCinemas = movie.cinemas
           .map((entry) => {
             const matchingShowings = entry.showings.filter((s) =>
-              isShowingMatchingFilters(s.dateTime, s.showingAdditionalData ?? [], filters),
+              isShowingMatchingFilters(
+                s.dateTime,
+                s.showingAdditionalData ?? [],
+                filters,
+              ),
             );
             return { ...entry, showings: matchingShowings };
           })

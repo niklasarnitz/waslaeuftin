@@ -12,8 +12,20 @@ interface ProminentRule {
 
 const PROMINENT_RULES: ProminentRule[] = [
   // Version / Language
-  { id: "ov", label: "OV", regex: /\b(ov|originalversion|original\s*version|subtitled\s*ov|ov\s*\(originalversion\)|ov\s*\(englisch\)|english|englisch)\b/i, order: 10 },
-  { id: "omu", label: "OmU", regex: /\b(omu|omud|original\s*mit\s*untertitel|omu\s*\(original\s*mit\s*untertitel\))\b/i, order: 11 },
+  {
+    id: "ov",
+    label: "OV",
+    regex:
+      /\b(ov|originalversion|original\s*version|subtitled\s*ov|ov\s*\(originalversion\)|ov\s*\(englisch\)|english|englisch)\b/i,
+    order: 10,
+  },
+  {
+    id: "omu",
+    label: "OmU",
+    regex:
+      /\b(omu|omud|original\s*mit\s*untertitel|omu\s*\(original\s*mit\s*untertitel\))\b/i,
+    order: 11,
+  },
   { id: "omeu", label: "OmeU", regex: /\bomeu\b/i, order: 12 },
   { id: "omeu_eu", label: "OmEU", regex: /\bomeu\b/i, order: 13 },
 
@@ -28,21 +40,36 @@ const PROMINENT_RULES: ProminentRule[] = [
   { id: "4k", label: "4K", regex: /\b4k\b/i, order: 31 },
   { id: "laser", label: "Laser", regex: /\blaser\b/i, order: 32 },
   { id: "hfr", label: "HFR", regex: /\bhfr\b/i, order: 33 },
-  { id: "screenx", label: "ScreenX", regex: /\b(screenx|screen\s*x)\b/i, order: 34 },
+  {
+    id: "screenx",
+    label: "ScreenX",
+    regex: /\b(screenx|screen\s*x)\b/i,
+    order: 34,
+  },
   { id: "4dx", label: "4DX", regex: /\b4dx\b/i, order: 35 },
   { id: "2d", label: "2D", regex: /\b2d\b/i, order: 36 },
 
   // Experience / Sound / Motion
-  { id: "atmos", label: "Atmos", regex: /\b(dolby\s*atmos|atmos)\b/i, order: 40 },
+  {
+    id: "atmos",
+    label: "Atmos",
+    regex: /\b(dolby\s*atmos|atmos)\b/i,
+    order: 40,
+  },
   { id: "dbox", label: "D-BOX", regex: /\b(d-box|dbox)\b/i, order: 41 },
-  { id: "dolby_cinema", label: "Dolby Cinema", regex: /\bdolby\s*cinema\b/i, order: 42 },
+  {
+    id: "dolby_cinema",
+    label: "Dolby Cinema",
+    regex: /\bdolby\s*cinema\b/i,
+    order: 42,
+  },
   { id: "vmax", label: "V-MAX", regex: /\b(v-max|vmax)\b/i, order: 43 },
   { id: "onyx", label: "Onyx", regex: /\bonyx\b/i, order: 44 },
 ];
 
 export function categorizeShowingTags(
   titleTags: string[] = [],
-  additionalData?: string[] | null
+  additionalData?: string[] | null,
 ): CategorizedShowingTags {
   const parts = additionalData ?? [];
 
@@ -71,7 +98,11 @@ export function categorizeShowingTags(
     }
 
     if (!matchedProminent && !isFromTitle) {
-      if (!infoItems.some((existing) => existing.toLowerCase() === trimmed.toLowerCase())) {
+      if (
+        !infoItems.some(
+          (existing) => existing.toLowerCase() === trimmed.toLowerCase(),
+        )
+      ) {
         infoItems.push(trimmed);
       }
     }
@@ -127,12 +158,22 @@ export function isShowingMatchingFilters(
 
     for (const filterTag of filters.selectedTags) {
       const targetUpper = filterTag.toUpperCase();
-      if (targetUpper === "70MM" || targetUpper === "35MM" || targetUpper === "70MM/35MM") {
-        if (!prominentUpper.includes("70MM") && !prominentUpper.includes("35MM")) {
+      if (
+        targetUpper === "70MM" ||
+        targetUpper === "35MM" ||
+        targetUpper === "70MM/35MM"
+      ) {
+        if (
+          !prominentUpper.includes("70MM") &&
+          !prominentUpper.includes("35MM")
+        ) {
           return false;
         }
       } else if (targetUpper === "IMAX") {
-        if (!prominentUpper.includes("IMAX") && !prominentUpper.includes("IMAX 3D")) {
+        if (
+          !prominentUpper.includes("IMAX") &&
+          !prominentUpper.includes("IMAX 3D")
+        ) {
           return false;
         }
       } else {

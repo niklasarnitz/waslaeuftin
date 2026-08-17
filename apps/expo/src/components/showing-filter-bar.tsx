@@ -1,12 +1,9 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
+import type { ShowingFilterOptions } from "@waslaeuftin/core";
 import type { SortByOption } from "@waslaeuftin/expo/utils/settings";
-import {
-  TAG_OPTIONS,
-  TIME_OPTIONS,
-  type ShowingFilterOptions,
-} from "@waslaeuftin/core";
+import { TAG_OPTIONS, TIME_OPTIONS } from "@waslaeuftin/core";
 
 interface ShowingFilterBarProps {
   filters: ShowingFilterOptions;
@@ -69,10 +66,11 @@ export function ShowingFilterBar({
               void Haptics.selectionAsync();
               onChangeSortBy(sortBy === "popularity" ? "name" : "popularity");
             }}
-            className="bg-primary/15 border-primary/40 rounded-full border px-3 py-1.5 flex-row items-center gap-1 active:opacity-75"
+            className="bg-primary/15 border-primary/40 flex-row items-center gap-1 rounded-full border px-3 py-1.5 active:opacity-75"
           >
             <Text className="text-primary text-xs font-semibold">
-              Sortierung: {sortBy === "popularity" ? "🔥 Beliebtheit" : "🔤 Name"}
+              Sortierung:{" "}
+              {sortBy === "popularity" ? "🔥 Beliebtheit" : "🔤 Name"}
             </Text>
           </Pressable>
         )}
@@ -110,7 +108,7 @@ export function ShowingFilterBar({
               onPress={() => selectTime(isSelected ? "all" : timeOpt.id)}
               className={`rounded-full border px-3 py-1.5 active:opacity-75 ${
                 isSelected
-                  ? "bg-amber-600 border-amber-600 dark:bg-amber-500 dark:border-amber-500"
+                  ? "border-amber-600 bg-amber-600 dark:border-amber-500 dark:bg-amber-500"
                   : "bg-muted/80 border-border/60"
               }`}
             >

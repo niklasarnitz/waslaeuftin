@@ -1,4 +1,3 @@
-import { normalizeMovieTitle } from "../titleNormalization/normalizeMovieTitle";
 import type {
   ListingCinema,
   ListingCinemaEntry,
@@ -6,6 +5,7 @@ import type {
   ListingShowing,
   TmdbMetadata,
 } from "./types";
+import { normalizeMovieTitle } from "../titleNormalization/normalizeMovieTitle";
 
 export interface SourceShowing {
   id: number;
@@ -63,7 +63,10 @@ export function groupMoviesByTitle(
       const showingsWithTags: ListingShowing[] = [];
 
       for (const showing of movie.showings) {
-        const d = showing.dateTime instanceof Date ? showing.dateTime : new Date(showing.dateTime);
+        const d =
+          showing.dateTime instanceof Date
+            ? showing.dateTime
+            : new Date(showing.dateTime);
         if (filterPast && d.getTime() <= nowTime) {
           continue;
         }
@@ -84,7 +87,10 @@ export function groupMoviesByTitle(
           }
 
           if (filters.selectedTags && filters.selectedTags.length > 0) {
-            const allTagsStr = [...tags, ...(showing.showingAdditionalData ?? [])]
+            const allTagsStr = [
+              ...tags,
+              ...(showing.showingAdditionalData ?? []),
+            ]
               .join(" ")
               .toUpperCase();
 
@@ -92,7 +98,9 @@ export function groupMoviesByTitle(
             for (const filterTag of filters.selectedTags) {
               const target = filterTag.toUpperCase();
               if (target === "OV") {
-                if (!/\b(OV|ORIGINALVERSION|ENGLISH|ENGLISCH)\b/i.test(allTagsStr)) {
+                if (
+                  !/\b(OV|ORIGINALVERSION|ENGLISH|ENGLISCH)\b/i.test(allTagsStr)
+                ) {
                   matchesAll = false;
                   break;
                 }
@@ -111,7 +119,11 @@ export function groupMoviesByTitle(
                   matchesAll = false;
                   break;
                 }
-              } else if (target === "70MM/35MM" || target === "70MM" || target === "35MM") {
+              } else if (
+                target === "70MM/35MM" ||
+                target === "70MM" ||
+                target === "35MM"
+              ) {
                 if (!/\b(70\s*-?\s*MM|35\s*-?\s*MM)\b/i.test(allTagsStr)) {
                   matchesAll = false;
                   break;
@@ -148,7 +160,8 @@ export function groupMoviesByTitle(
 
       const nextShowing = showingsWithTags[0];
       const existingMovie = groupedMoviesMap.get(movie.name);
-      const moviePopularity = (movie.tmdbMetadata?.popularity as number | undefined) ?? null;
+      const moviePopularity =
+        (movie.tmdbMetadata?.popularity as number | undefined) ?? null;
 
       if (!existingMovie) {
         groupedMoviesMap.set(movie.name, {

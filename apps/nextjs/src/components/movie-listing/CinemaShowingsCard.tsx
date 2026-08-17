@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
-import {
-  formatDistance,
-  type ListingCinemaEntry,
-} from "@waslaeuftin/core";
+import type { ListingCinemaEntry } from "@waslaeuftin/core";
 import { ShowingTimePill } from "@waslaeuftin/components/movie-listing/ShowingTimePill";
+import { formatDistance } from "@waslaeuftin/core";
 
 type CinemaShowingsCardProps = {
   cinemaEntry: ListingCinemaEntry;

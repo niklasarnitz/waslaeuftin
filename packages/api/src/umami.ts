@@ -142,8 +142,7 @@ export const trackMobileEvent = async (
     return;
   }
 
-  const name =
-    input.name === "mobile-app-opened" ? "app-opened" : input.name;
+  const name = input.name === "mobile-app-opened" ? "app-opened" : input.name;
   const url = input.screen ? `/app/${input.screen}` : "/app";
   const data = Object.fromEntries(
     Object.entries({

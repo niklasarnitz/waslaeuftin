@@ -120,7 +120,7 @@ export default function SearchIndex() {
     const results = searchQuery.data;
 
     if (results) {
-      if (results.movies && results.movies.length > 0) {
+      if (results.movies.length > 0) {
         data.push({ type: "header", title: "Filme" });
         results.movies.forEach((movie) => {
           data.push({ type: "movie", item: movie });
@@ -157,7 +157,7 @@ export default function SearchIndex() {
     }
 
     trackedQueriesRef.current.add(normalizedQuery);
-    const movieCount = searchQuery.data.movies?.length ?? 0;
+    const movieCount = searchQuery.data.movies.length;
     trackMobileEvent({
       name: "mobile-search-submitted",
       screen: "search",
@@ -314,11 +314,7 @@ export default function SearchIndex() {
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
-                    <AppIcon
-                      name="film"
-                      tintColor={primaryColor}
-                      size={18}
-                    />
+                    <AppIcon name="film" tintColor={primaryColor} size={18} />
                     <View className="min-w-0 flex-1">
                       <Text
                         numberOfLines={1}

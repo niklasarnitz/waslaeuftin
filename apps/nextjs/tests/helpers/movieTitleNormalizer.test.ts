@@ -219,9 +219,7 @@ describe("normalizeMovieTitle", () => {
   });
 
   test("Extracting opera and event cinema affixes", () => {
-    expect(
-      normalizeMovieTitle("MET 2026/27 Giuseppe Verdi: OTELLO"),
-    ).toEqual({
+    expect(normalizeMovieTitle("MET 2026/27 Giuseppe Verdi: OTELLO")).toEqual({
       normalizedTitle: "OTELLO",
       tags: ["MET Opera", "Giuseppe Verdi"],
     });
@@ -256,4 +254,3 @@ describe("normalizeMovieTitle", () => {
     });
   });
 });
-

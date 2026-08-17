@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -11,10 +10,10 @@ import {
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
+import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
 import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
-import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
 import { useTrackCinemaView } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useFavoritesStore } from "@waslaeuftin/expo/utils/favorites";

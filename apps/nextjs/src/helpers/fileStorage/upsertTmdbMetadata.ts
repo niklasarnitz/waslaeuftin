@@ -106,7 +106,8 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
       }
     : null;
 
-  const rawKeywords = details.keywords?.keywords ?? details.keywords?.results ?? [];
+  const rawKeywords =
+    details.keywords?.keywords ?? details.keywords?.results ?? [];
   const keywordsJson = rawKeywords.map((k) => ({
     id: k.id,
     name: k.name,
@@ -155,4 +156,3 @@ export const upsertTmdbMetadata = async (details: TmdbMovieDetailsResponse) => {
     update: payloadData,
   });
 };
-
