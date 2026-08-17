@@ -172,7 +172,7 @@ export default function MovieDetailScreen() {
   const keywords: { id: number; name: string }[] = Array.isArray(
     meta?.keywordsJson,
   )
-    ? meta.keywordsJson
+    ? (meta.keywordsJson as { id: number; name: string }[])
     : [];
 
   return (
@@ -278,7 +278,7 @@ export default function MovieDetailScreen() {
         </View>
 
         {/* Overview & Metadata Sections */}
-        {(meta?.overview ||
+        {((meta?.overview) ??
           directors.length > 0 ||
           cast.length > 0 ||
           productionCompanies.length > 0 ||

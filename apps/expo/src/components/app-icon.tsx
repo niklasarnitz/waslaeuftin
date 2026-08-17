@@ -1,6 +1,4 @@
-import type { SFSymbol } from "expo-symbols";
 import type { StyleProp, TextStyle, ViewStyle } from "react-native";
-import React from "react";
 import { Platform } from "react-native";
 import { SymbolView } from "expo-symbols";
 import { Ionicons } from "@expo/vector-icons";
@@ -65,18 +63,18 @@ export function AppIcon({
         name={name}
         tintColor={iconColor}
         size={size}
-        style={style as any}
+        style={style as StyleProp<ViewStyle>}
       />
     );
   }
 
-  const ioniconName = SF_TO_IONICONS_MAP[name] ?? "help-circle-outline";
+  const ioniconName = SF_TO_IONICONS_MAP[name];
   return (
     <Ionicons
       name={ioniconName}
       size={size}
       color={iconColor}
-      style={style as any}
+      style={style as StyleProp<TextStyle>}
     />
   );
 }

@@ -107,7 +107,7 @@ export const runReminderMatching = async (
   const matchedReminderIds: number[] = [];
 
   for (const reminder of candidateReminders) {
-    const token = reminder.device.expoPushToken!;
+    const token = reminder.device.expoPushToken ?? "";
     const cinemaIds = reminder.device.cinemaPopularity.map(
       (entry) => entry.cinemaId,
     );
