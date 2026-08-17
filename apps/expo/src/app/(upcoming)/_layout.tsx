@@ -26,6 +26,10 @@ export default function UpcomingLayout() {
         name="movie/[movieName]"
         options={{ title: "", headerLargeTitle: false }}
       />
+      <Stack.Screen
+        name="details/[tmdbMovieId]"
+        options={{ title: "", headerLargeTitle: false }}
+      />
     </Stack>
   );
 }

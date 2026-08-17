@@ -20,7 +20,7 @@ interface UpcomingMovieCardProps {
   onPress?: () => void;
 }
 
-const formatReleaseDate = (releaseDate: string | null) => {
+export const formatReleaseDate = (releaseDate: string | null) => {
   if (!releaseDate) return null;
   const date = new Date(releaseDate);
   if (Number.isNaN(date.getTime())) return null;
