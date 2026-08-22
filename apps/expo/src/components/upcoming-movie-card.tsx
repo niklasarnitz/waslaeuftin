@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -37,6 +38,7 @@ export function UpcomingMovieCard({
   onToggleReminder,
   onPress,
 }: UpcomingMovieCardProps) {
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
   const primaryColor = usePrimaryColor();
   const releaseLabel = formatReleaseDate(movie.releaseDate);
 
@@ -67,9 +69,16 @@ export function UpcomingMovieCard({
             </Text>
           ) : null}
           {movie.overview ? (
-            <Text className="text-muted-foreground text-xs" numberOfLines={3}>
-              {movie.overview}
-            </Text>
+            <Pressable
+              onPress={() => setIsOverviewExpanded(!isOverviewExpanded)}
+            >
+              <Text
+                className="text-muted-foreground text-xs"
+                numberOfLines={isOverviewExpanded ? undefined : 3}
+              >
+                {movie.overview}
+              </Text>
+            </Pressable>
           ) : null}
         </View>
 
@@ -99,7 +108,11 @@ export function UpcomingMovieCard({
             onPress={openTmdb}
             className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2.5 py-1.5"
           >
-            <Ionicons name="film-outline" size={12} className="text-foreground" />
+            <Ionicons
+              name="film-outline"
+              size={12}
+              className="text-foreground"
+            />
             <Text className="text-foreground text-xs font-semibold">TMDB</Text>
           </Pressable>
         </View>

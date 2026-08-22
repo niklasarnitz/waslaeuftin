@@ -9,15 +9,14 @@ import {
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
+import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
-import { groupMoviesByTitle, normalizeToStartOfDay } from "@waslaeuftin/core";
 import { useTrackCityView } from "@waslaeuftin/expo/utils/analytics";
 import { trpc } from "@waslaeuftin/expo/utils/api";
 import { useRefresh } from "@waslaeuftin/expo/utils/refresh";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
-
 import { useSettingsStore } from "@waslaeuftin/expo/utils/settings";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function CityScreen() {
   const navigation = useNavigation();

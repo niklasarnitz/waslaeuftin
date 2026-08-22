@@ -6,7 +6,9 @@ function replacer(_key: string, value: unknown) {
 
 async function main() {
   const totalMovies = await db.movie.count();
-  const moviesWithTmdbId = await db.movie.count({ where: { tmdbMovieId: { not: null } } });
+  const moviesWithTmdbId = await db.movie.count({
+    where: { tmdbMovieId: { not: null } },
+  });
   const totalTmdbMetadata = await db.tmdbMetadata.count();
   const sampleMetadata = await db.tmdbMetadata.findFirst();
   const sampleMoviesWithMeta = await db.movie.findMany({
@@ -19,8 +21,14 @@ async function main() {
   console.log("Total Movies:", totalMovies);
   console.log("Movies with tmdbMovieId:", moviesWithTmdbId);
   console.log("Total TmdbMetadata rows:", totalTmdbMetadata);
-  console.log("Sample TmdbMetadata:", JSON.stringify(sampleMetadata, replacer, 2));
-  console.log("Sample Movies with Metadata:", JSON.stringify(sampleMoviesWithMeta, replacer, 2));
+  console.log(
+    "Sample TmdbMetadata:",
+    JSON.stringify(sampleMetadata, replacer, 2),
+  );
+  console.log(
+    "Sample Movies with Metadata:",
+    JSON.stringify(sampleMoviesWithMeta, replacer, 2),
+  );
 
   await db.$disconnect();
 }

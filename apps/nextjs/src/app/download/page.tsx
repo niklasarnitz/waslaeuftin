@@ -60,54 +60,54 @@ export default function DownloadPage() {
           </CardContent>
         </Card>
 
-        {/* iOS / AltStore */}
+        {/* iOS */}
         <Card className="flex flex-col">
           <CardHeader>
             <div className="bg-primary/10 text-primary mb-2 flex h-10 w-10 items-center justify-center rounded-xl">
               <Apple className="h-5 w-5" />
             </div>
-            <CardTitle>iOS (AltStore)</CardTitle>
+            <CardTitle>iOS (App Store)</CardTitle>
             <CardDescription>
-              Öffne die AltStore-Quelle direkt in AltStore oder SideStore und
-              installiere die App mit deiner eigenen Apple-ID.
+              Lade wasläuft.in direkt aus dem Apple App Store auf dein iPhone
+              oder iPad herunter.
             </CardDescription>
           </CardHeader>
           <CardContent className="mt-auto space-y-3">
             <a
-              href={ALTSTORE_DEEP_LINK}
-              className="inline-block"
-              aria-label="Download on AltStore"
+              href="https://apps.apple.com/de/app/wasl%C3%A4uft-in-deinem-kino/id6781673099"
+              target="_blank"
+              rel="noreferrer"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md text-sm font-medium shadow transition-colors"
             >
-              <Image
-                src="/altstore-badge-dark.png"
-                alt="Download on AltStore"
-                width={200}
-                height={64}
-                className="object-contain dark:hidden"
-              />
-              <Image
-                src="/altstore-badge-light.png"
-                alt="Download on AltStore"
-                width={200}
-                height={64}
-                className="hidden object-contain dark:block"
-              />
+              <Apple className="h-4 w-4" />
+              Im App Store laden
             </a>
-            <p className="text-muted-foreground text-xs">
-              Quelle manuell hinzufügen:{" "}
-              <code className="bg-muted text-primary rounded px-1.5 py-0.5 font-mono text-[11px] select-all">
-                https://waslaeuft.in/altstore/source.json
-              </code>{" "}
-              · oder{" "}
+
+            <div className="border-t pt-3">
+              <p className="text-muted-foreground mb-2 text-xs font-semibold">
+                Alternativ über AltStore / SideStore:
+              </p>
               <a
-                href="/altstore/source.json"
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary font-medium underline"
+                href={ALTSTORE_DEEP_LINK}
+                className="inline-block"
+                aria-label="Download on AltStore"
               >
-                source.json
+                <Image
+                  src="/altstore-badge-dark.png"
+                  alt="Download on AltStore"
+                  width={150}
+                  height={48}
+                  className="object-contain dark:hidden"
+                />
+                <Image
+                  src="/altstore-badge-light.png"
+                  alt="Download on AltStore"
+                  width={150}
+                  height={48}
+                  className="hidden object-contain dark:block"
+                />
               </a>
-            </p>
+            </div>
           </CardContent>
         </Card>
       </div>

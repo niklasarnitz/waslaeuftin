@@ -33,7 +33,7 @@ export const ShowingTags = ({
       {prominentTags.map((tag) => (
         <span
           key={`tag-${showingId}-${tag}`}
-          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold uppercase whitespace-nowrap"
+          className="bg-primary/15 text-primary rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold whitespace-nowrap uppercase"
         >
           {tag}
         </span>
@@ -51,7 +51,7 @@ export const ShowingTags = ({
               <span
                 role="button"
                 tabIndex={0}
-                className="border-border/80 text-muted-foreground hover:border-foreground/50 hover:bg-muted/80 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border bg-muted/30 text-[10px] leading-none font-bold italic transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="border-border/80 text-muted-foreground hover:border-foreground/50 hover:bg-muted/80 bg-muted/30 focus-visible:ring-ring inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] leading-none font-bold italic transition-colors focus:outline-none focus-visible:ring-1"
                 aria-label="Vorstellungsinformationen"
               >
                 i
@@ -59,7 +59,7 @@ export const ShowingTags = ({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-popover text-popover-foreground max-w-xs border border-border px-2.5 py-1.5 shadow-md"
+              className="bg-popover text-popover-foreground border-border max-w-xs border px-2.5 py-1.5 shadow-md"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
