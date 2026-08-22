@@ -71,6 +71,7 @@
     "react-dom": "catalog:react19",
     "react-hook-form": "^7.72.0",
     "server-only": "^0.0.1",
+    "smartbanner.js": "^1.30.0",
     "superjson": "catalog:",
     "tailwind-merge": "catalog:",
     "tailwindcss-animate": "^1.0.7",

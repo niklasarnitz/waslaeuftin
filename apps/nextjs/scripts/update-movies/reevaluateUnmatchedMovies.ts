@@ -1,7 +1,9 @@
 import { db } from "@waslaeuftin/db/client";
 import { syncTmdbMovieCoversForAllMovies } from "@waslaeuftin/scripts/update-movies/syncTmdbMovieCovers";
 
-console.info("[Re-evaluate Unmatched] Starting bulk re-evaluation of unmatched movies...");
+console.info(
+  "[Re-evaluate Unmatched] Starting bulk re-evaluation of unmatched movies...",
+);
 
 // Clear tmdbSearchFailedOn to allow fresh evaluation with updated normalization rules
 const resetResult = await db.movie.updateMany({

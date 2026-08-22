@@ -1,13 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Clock3, Film, Play, Star } from "lucide-react";
 
-import {
-  formatShowingTime,
-  type ListingMovieCard,
-} from "@waslaeuftin/core";
+import type { ListingMovieCard } from "@waslaeuftin/core";
 import { CinemaShowingsCard } from "@waslaeuftin/components/movie-listing/CinemaShowingsCard";
 import { MovieCover } from "@waslaeuftin/components/MovieCover";
+import { formatShowingTime } from "@waslaeuftin/core";
 
 type MovieCardProps = {
   movie: ListingMovieCard;
@@ -20,6 +19,7 @@ export const MovieCard = ({
   maxShowingsPerCinema = 5,
   eagerCover = false,
 }: MovieCardProps) => {
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
   const cinemaEntries = movie.cinemaEntries ?? movie.cinemas;
   const sortedCinemas = [...cinemaEntries].sort((left, right) => {
     const leftTime = left.nextShowing
@@ -62,8 +62,7 @@ export const MovieCard = ({
           {movie.name}
         </h4>
         <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold">
-          {cinemaEntries.length}{" "}
-          {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
+          {cinemaEntries.length} {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
         </span>
       </div>
 
@@ -83,7 +82,7 @@ export const MovieCard = ({
                 href={meta.trailerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors shadow-sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold shadow-sm transition-colors"
               >
                 <Play className="h-3 w-3 fill-current" />
                 <span>Trailer</span>
@@ -94,7 +93,7 @@ export const MovieCard = ({
                 href={tmdbMovieUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-secondary/80 hover:bg-secondary text-secondary-foreground flex items-center justify-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+                className="bg-secondary/80 hover:bg-secondary text-secondary-foreground border-border flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
               >
                 <Film className="h-3 w-3" />
                 <span>TMDB</span>
@@ -137,7 +136,7 @@ export const MovieCard = ({
               </span>
             ) : null}
             {meta?.voteAverage ? (
-              <span className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold sm:px-2.5 sm:py-1">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-bold text-amber-600 sm:px-2.5 sm:py-1 dark:text-amber-400">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                 {meta.voteAverage.toFixed(1)}
               </span>
@@ -211,9 +210,24 @@ export const MovieCard = ({
 
           {/* Overview snippet */}
           {meta?.overview && (
-            <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-              {meta.overview}
-            </p>
+            <div className="text-xs leading-relaxed">
+              <p
+                className={`text-muted-foreground ${
+                  isOverviewExpanded ? "" : "line-clamp-2"
+                }`}
+              >
+                {meta.overview}
+              </p>
+              {meta.overview.length > 120 && (
+                <button
+                  type="button"
+                  onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                  className="text-primary hover:underline mt-0.5 inline-block text-[11px] font-medium cursor-pointer"
+                >
+                  {isOverviewExpanded ? "Weniger anzeigen" : "Mehr anzeigen"}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Cinema showings — desktop */}

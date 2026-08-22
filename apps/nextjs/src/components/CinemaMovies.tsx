@@ -2,9 +2,10 @@
 
 import { ArrowUpDown, Film } from "lucide-react";
 
-import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
-import { groupMoviesByTitle, type ListingCinema } from "@waslaeuftin/core";
+import type { ListingCinema } from "@waslaeuftin/core";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
+import { groupMoviesByTitle } from "@waslaeuftin/core";
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
 import { type api } from "@waslaeuftin/trpc/server";
 
 export type CinemaMoviesProps = {
@@ -55,13 +56,13 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground ml-auto">
-          <ArrowUpDown className="w-3.5 h-3.5" />
+        <div className="text-muted-foreground ml-auto flex items-center gap-1.5 text-xs font-semibold">
+          <ArrowUpDown className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Sortierung:</span>
-          <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+          <div className="bg-muted/80 border-border/60 inline-flex rounded-full border p-0.5">
             <button
               onClick={() => setSortBy("popularity")}
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
                 sortBy === "popularity"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -71,7 +72,7 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
             </button>
             <button
               onClick={() => setSortBy("name")}
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
                 sortBy === "name"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

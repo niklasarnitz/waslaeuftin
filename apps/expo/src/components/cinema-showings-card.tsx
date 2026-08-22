@@ -1,10 +1,10 @@
 import { Pressable, Text, View } from "react-native";
 
-import {
-  formatDistance,
-  type ListingCinema as Cinema,
-  type ListingShowing as Showing,
+import type {
+  ListingCinema as Cinema,
+  ListingShowing as Showing,
 } from "@waslaeuftin/core";
+import { formatDistance } from "@waslaeuftin/core";
 import { ShowingTimePill } from "@waslaeuftin/expo/components/showing-time-pill";
 
 interface CinemaShowingsCardProps {

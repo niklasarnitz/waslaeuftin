@@ -18,7 +18,11 @@ export const extractStandaloneTags = (title: string): string[] => {
     if (!isInsideBrackets) {
       const isBoundary = (index: number) => {
         const char = title[index];
-        return index < 0 || index >= title.length || (char !== undefined && /[\s,/|;–—-]/.test(char));
+        return (
+          index < 0 ||
+          index >= title.length ||
+          (char !== undefined && /[\s,/|;–—-]/.test(char))
+        );
       };
 
       if (isBoundary(beforeIndex) && isBoundary(afterIndex)) {

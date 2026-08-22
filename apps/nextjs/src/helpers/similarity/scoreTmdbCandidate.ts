@@ -1,7 +1,7 @@
+import { extractYear, normalizeForComparison } from "@waslaeuftin/core";
 import { clampScore } from "@waslaeuftin/helpers/similarity/clampScore";
 import { getDiceSimilarity } from "@waslaeuftin/helpers/similarity/getDiceSimilarity";
 import { getTokenOverlapScore } from "@waslaeuftin/helpers/similarity/getTokenOverlapScore";
-import { extractYear, normalizeForComparison } from "@waslaeuftin/core";
 import { TmdbMovieSearchResult } from "@waslaeuftin/types/TmdbMovieSearchResult";
 
 export const scoreTmdbCandidate = (

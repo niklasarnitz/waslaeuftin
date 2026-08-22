@@ -166,7 +166,9 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
       }
       if (searchData.cinemas.length > 0) {
         data.push({ type: "header", icon: "videocam", title: "Kinos" });
-        searchData.cinemas.forEach((c) => data.push({ type: "cinema", item: c }));
+        searchData.cinemas.forEach((c) =>
+          data.push({ type: "cinema", item: c }),
+        );
       }
     }
     return data;

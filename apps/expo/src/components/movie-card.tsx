@@ -68,20 +68,28 @@ export function MovieCard({
                 onPress={() =>
                   meta.trailerUrl && void openExternalUrl(meta.trailerUrl)
                 }
-                className="bg-primary/90 active:bg-primary rounded-lg px-2 py-1 flex-row items-center gap-1"
+                className="bg-primary/90 active:bg-primary flex-row items-center gap-1 rounded-lg px-2 py-1"
               >
                 <Ionicons name="play" color="#FFF" size={10} />
-                <Text className="text-[10px] font-bold text-white">Trailer</Text>
+                <Text className="text-[10px] font-bold text-white">
+                  Trailer
+                </Text>
               </Pressable>
             ) : null}
 
             {tmdbMovieUrl ? (
               <Pressable
                 onPress={() => void openExternalUrl(tmdbMovieUrl)}
-                className="bg-muted border-border/60 active:bg-muted/80 rounded-lg border px-2 py-1 flex-row items-center gap-1"
+                className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2 py-1"
               >
-                <Ionicons name="film-outline" size={10} className="text-foreground" />
-                <Text className="text-[10px] font-semibold text-foreground">TMDB</Text>
+                <Ionicons
+                  name="film-outline"
+                  size={10}
+                  className="text-foreground"
+                />
+                <Text className="text-foreground text-[10px] font-semibold">
+                  TMDB
+                </Text>
               </Pressable>
             ) : null}
           </View>
@@ -127,9 +135,9 @@ export function MovieCard({
               </View>
             )}
             {meta?.voteAverage ? (
-              <View className="bg-amber-500/10 border-amber-500/30 flex-row items-center gap-0.5 rounded-full border px-2 py-0.5">
+              <View className="flex-row items-center gap-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5">
                 <Ionicons name="star" color="#F59E0B" size={10} />
-                <Text className="text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                <Text className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
                   {meta.voteAverage.toFixed(1)}
                 </Text>
               </View>

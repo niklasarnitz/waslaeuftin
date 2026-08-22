@@ -1,10 +1,8 @@
 import { Alert, Pressable, Share, Text } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import {
-  categorizeShowingTags,
-  type ListingShowing as Showing,
-} from "@waslaeuftin/core";
+import type { ListingShowing as Showing } from "@waslaeuftin/core";
+import { categorizeShowingTags } from "@waslaeuftin/core";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 
 interface ShowingTimePillProps {

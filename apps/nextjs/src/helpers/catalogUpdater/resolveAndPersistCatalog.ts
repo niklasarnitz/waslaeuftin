@@ -1,16 +1,16 @@
 import { Client as MinioClient } from "minio";
 
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
-import { db } from "@waslaeuftin/db/client";
-import { env } from "@waslaeuftin/env";
-import { ensureMinioFolder } from "@waslaeuftin/helpers/fileStorage/ensureMinioFolder";
-import { uploadTmdbPosterToMinio } from "@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToMinio";
-import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import {
   normalizeForComparison,
   normalizeMovieTitle,
   normalizePrefix,
 } from "@waslaeuftin/core";
+import { db } from "@waslaeuftin/db/client";
+import { env } from "@waslaeuftin/env";
+import { ensureMinioFolder } from "@waslaeuftin/helpers/fileStorage/ensureMinioFolder";
+import { uploadTmdbPosterToMinio } from "@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToMinio";
+import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 import { TmdbMovieMatcher } from "@waslaeuftin/helpers/tmdb/TmdbMovieMatcher";
 import { ResolvedMovie } from "@waslaeuftin/types/ResolvedMovie";

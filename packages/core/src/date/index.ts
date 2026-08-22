@@ -75,7 +75,9 @@ export function formatShowingTime(dateTimeStr: Date | string): string {
   return `${day}.${month}. ${time}`;
 }
 
-export function formatDistance(distanceKm: number | null | undefined): string | null {
+export function formatDistance(
+  distanceKm: number | null | undefined,
+): string | null {
   if (distanceKm === null || distanceKm === undefined) return null;
   if (distanceKm < 1) {
     return `${Math.round(distanceKm * 1000)} m`;

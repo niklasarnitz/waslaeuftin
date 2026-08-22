@@ -79,6 +79,27 @@ const getNearbyCinemaDistances = async (
   };
 };
 
+const leanTmdbMetadataSelect = {
+  tmdbId: true,
+  title: true,
+  originalTitle: true,
+  overview: true,
+  tagline: true,
+  posterPath: true,
+  backdropPath: true,
+  releaseDate: true,
+  runtime: true,
+  popularity: true,
+  voteAverage: true,
+  voteCount: true,
+  genres: true,
+  certification: true,
+  trailerUrl: true,
+  directors: true,
+  cast: true,
+  productionCompanies: true,
+} as const;
+
 const getNearbyCinemasForInput = async (
   input: NearbyCinemasInput,
   db: DbClient,
@@ -127,7 +148,9 @@ const getNearbyCinemasForInput = async (
               id: true,
               name: true,
               coverUrl: true,
-              tmdbMetadata: true,
+              tmdbMetadata: {
+                select: leanTmdbMetadataSelect,
+              },
             },
           },
         },
@@ -144,20 +167,21 @@ const getNearbyCinemasForInput = async (
           name: string;
           coverUrl: string | null;
           tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
-          showings: typeof cinema.showings;
+          showings: Omit<(typeof cinema.showings)[number], "movie">[];
         }
       > = {};
 
       for (const showing of cinema.showings) {
-        const existing = movieMap[showing.movie.id];
+        const { movie, ...showingWithoutMovie } = showing;
+        const existing = movieMap[movie.id];
         if (existing !== undefined) {
-          existing.showings.push(showing);
+          existing.showings.push(showingWithoutMovie);
         } else {
-          movieMap[showing.movie.id] = {
-            name: showing.movie.name,
-            coverUrl: showing.movie.coverUrl,
-            tmdbMetadata: showing.movie.tmdbMetadata,
-            showings: [showing],
+          movieMap[movie.id] = {
+            name: movie.name,
+            coverUrl: movie.coverUrl,
+            tmdbMetadata: movie.tmdbMetadata,
+            showings: [showingWithoutMovie],
           };
         }
       }
@@ -309,7 +333,12 @@ const getNearbyMovieByTmdbId = async (
               id: true,
               name: true,
               coverUrl: true,
-              tmdbMetadata: true,
+              tmdbMetadata: {
+                select: {
+                  ...leanTmdbMetadataSelect,
+                  keywordsJson: true,
+                },
+              },
             },
           },
         },
@@ -317,11 +346,11 @@ const getNearbyMovieByTmdbId = async (
     },
   });
 
-  type GroupedShowing = (typeof cinemas)[number]["showings"][number];
+  type GroupedShowing = Omit<(typeof cinemas)[number]["showings"][number], "movie">;
 
   let name: string | null = null;
   let coverUrl: string | null = null;
-  let tmdbMetadata: GroupedShowing["movie"]["tmdbMetadata"] = null;
+  let tmdbMetadata: (typeof cinemas)[number]["showings"][number]["movie"]["tmdbMetadata"] = null;
   let showingsCount = 0;
   let nextShowingDate: Date | undefined;
   const groupedCinemas: {
@@ -333,9 +362,10 @@ const getNearbyMovieByTmdbId = async (
     if (cinema.showings.length === 0) continue;
 
     const { showings, ...cinemaWithoutShowings } = cinema;
-    name ??= showings[0]?.movie.name ?? null;
-    coverUrl ??= showings[0]?.movie.coverUrl ?? null;
-    tmdbMetadata ??= showings[0]?.movie.tmdbMetadata ?? null;
+    const firstMovie = showings[0]?.movie;
+    name ??= firstMovie?.name ?? null;
+    coverUrl ??= firstMovie?.coverUrl ?? null;
+    tmdbMetadata ??= firstMovie?.tmdbMetadata ?? null;
     showingsCount += showings.length;
 
     const earliest = showings[0]?.dateTime;
@@ -346,12 +376,14 @@ const getNearbyMovieByTmdbId = async (
       nextShowingDate = earliest;
     }
 
+    const showingsWithoutMovie = showings.map(({ movie: _, ...s }) => s);
+
     groupedCinemas.push({
       cinema: {
         ...cinemaWithoutShowings,
         distanceKm: distanceById.get(cinema.id) ?? 0,
       },
-      showings,
+      showings: showingsWithoutMovie,
     });
   }
 
@@ -411,7 +443,9 @@ export const cinemaRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   coverUrl: true,
-              tmdbMetadata: true,
+                  tmdbMetadata: {
+                    select: leanTmdbMetadataSelect,
+                  },
                 },
               },
             },
@@ -430,20 +464,21 @@ export const cinemaRouter = createTRPCRouter({
           name: string;
           coverUrl: string | null;
           tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
-          showings: typeof cinema.showings;
+          showings: Omit<(typeof cinema.showings)[number], "movie">[];
         }
       > = {};
 
       for (const showing of cinema.showings) {
-        const existing = movieMap[showing.movie.id];
+        const { movie, ...showingWithoutMovie } = showing;
+        const existing = movieMap[movie.id];
         if (existing !== undefined) {
-          existing.showings.push(showing);
+          existing.showings.push(showingWithoutMovie);
         } else {
-          movieMap[showing.movie.id] = {
-            name: showing.movie.name,
-            coverUrl: showing.movie.coverUrl,
-            tmdbMetadata: showing.movie.tmdbMetadata,
-            showings: [showing],
+          movieMap[movie.id] = {
+            name: movie.name,
+            coverUrl: movie.coverUrl,
+            tmdbMetadata: movie.tmdbMetadata,
+            showings: [showingWithoutMovie],
           };
         }
       }
@@ -523,7 +558,9 @@ export const cinemaRouter = createTRPCRouter({
                   id: true,
                   name: true,
                   coverUrl: true,
-                  tmdbMetadata: true,
+                  tmdbMetadata: {
+                    select: leanTmdbMetadataSelect,
+                  },
                 },
               },
             },
@@ -538,20 +575,21 @@ export const cinemaRouter = createTRPCRouter({
             name: string;
             coverUrl: string | null;
             tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
-            showings: typeof cinema.showings;
+            showings: Omit<(typeof cinema.showings)[number], "movie">[];
           }
         > = {};
 
         for (const showing of cinema.showings) {
-          const existing = movieMap[showing.movie.id];
+          const { movie, ...showingWithoutMovie } = showing;
+          const existing = movieMap[movie.id];
           if (existing !== undefined) {
-            existing.showings.push(showing);
+            existing.showings.push(showingWithoutMovie);
           } else {
-            movieMap[showing.movie.id] = {
-              name: showing.movie.name,
-              coverUrl: showing.movie.coverUrl,
-              tmdbMetadata: showing.movie.tmdbMetadata,
-              showings: [showing],
+            movieMap[movie.id] = {
+              name: movie.name,
+              coverUrl: movie.coverUrl,
+              tmdbMetadata: movie.tmdbMetadata,
+              showings: [showingWithoutMovie],
             };
           }
         }

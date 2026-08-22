@@ -2,14 +2,11 @@ import { createHash } from "node:crypto";
 import { Client as MinioClient } from "minio";
 
 import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsResponse";
+import { normalizeForComparison, normalizeMovieTitle } from "@waslaeuftin/core";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
-import {
-  normalizeForComparison,
-  normalizeMovieTitle,
-} from "@waslaeuftin/core";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 
@@ -440,7 +437,9 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
     if (!forceRefreshExistingCovers && movie.coverUrl && movie.tmdbMovieId) {
       result.skippedExistingCover += 1;
-      console.info(`[TMDB Cover Sync]   → Skipped (existing cover & TMDB match)`);
+      console.info(
+        `[TMDB Cover Sync]   → Skipped (existing cover & TMDB match)`,
+      );
       continue;
     }
 

@@ -6,7 +6,7 @@ import moment from "moment-timezone";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Analytics } from "@waslaeuftin/components/Analytics";
-import { IosAppBanner } from "@waslaeuftin/components/IosAppBanner";
+import { SmartBanner } from "@waslaeuftin/components/SmartBanner";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 
 const rubik = Rubik({
@@ -28,7 +28,17 @@ export const metadata = {
   description:
     "wasläuft․in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",
   other: {
-    "apple-itunes-app": "app-id=6740626359",
+    "apple-itunes-app": "app-id=6781673099",
+    "smartbanner:title": "wasläuft.in",
+    "smartbanner:author": "wasläuft.in",
+    "smartbanner:price": "GRATIS",
+    "smartbanner:price-suffix-apple": " - Im App Store",
+    "smartbanner:icon-apple": "/apple-touch-icon.png",
+    "smartbanner:button": "LADEN",
+    "smartbanner:button-url-apple":
+      "https://apps.apple.com/de/app/wasl%C3%A4uft-in-deinem-kino/id6781673099",
+    "smartbanner:enabled-platforms": "ios",
+    "smartbanner:close-label": "Schließen",
   },
 };
 
@@ -43,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={libre_franklin.variable + " " + rubik.variable}>
-        <IosAppBanner />
+        <SmartBanner />
         <NuqsAdapter>
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </NuqsAdapter>

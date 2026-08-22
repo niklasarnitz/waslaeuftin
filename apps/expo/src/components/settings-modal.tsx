@@ -117,7 +117,9 @@ function SettingsModalContent({
             </Button>
             <FieldGroup.SectionFooter>
               <Text>
-                Filmdaten & Poster werden von The Movie Database (TMDB) bereitgestellt. WasLäuftIn wird nicht von TMDB unterstützt oder zertifiziert.
+                Filmdaten & Poster werden von The Movie Database (TMDB)
+                bereitgestellt. WasLäuftIn wird nicht von TMDB unterstützt oder
+                zertifiziert.
               </Text>
             </FieldGroup.SectionFooter>
           </FieldGroup.Section>

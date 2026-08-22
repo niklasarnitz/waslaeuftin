@@ -12,15 +12,15 @@ import {
   Ticket,
 } from "lucide-react";
 
-import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
+import type { ListingCinema } from "@waslaeuftin/core";
+import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
+import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import {
   formatDistance,
   formatShowingTime,
   groupMoviesByTitle,
-  type ListingCinema,
 } from "@waslaeuftin/core";
-import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
-import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
+import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
 import { api } from "@waslaeuftin/trpc/react";
 
 type Coordinates = {
@@ -306,13 +306,13 @@ export const NearbyCinemasSection = () => {
                 <Film className="text-primary h-4 w-4" />
                 Filme in deiner Nähe
               </h3>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <ArrowUpDown className="w-3.5 h-3.5" />
+              <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
+                <ArrowUpDown className="h-3.5 w-3.5" />
                 <span>Sortierung:</span>
-                <div className="inline-flex rounded-full bg-muted/80 p-0.5 border border-border/60">
+                <div className="bg-muted/80 border-border/60 inline-flex rounded-full border p-0.5">
                   <button
                     onClick={() => setSortBy("popularity")}
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
                       sortBy === "popularity"
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -322,7 +322,7 @@ export const NearbyCinemasSection = () => {
                   </button>
                   <button
                     onClick={() => setSortBy("name")}
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all ${
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
                       sortBy === "name"
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"

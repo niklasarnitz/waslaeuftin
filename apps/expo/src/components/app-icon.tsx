@@ -1,11 +1,8 @@
+import type { SFSymbol } from "expo-symbols";
+import type { StyleProp, TextStyle, ViewStyle } from "react-native";
 import React from "react";
-import {
-  Platform,
-  type StyleProp,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
-import { SymbolView, type SFSymbol } from "expo-symbols";
+import { Platform } from "react-native";
+import { SymbolView } from "expo-symbols";
 import { Ionicons } from "@expo/vector-icons";
 
 export type IconName =

@@ -20,6 +20,27 @@ const SCHEDULE_TIMEZONE = "Europe/Berlin";
 
 const getScheduleDate = (date: Date) => moment(date).tz(SCHEDULE_TIMEZONE);
 
+const leanTmdbMetadataSelect = {
+  tmdbId: true,
+  title: true,
+  originalTitle: true,
+  overview: true,
+  tagline: true,
+  posterPath: true,
+  backdropPath: true,
+  releaseDate: true,
+  runtime: true,
+  popularity: true,
+  voteAverage: true,
+  voteCount: true,
+  genres: true,
+  certification: true,
+  trailerUrl: true,
+  directors: true,
+  cast: true,
+  productionCompanies: true,
+} as const;
+
 export const citiesRouter = createTRPCRouter({
   getCityBySlug: publicProcedure
     .input(CitySlugSchema)
@@ -129,7 +150,9 @@ export const citiesRouter = createTRPCRouter({
                       id: true,
                       name: true,
                       coverUrl: true,
-                      tmdbMetadata: true,
+                      tmdbMetadata: {
+                        select: leanTmdbMetadataSelect,
+                      },
                     },
                   },
                 },
@@ -158,20 +181,21 @@ export const citiesRouter = createTRPCRouter({
               name: string;
               coverUrl: string | null;
               tmdbMetadata: (typeof cinema.showings)[number]["movie"]["tmdbMetadata"];
-              showings: typeof cinema.showings;
+              showings: Omit<(typeof cinema.showings)[number], "movie">[];
             }
           > = {};
 
           for (const showing of cinema.showings) {
-            const existing = movieMap[showing.movie.id];
+            const { movie, ...showingWithoutMovie } = showing;
+            const existing = movieMap[movie.id];
             if (existing !== undefined) {
-              existing.showings.push(showing);
+              existing.showings.push(showingWithoutMovie);
             } else {
-              movieMap[showing.movie.id] = {
-                name: showing.movie.name,
-                coverUrl: showing.movie.coverUrl,
-                tmdbMetadata: showing.movie.tmdbMetadata,
-                showings: [showing],
+              movieMap[movie.id] = {
+                name: movie.name,
+                coverUrl: movie.coverUrl,
+                tmdbMetadata: movie.tmdbMetadata,
+                showings: [showingWithoutMovie],
               };
             }
           }
