@@ -346,11 +346,15 @@ const getNearbyMovieByTmdbId = async (
     },
   });
 
-  type GroupedShowing = Omit<(typeof cinemas)[number]["showings"][number], "movie">;
+  type GroupedShowing = Omit<
+    (typeof cinemas)[number]["showings"][number],
+    "movie"
+  >;
 
   let name: string | null = null;
   let coverUrl: string | null = null;
-  let tmdbMetadata: (typeof cinemas)[number]["showings"][number]["movie"]["tmdbMetadata"] = null;
+  let tmdbMetadata: (typeof cinemas)[number]["showings"][number]["movie"]["tmdbMetadata"] =
+    null;
   let showingsCount = 0;
   let nextShowingDate: Date | undefined;
   const groupedCinemas: {

@@ -154,22 +154,25 @@ export default function MovieDetailScreen() {
     void openExternalUrl(url);
   };
 
-  const directors: Array<{ id: number; name: string }> = Array.isArray(
+  const directors: { id: number; name: string }[] = Array.isArray(
     meta?.directors,
   )
     ? meta.directors
     : [];
 
-  const cast: Array<{ id: number; name: string; character?: string | null }> =
+  const cast: { id: number; name: string; character?: string | null }[] =
     Array.isArray(meta?.cast) ? meta.cast : [];
 
-  const productionCompanies: Array<{ id: number; name: string }> =
-    Array.isArray(meta?.productionCompanies) ? meta.productionCompanies : [];
+  const productionCompanies: { id: number; name: string }[] = Array.isArray(
+    meta?.productionCompanies,
+  )
+    ? meta.productionCompanies
+    : [];
 
-  const keywords: Array<{ id: number; name: string }> = Array.isArray(
+  const keywords: { id: number; name: string }[] = Array.isArray(
     meta?.keywordsJson,
   )
-    ? meta.keywordsJson
+    ? (meta.keywordsJson as { id: number; name: string }[])
     : [];
 
   return (
@@ -275,7 +278,7 @@ export default function MovieDetailScreen() {
         </View>
 
         {/* Overview & Metadata Sections */}
-        {(meta?.overview ||
+        {((meta?.overview ?? "") !== "" ||
           directors.length > 0 ||
           cast.length > 0 ||
           productionCompanies.length > 0 ||
