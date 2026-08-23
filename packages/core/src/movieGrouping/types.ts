@@ -93,6 +93,6 @@ export interface TmdbMetadata {
         originCountry?: string;
       }[]
     | null;
-  keywordsJson?: any;
-  [key: string]: any;
+  keywordsJson?: unknown;
+  [key: string]: unknown;
 }
