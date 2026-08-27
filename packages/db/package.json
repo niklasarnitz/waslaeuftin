@@ -26,8 +26,8 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0"
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0"
   },
   "devDependencies": {
     "@waslaeuftin/eslint-config": "workspace:*",
@@ -36,7 +36,7 @@
     "dotenv-cli": "catalog:",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "prisma": "^7.5.0",
+    "prisma": "^7.10.0",
     "typescript": "catalog:"
   },
   "prettier": "@waslaeuftin/prettier-config",

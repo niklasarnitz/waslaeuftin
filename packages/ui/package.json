@@ -24,8 +24,8 @@
   "dependencies": {
     "@radix-ui/react-icons": "catalog:",
     "class-variance-authority": "catalog:",
-    "radix-ui": "^1.4.3",
-    "sonner": "^2.0.7",
+    "radix-ui": "^1.6.7",
+    "sonner": "^2.0.8",
     "tailwind-merge": "catalog:"
   },
   "devDependencies": {
