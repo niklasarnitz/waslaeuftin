@@ -41,7 +41,8 @@
   },
   "prettier": "@waslaeuftin/prettier-config",
   "overrides": {
-    "lightningcss": "1.30.1"
+    "lightningcss": "1.30.1",
+    "graphql": "16.14.2"
   },
   "packageManager": "bun@1.4.0",
   "workspaces": {
@@ -72,6 +73,7 @@
       "@umami/node": "^0.4.0",
       "class-variance-authority": "^0.7.1",
       "dotenv-cli": "^11.0.0",
+      "graphql": "^16.14.2",
       "moment-timezone": "^0.6.3",
       "octokit": "^5.0.5",
       "postcss": "^8.5.26",
