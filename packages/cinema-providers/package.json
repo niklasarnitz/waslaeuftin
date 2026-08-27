@@ -33,6 +33,7 @@
     "@waslaeuftin/db": "workspace:*",
     "@waslaeuftin/validators": "workspace:*",
     "cheerio": "^1.2.0",
+    "graphql": "catalog:",
     "moment-timezone": "catalog:",
     "xior": "catalog:"
   },
