@@ -66,7 +66,8 @@ export interface TmdbMetadata {
   certification?: string | null;
   trailerUrl?: string | null;
   directors?:
-    { id: number; name: string; profilePath?: string | null }[] | null;
+    | { id: number; name: string; profilePath?: string | null }[]
+    | null;
   cast?:
     | {
         id: number;
@@ -92,6 +93,6 @@ export interface TmdbMetadata {
         originCountry?: string;
       }[]
     | null;
-  keywordsJson?: unknown;
-  [key: string]: unknown;
+  keywordsJson?: any;
+  [key: string]: any;
 }

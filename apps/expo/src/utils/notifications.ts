@@ -15,8 +15,9 @@ Notifications.setNotificationHandler({
 
 const getProjectId = (): string | undefined => {
   const extra = Constants.expoConfig?.extra as
-    { eas?: { projectId?: string } } | undefined;
-  return (extra?.eas?.projectId ?? Constants.easConfig?.projectId) as string | undefined;
+    | { eas?: { projectId?: string } }
+    | undefined;
+  return extra?.eas?.projectId ?? Constants.easConfig?.projectId;
 };
 
 /**

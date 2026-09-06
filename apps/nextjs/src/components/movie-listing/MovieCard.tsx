@@ -222,7 +222,7 @@ export const MovieCard = ({
                 <button
                   type="button"
                   onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
-                  className="text-primary mt-0.5 inline-block cursor-pointer text-[11px] font-medium hover:underline"
+                  className="text-primary hover:underline mt-0.5 inline-block text-[11px] font-medium cursor-pointer"
                 >
                   {isOverviewExpanded ? "Weniger anzeigen" : "Mehr anzeigen"}
                 </button>

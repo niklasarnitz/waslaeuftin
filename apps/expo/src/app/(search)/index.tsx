@@ -107,7 +107,10 @@ export default function SearchIndex() {
   }
 
   type SearchListItem =
-    SearchCityItem | SearchCinemaItem | SearchMovieItem | SearchHeaderItem;
+    | SearchCityItem
+    | SearchCinemaItem
+    | SearchMovieItem
+    | SearchHeaderItem;
 
   // Build list data based on whether we are searching or listing all cities
   const searchResultsData = useMemo(() => {
