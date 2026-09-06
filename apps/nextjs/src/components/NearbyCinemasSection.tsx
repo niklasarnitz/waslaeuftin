@@ -311,8 +311,10 @@ export const NearbyCinemasSection = () => {
                 <span>Sortierung:</span>
                 <div className="bg-muted/80 border-border/60 inline-flex rounded-full border p-0.5">
                   <button
+                    type="button"
+                    aria-pressed={sortBy === "popularity"}
                     onClick={() => setSortBy("popularity")}
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
+                    className={`focus-visible:ring-ring rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
                       sortBy === "popularity"
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -321,8 +323,10 @@ export const NearbyCinemasSection = () => {
                     Beliebtheit
                   </button>
                   <button
+                    type="button"
+                    aria-pressed={sortBy === "name"}
                     onClick={() => setSortBy("name")}
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
+                    className={`focus-visible:ring-ring rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none ${
                       sortBy === "name"
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
