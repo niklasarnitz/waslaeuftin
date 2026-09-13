@@ -120,7 +120,7 @@ export default function SearchIndex() {
     const results = searchQuery.data;
 
     if (results) {
-      if (results.movies && results.movies.length > 0) {
+      if (results.movies.length > 0) {
         data.push({ type: "header", title: "Filme" });
         results.movies.forEach((movie) => {
           data.push({ type: "movie", item: movie });
@@ -157,7 +157,7 @@ export default function SearchIndex() {
     }
 
     trackedQueriesRef.current.add(normalizedQuery);
-    const movieCount = searchQuery.data.movies?.length ?? 0;
+    const movieCount = searchQuery.data.movies.length;
     trackMobileEvent({
       name: "mobile-search-submitted",
       screen: "search",

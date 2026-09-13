@@ -182,8 +182,8 @@ export default function HomeIndex() {
           date,
         });
 
-      void queryClient.prefetchQuery(prefetchOptions(tomorrow));
-      void queryClient.prefetchQuery(prefetchOptions(dayAfterTomorrow));
+      void queryClient.query(prefetchOptions(tomorrow)).catch(() => { /* ignore */ });
+      void queryClient.query(prefetchOptions(dayAfterTomorrow)).catch(() => { /* ignore */ });
     }, 0);
     return () => clearTimeout(timer);
   }, [coords, searchRadiusKm, viewMode]);
