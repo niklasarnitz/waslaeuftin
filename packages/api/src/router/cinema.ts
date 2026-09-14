@@ -103,16 +103,10 @@ const leanTmdbMetadataSelect = {
 const getNearbyCinemasForInput = async (
   input: NearbyCinemasInput,
   db: DbClient,
-  options?: { includeTomorrow?: boolean },
 ) => {
-  const includeTomorrow = options?.includeTomorrow ?? true;
   const scheduleDate = getScheduleDate(input.date);
   const todayStart = scheduleDate.clone().startOf("day").toDate();
-  const endDate = scheduleDate
-    .clone()
-    .add(includeTomorrow ? 1 : 0, "day")
-    .endOf("day")
-    .toDate();
+  const endDate = scheduleDate.clone().endOf("day").toDate();
 
   const { cinemaIds, distanceById } = await getNearbyCinemaDistances(input, db);
 
@@ -346,11 +340,15 @@ const getNearbyMovieByTmdbId = async (
     },
   });
 
-  type GroupedShowing = Omit<(typeof cinemas)[number]["showings"][number], "movie">;
+  type GroupedShowing = Omit<
+    (typeof cinemas)[number]["showings"][number],
+    "movie"
+  >;
 
   let name: string | null = null;
   let coverUrl: string | null = null;
-  let tmdbMetadata: (typeof cinemas)[number]["showings"][number]["movie"]["tmdbMetadata"] = null;
+  let tmdbMetadata: (typeof cinemas)[number]["showings"][number]["movie"]["tmdbMetadata"] =
+    null;
   let showingsCount = 0;
   let nextShowingDate: Date | undefined;
   const groupedCinemas: {
@@ -509,9 +507,7 @@ export const cinemaRouter = createTRPCRouter({
   getNearbyMovies: publicProcedure
     .input(NearbyCinemasInputSchema)
     .query(async ({ input, ctx }) => {
-      const nearbyCinemas = await getNearbyCinemasForInput(input, ctx.db, {
-        includeTomorrow: false,
-      });
+      const nearbyCinemas = await getNearbyCinemasForInput(input, ctx.db);
       return buildNearbyMovies(nearbyCinemas);
     }),
   getNearbyCinemasForMovie: publicProcedure

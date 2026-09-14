@@ -52,14 +52,14 @@
       "tooling/*"
     ],
     "catalog": {
-      "@eslint/js": "^10.0.1",
+      "@eslint/js": "^9.39.4",
       "@tailwindcss/postcss": "^4.3.3",
       "@tanstack/react-query": "^5.102.8",
       "@trpc/client": "11.18.0",
       "@trpc/server": "11.18.0",
       "@trpc/tanstack-react-query": "^11.18.0",
       "@types/node": "^26.4.0",
-      "eslint": "^10.9.1",
+      "eslint": "^9.39.4",
       "prettier": "^3.9.6",
       "tailwindcss": "^4.3.3",
       "typescript": "~6.0.3",

@@ -47,7 +47,7 @@ export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
         href: `/cinema/${cinema.slug}`,
         movies: cinema.movies,
       })),
-    [city.cinemas],
+    [city.cinemas, city.name, city.slug],
   );
 
   const effectiveSelectedCinemaSlugs = useMemo(() => {

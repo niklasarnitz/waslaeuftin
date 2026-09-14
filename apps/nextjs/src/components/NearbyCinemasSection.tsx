@@ -225,7 +225,7 @@ export const NearbyCinemasSection = () => {
             </button>
           </div>
           <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:mt-2 md:text-base">
-            Diese Filme laufen heute und morgen in deiner Nähe.
+            Diese Filme laufen heute in deiner Nähe.
           </p>
         </div>
       </div>
