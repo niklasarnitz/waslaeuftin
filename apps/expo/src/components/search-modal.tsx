@@ -156,7 +156,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     const searchData = citiesSearchQuery.data;
 
     if (searchData) {
-      if (searchData.movies && searchData.movies.length > 0) {
+      if (searchData.movies.length > 0) {
         data.push({ type: "header", icon: "film", title: "Filme" });
         searchData.movies.forEach((m) => data.push({ type: "movie", item: m }));
       }
@@ -192,7 +192,7 @@ function SearchModalContent({ onClose }: Pick<SearchModalProps, "onClose">) {
     }
 
     trackedQueriesRef.current.add(normalizedQuery);
-    const movieCount = citiesSearchQuery.data.movies?.length ?? 0;
+    const movieCount = citiesSearchQuery.data.movies.length;
     trackMobileEvent({
       name: "mobile-search-submitted",
       screen: "home",
