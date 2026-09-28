@@ -3,21 +3,16 @@ import { env } from "@waslaeuftin/env";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
+import { TmdbMatchEvaluation } from "@waslaeuftin/types/TmdbMatchEvaluation";
 import { TmdbMovieSearchResponse } from "@waslaeuftin/types/TmdbMovieSearchResponse";
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
 export class TmdbMovieMatcher {
-  private readonly searchCache = new Map<
-    string,
-    {
-      bestCandidate: TmdbScoredMatch | null;
-      acceptedCandidate: TmdbScoredMatch | null;
-    }
-  >();
+  private readonly searchCache = new Map<string, TmdbMatchEvaluation>();
   private readonly rateLimitQueue = new RateLimitedQueue(3, 334); // 3 concurrent requests, ~334ms between requests
 
-  async evaluate(title: string) {
+  async evaluate(title: string): Promise<TmdbMatchEvaluation> {
     const normalizedMovieTitleForSearch =
       normalizeMovieTitle(title).normalizedTitle;
     const normalizedTitle = normalizeForComparison(
@@ -27,7 +22,7 @@ export class TmdbMovieMatcher {
 
     const cached = this.searchCache.get(cacheKey);
     if (cached) {
-      return cached;
+      return { ...cached, requestedTitle: title };
     }
 
     const queries = buildTmdbSearchQueries(
@@ -101,9 +96,15 @@ export class TmdbMovieMatcher {
         ? bestCandidate
         : null;
 
-    const result = { bestCandidate, acceptedCandidate };
-    this.searchCache.set(cacheKey, result);
+    const evaluation: TmdbMatchEvaluation = {
+      requestedTitle: title,
+      normalizedTitle,
+      threshold: env.TMDB_MIN_CONFIDENCE_SCORE,
+      bestCandidate,
+      acceptedCandidate,
+    };
+    this.searchCache.set(cacheKey, evaluation);
 
-    return result;
+    return evaluation;
   }
 }
