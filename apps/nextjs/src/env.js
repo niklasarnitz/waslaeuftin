@@ -43,20 +43,14 @@ export const env = createEnv({
     TMDB_IMAGE_BASE_URL: process.env.TMDB_IMAGE_BASE_URL,
     TMDB_POSTER_SIZE: process.env.TMDB_POSTER_SIZE,
     TMDB_MIN_CONFIDENCE_SCORE: process.env.TMDB_MIN_CONFIDENCE_SCORE,
-    // The MINIO_* names are still accepted so existing deployments keep working.
-    S3_ENDPOINT: process.env.S3_ENDPOINT || process.env.MINIO_ENDPOINT,
-    S3_REGION: process.env.S3_REGION || process.env.MINIO_REGION,
-    S3_ACCESS_KEY_ID:
-      process.env.S3_ACCESS_KEY_ID || process.env.MINIO_ACCESS_KEY,
-    S3_SECRET_ACCESS_KEY:
-      process.env.S3_SECRET_ACCESS_KEY || process.env.MINIO_SECRET_KEY,
+    S3_ENDPOINT: process.env.S3_ENDPOINT,
+    S3_REGION: process.env.S3_REGION,
+    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
+    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
     S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
-    S3_BUCKET: process.env.S3_BUCKET || process.env.MINIO_BUCKET,
-    S3_MOVIE_COVERS_PREFIX:
-      process.env.S3_MOVIE_COVERS_PREFIX ||
-      process.env.MINIO_MOVIE_COVERS_PREFIX,
-    S3_PUBLIC_BASE_URL:
-      process.env.S3_PUBLIC_BASE_URL || process.env.MINIO_PUBLIC_BASE_URL,
+    S3_BUCKET: process.env.S3_BUCKET,
+    S3_MOVIE_COVERS_PREFIX: process.env.S3_MOVIE_COVERS_PREFIX,
+    S3_PUBLIC_BASE_URL: process.env.S3_PUBLIC_BASE_URL,
     UMAMI_URL: process.env.UMAMI_URL,
     UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID,
     UMAMI_VIEW_DEDUPLICATION_SECONDS:

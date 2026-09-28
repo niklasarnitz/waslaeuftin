@@ -1,7 +1,6 @@
 await import("@waslaeuftin/web/env");
 
-const storageBaseUrl =
-  process.env.S3_PUBLIC_BASE_URL || process.env.MINIO_PUBLIC_BASE_URL;
+const storageBaseUrl = process.env.S3_PUBLIC_BASE_URL;
 const storageRemotePattern = storageBaseUrl
   ? (() => {
       const parsed = new URL(storageBaseUrl);
