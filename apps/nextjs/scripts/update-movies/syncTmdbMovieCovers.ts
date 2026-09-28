@@ -1,10 +1,16 @@
-import { createHash } from "node:crypto";
-import { Client as MinioClient } from "minio";
-
 import type { TmdbMovieDetailsResponse } from "@waslaeuftin/types/TmdbMovieDetailsResponse";
-import { normalizeForComparison, normalizeMovieTitle } from "@waslaeuftin/core";
+import type { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
+import type { UploadedCover } from "@waslaeuftin/types/UploadedCover";
+import {
+  normalizeForComparison,
+  normalizeMovieTitle,
+  normalizePrefix,
+} from "@waslaeuftin/core";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
+import { assertBucketAccessible } from "@waslaeuftin/helpers/fileStorage/assertBucketAccessible";
+import { createS3Client } from "@waslaeuftin/helpers/fileStorage/createS3Client";
+import { uploadTmdbPosterToS3 } from "@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToS3";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
@@ -31,28 +37,12 @@ type TmdbMovieSearchResult = {
   genre_ids: number[];
 };
 
-type TmdbScoredMatch = {
-  tmdbMovieId: number;
-  title: string;
-  originalTitle: string;
-  posterPath: string | null;
-  releaseDate: string | null;
-  popularity: number;
-  confidence: number;
-  sourceQuery: string;
-};
-
 export type TmdbMatchEvaluation = {
   requestedTitle: string;
   normalizedTitle: string;
   threshold: number;
   bestCandidate: TmdbScoredMatch | null;
   acceptedCandidate: TmdbScoredMatch | null;
-};
-
-type UploadedCover = {
-  objectKey: string;
-  publicUrl: string;
 };
 
 type SyncMovieCoversResult = {
@@ -133,44 +123,6 @@ const extractYear = (value: string) => {
   const yearMatch = value.match(/\b(19|20)\d{2}\b/);
 
   return yearMatch ? Number(yearMatch[0]) : null;
-};
-
-const getTmdbPosterUrl = (posterPath: string) => {
-  const normalizedBaseUrl = env.TMDB_IMAGE_BASE_URL.replace(/\/+$/, "");
-  const normalizedPosterPath = posterPath.replace(/^\/+/, "");
-
-  return `${normalizedBaseUrl}/${env.TMDB_POSTER_SIZE}/${normalizedPosterPath}`;
-};
-
-const getUrlPathJoin = (...parts: string[]) => {
-  return parts
-    .map((part, index) => {
-      if (index === 0) {
-        return part.replace(/\/+$/, "");
-      }
-
-      return part.replace(/^\/+|\/+$/g, "");
-    })
-    .filter(Boolean)
-    .join("/");
-};
-
-const encodeObjectKeyForPublicUrl = (key: string) => {
-  return key
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
-};
-
-const slugifyForObjectKey = (value: string) => {
-  const normalized = normalizeForComparison(value)
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 70);
-
-  return normalized.length > 0 ? normalized : "movie";
 };
 
 class TmdbMovieMatcher {
@@ -267,140 +219,16 @@ class TmdbMovieMatcher {
   }
 }
 
-const createMinioClient = () => {
-  const endpointUrl = new URL(env.MINIO_ENDPOINT);
-
-  return new MinioClient({
-    endPoint: endpointUrl.hostname,
-    port: endpointUrl.port ? Number(endpointUrl.port) : undefined,
-    useSSL: env.MINIO_USE_SSL,
-    accessKey: env.MINIO_ACCESS_KEY,
-    secretKey: env.MINIO_SECRET_KEY,
-    region: env.MINIO_REGION,
-  });
-};
-
-const normalizePrefix = (value: string) => {
-  return value.replace(/^\/+|\/+$/g, "");
-};
-
-const ensureMinioFolder = async (client: MinioClient, prefix: string) => {
-  const bucketExists = await client.bucketExists(env.MINIO_BUCKET);
-
-  if (!bucketExists) {
-    throw new Error(
-      `MinIO bucket "${env.MINIO_BUCKET}" does not exist. Please create it first.`,
-    );
-  }
-
-  const keepFileKey = `${prefix}/.keep`;
-
-  try {
-    await client.statObject(env.MINIO_BUCKET, keepFileKey);
-  } catch {
-    await client.putObject(
-      env.MINIO_BUCKET,
-      keepFileKey,
-      Buffer.from("waslaeuftin movie covers\n"),
-      undefined,
-      {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-    );
-  }
-};
-
-const buildStorageKey = (
-  prefix: string,
-  movieName: string,
-  match: TmdbScoredMatch,
-) => {
-  const extension = (match.posterPath?.split(".").pop() ?? "jpg").replace(
-    /[^a-z0-9]/gi,
-    "",
-  );
-  const posterHash = createHash("sha1")
-    .update(match.posterPath ?? `${match.tmdbMovieId}`)
-    .digest("hex")
-    .slice(0, 12);
-  const titleSlug = slugifyForObjectKey(movieName);
-
-  return `${prefix}/${titleSlug}-${match.tmdbMovieId}-${posterHash}.${extension || "jpg"}`;
-};
-
-const uploadTmdbPosterToMinio = async (
-  client: MinioClient,
-  movieName: string,
-  match: TmdbScoredMatch,
-  prefix: string,
-  uploadedPosterCache: Map<string, UploadedCover>,
-) => {
-  if (!match.posterPath) {
-    throw new Error("Cannot upload poster without TMDB poster path");
-  }
-
-  const cachedUpload = uploadedPosterCache.get(match.posterPath);
-  if (cachedUpload) {
-    return cachedUpload;
-  }
-
-  const posterUrl = getTmdbPosterUrl(match.posterPath);
-  const posterResponse = await fetch(posterUrl);
-
-  if (!posterResponse.ok) {
-    throw new Error(
-      `TMDB poster download failed (${posterResponse.status}) for ${posterUrl}`,
-    );
-  }
-
-  const posterArrayBuffer = await posterResponse.arrayBuffer();
-  const posterBuffer = Buffer.from(posterArrayBuffer);
-
-  if (posterBuffer.length === 0) {
-    throw new Error(
-      `TMDB poster download returned empty payload for ${posterUrl}`,
-    );
-  }
-
-  const objectKey = buildStorageKey(prefix, movieName, match);
-
-  await client.putObject(
-    env.MINIO_BUCKET,
-    objectKey,
-    posterBuffer,
-    posterBuffer.length,
-    {
-      "Content-Type":
-        posterResponse.headers.get("content-type") ?? "image/jpeg",
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-  );
-
-  const publicUrl = getUrlPathJoin(
-    env.MINIO_PUBLIC_BASE_URL,
-    encodeObjectKeyForPublicUrl(objectKey),
-  );
-
-  const uploaded = {
-    objectKey,
-    publicUrl,
-  } satisfies UploadedCover;
-
-  uploadedPosterCache.set(match.posterPath, uploaded);
-
-  return uploaded;
-};
-
 export const syncTmdbMovieCoversForAllMovies = async (options?: {
   forceRefreshExistingCovers?: boolean;
   unmatchedOnly?: boolean;
 }): Promise<SyncMovieCoversResult> => {
   const matcher = new TmdbMovieMatcher();
-  const minioClient = createMinioClient();
-  const normalizedPrefix = normalizePrefix(env.MINIO_MOVIE_COVERS_PREFIX);
+  const s3Client = createS3Client();
+  const normalizedPrefix = normalizePrefix(env.S3_MOVIE_COVERS_PREFIX);
   const uploadedPosterCache = new Map<string, UploadedCover>();
 
-  await ensureMinioFolder(minioClient, normalizedPrefix);
+  await assertBucketAccessible(s3Client);
 
   const unmatchedOnly = options?.unmatchedOnly ?? false;
 
@@ -465,8 +293,8 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
       continue;
     }
 
-    const uploadedCover = await uploadTmdbPosterToMinio(
-      minioClient,
+    const uploadedCover = await uploadTmdbPosterToS3(
+      s3Client,
       movie.name,
       evaluation.acceptedCandidate,
       normalizedPrefix,

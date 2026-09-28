@@ -28,6 +28,7 @@
   "dependencies": {
     "@ainias42/js-helper": "catalog:",
     "@apollo/client": "catalog:",
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@hookform/resolvers": "^5.9.1",
     "@radix-ui/react-accordion": "^1.2.20",
     "@radix-ui/react-collapsible": "^1.1.20",
@@ -59,7 +60,6 @@
     "graphql": "catalog:",
     "lodash": "^4.18.1",
     "lucide-react": "^1.34.0",
-    "minio": "^8.0.7",
     "moment": "^2.30.1",
     "moment-timezone": "catalog:",
     "momentjs": "^2.0.0",
