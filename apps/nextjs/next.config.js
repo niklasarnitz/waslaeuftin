@@ -1,9 +1,10 @@
 await import("@waslaeuftin/web/env");
 
-const minioBaseUrl = process.env.MINIO_PUBLIC_BASE_URL;
-const minioRemotePattern = minioBaseUrl
+const storageBaseUrl =
+  process.env.S3_PUBLIC_BASE_URL || process.env.MINIO_PUBLIC_BASE_URL;
+const storageRemotePattern = storageBaseUrl
   ? (() => {
-      const parsed = new URL(minioBaseUrl);
+      const parsed = new URL(storageBaseUrl);
       return {
         protocol: /** @type {"http" | "https"} */ (
           parsed.protocol.replace(":", "")
@@ -22,7 +23,7 @@ const config = {
     "@waslaeuftin/validators",
   ],
   images: {
-    remotePatterns: minioRemotePattern ? [minioRemotePattern] : [],
+    remotePatterns: storageRemotePattern ? [storageRemotePattern] : [],
   },
 };
 

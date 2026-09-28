@@ -18,21 +18,18 @@ export const env = createEnv({
     TMDB_IMAGE_BASE_URL: z.url().default("https://image.tmdb.org/t/p"),
     TMDB_POSTER_SIZE: z.string().min(2).default("w780"),
     TMDB_MIN_CONFIDENCE_SCORE: z.coerce.number().min(0).max(1).default(0.68),
-    MINIO_ENDPOINT: z.url(),
-    MINIO_REGION: z.string().min(1),
-    MINIO_ACCESS_KEY: z.string().min(1),
-    MINIO_SECRET_KEY: z.string().min(1),
-    MINIO_USE_SSL: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .transform((value) => value === "true"),
-    MINIO_BUCKET: z.string().min(1),
-    MINIO_MOVIE_COVERS_PREFIX: z
+    S3_ENDPOINT: z.url(),
+    S3_REGION: z.string().min(1).default("us-east-1"),
+    S3_ACCESS_KEY_ID: z.string().min(1),
+    S3_SECRET_ACCESS_KEY: z.string().min(1),
+    // versitygw and most self-hosted gateways need path-style addressing.
+    S3_FORCE_PATH_STYLE: z.stringbool().default(true),
+    S3_BUCKET: z.string().min(1),
+    S3_MOVIE_COVERS_PREFIX: z
       .string()
       .min(1)
       .default("waslaeuftin/tmdb-covers"),
-    MINIO_PUBLIC_BASE_URL: z.url(),
+    S3_PUBLIC_BASE_URL: z.url(),
     UMAMI_URL: z.url().optional(),
     UMAMI_WEBSITE_ID: z.string().optional(),
     UMAMI_VIEW_DEDUPLICATION_SECONDS: z.coerce.number().positive().optional(),
@@ -46,14 +43,20 @@ export const env = createEnv({
     TMDB_IMAGE_BASE_URL: process.env.TMDB_IMAGE_BASE_URL,
     TMDB_POSTER_SIZE: process.env.TMDB_POSTER_SIZE,
     TMDB_MIN_CONFIDENCE_SCORE: process.env.TMDB_MIN_CONFIDENCE_SCORE,
-    MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
-    MINIO_REGION: process.env.MINIO_REGION,
-    MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
-    MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
-    MINIO_USE_SSL: process.env.MINIO_USE_SSL,
-    MINIO_BUCKET: process.env.MINIO_BUCKET,
-    MINIO_MOVIE_COVERS_PREFIX: process.env.MINIO_MOVIE_COVERS_PREFIX,
-    MINIO_PUBLIC_BASE_URL: process.env.MINIO_PUBLIC_BASE_URL,
+    // The MINIO_* names are still accepted so existing deployments keep working.
+    S3_ENDPOINT: process.env.S3_ENDPOINT || process.env.MINIO_ENDPOINT,
+    S3_REGION: process.env.S3_REGION || process.env.MINIO_REGION,
+    S3_ACCESS_KEY_ID:
+      process.env.S3_ACCESS_KEY_ID || process.env.MINIO_ACCESS_KEY,
+    S3_SECRET_ACCESS_KEY:
+      process.env.S3_SECRET_ACCESS_KEY || process.env.MINIO_SECRET_KEY,
+    S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
+    S3_BUCKET: process.env.S3_BUCKET || process.env.MINIO_BUCKET,
+    S3_MOVIE_COVERS_PREFIX:
+      process.env.S3_MOVIE_COVERS_PREFIX ||
+      process.env.MINIO_MOVIE_COVERS_PREFIX,
+    S3_PUBLIC_BASE_URL:
+      process.env.S3_PUBLIC_BASE_URL || process.env.MINIO_PUBLIC_BASE_URL,
     UMAMI_URL: process.env.UMAMI_URL,
     UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID,
     UMAMI_VIEW_DEDUPLICATION_SECONDS:

@@ -20,7 +20,7 @@ WORKDIR /app
 
 FROM base AS build
 # next.config.js derives the allowed next/image host from this at build time.
-ARG MINIO_PUBLIC_BASE_URL=https://minio.app.arnitz.org/bookworm
+ARG S3_PUBLIC_BASE_URL=https://minio.app.arnitz.org/bookworm
 COPY . .
 # Fail early instead of shipping LFS pointer files as download links.
 RUN if head -c 100 apps/nextjs/public/waslaeuftin.apk | grep -q '^version https://git-lfs'; then \
@@ -30,7 +30,7 @@ RUN bun install --frozen-lockfile
 # Build with the non-secret placeholder env from .env.example; real values are only provided at runtime.
 # UMAMI_* are left out: the Umami client contacts its host at module load.
 RUN grep -v '^UMAMI_' .env.example > .env \
-  && MINIO_PUBLIC_BASE_URL="${MINIO_PUBLIC_BASE_URL}" NODE_ENV=production bunx turbo run build --filter=@waslaeuftin/web... \
+  && S3_PUBLIC_BASE_URL="${S3_PUBLIC_BASE_URL}" NODE_ENV=production bunx turbo run build --filter=@waslaeuftin/web... \
   && rm -rf .env apps/nextjs/.next/cache
 
 FROM base AS runtime

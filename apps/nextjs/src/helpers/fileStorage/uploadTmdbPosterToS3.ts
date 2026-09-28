@@ -1,4 +1,4 @@
-import { Client as MinioClient } from "minio";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 import { getTmdbPosterUrl, getUrlPathJoin } from "@waslaeuftin/core";
 import { env } from "@waslaeuftin/env";
@@ -7,8 +7,8 @@ import { encodeObjectKeyForPublicUrl } from "@waslaeuftin/helpers/fileStorage/en
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 import { UploadedCover } from "@waslaeuftin/types/UploadedCover";
 
-export const uploadTmdbPosterToMinio = async (
-  client: MinioClient,
+export const uploadTmdbPosterToS3 = async (
+  client: S3Client,
   movieName: string,
   match: TmdbScoredMatch,
   prefix: string,
@@ -23,11 +23,17 @@ export const uploadTmdbPosterToMinio = async (
     return cachedUpload;
   }
 
-  const posterUrl = getTmdbPosterUrl(match.posterPath);
+  const posterUrl = getTmdbPosterUrl(
+    match.posterPath,
+    env.TMDB_IMAGE_BASE_URL,
+    env.TMDB_POSTER_SIZE,
+  );
   if (!posterUrl) {
     throw new Error("Invalid poster path");
   }
-  const posterResponse = await fetch(posterUrl);
+  const posterResponse = await fetch(posterUrl, {
+    signal: AbortSignal.timeout(30_000),
+  });
 
   if (!posterResponse.ok) {
     throw new Error(
@@ -35,10 +41,9 @@ export const uploadTmdbPosterToMinio = async (
     );
   }
 
-  const posterArrayBuffer = await posterResponse.arrayBuffer();
-  const posterBuffer = Buffer.from(posterArrayBuffer);
+  const posterBuffer = new Uint8Array(await posterResponse.arrayBuffer());
 
-  if (posterBuffer.length === 0) {
+  if (posterBuffer.byteLength === 0) {
     throw new Error(
       `TMDB poster download returned empty payload for ${posterUrl}`,
     );
@@ -46,20 +51,19 @@ export const uploadTmdbPosterToMinio = async (
 
   const objectKey = buildStorageKey(prefix, movieName, match);
 
-  await client.putObject(
-    env.MINIO_BUCKET,
-    objectKey,
-    posterBuffer,
-    posterBuffer.length,
-    {
-      "Content-Type":
-        posterResponse.headers.get("content-type") ?? "image/jpeg",
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
+  await client.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: objectKey,
+      Body: posterBuffer,
+      ContentLength: posterBuffer.byteLength,
+      ContentType: posterResponse.headers.get("content-type") ?? "image/jpeg",
+      CacheControl: "public, max-age=31536000, immutable",
+    }),
   );
 
   const publicUrl = getUrlPathJoin(
-    env.MINIO_PUBLIC_BASE_URL,
+    env.S3_PUBLIC_BASE_URL,
     encodeObjectKeyForPublicUrl(objectKey),
   );
 
