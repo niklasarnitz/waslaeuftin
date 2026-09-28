@@ -65,6 +65,7 @@
     "moment-timezone": "catalog:",
     "momentjs": "^2.0.0",
     "next": "16.3.3",
+    "next-auth": "^4.24.15",
     "node-cron": "^4.6.0",
     "nuqs": "^2.10.1",
     "octokit": "catalog:",

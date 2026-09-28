@@ -33,9 +33,12 @@ export const env = createEnv({
     UMAMI_URL: z.url().optional(),
     UMAMI_WEBSITE_ID: z.string().optional(),
     UMAMI_VIEW_DEDUPLICATION_SECONDS: z.coerce.number().positive().optional(),
-    // /admin is only reachable when ADMIN_PASSWORD is set (HTTP basic auth).
-    ADMIN_USERNAME: z.string().min(1).default("admin"),
-    ADMIN_PASSWORD: z.string().min(1).optional(),
+    // /admin sign-in via Authentik (OIDC). The admin area is disabled unless
+    // all of these are set.
+    AUTH_SECRET: z.string().min(1).optional(),
+    AUTHENTIK_ISSUER: z.url().optional(),
+    AUTHENTIK_CLIENT_ID: z.string().min(1).optional(),
+    AUTHENTIK_CLIENT_SECRET: z.string().min(1).optional(),
     // Cron expression (Europe/Berlin) for the nightly movie updates, or "off".
     MOVIE_UPDATE_CRON: z.string().min(1).default("0 3 * * *"),
   },
@@ -60,8 +63,10 @@ export const env = createEnv({
     UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID,
     UMAMI_VIEW_DEDUPLICATION_SECONDS:
       process.env.UMAMI_VIEW_DEDUPLICATION_SECONDS,
-    ADMIN_USERNAME: process.env.ADMIN_USERNAME,
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    AUTH_SECRET: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    AUTHENTIK_ISSUER: process.env.AUTHENTIK_ISSUER,
+    AUTHENTIK_CLIENT_ID: process.env.AUTHENTIK_CLIENT_ID,
+    AUTHENTIK_CLIENT_SECRET: process.env.AUTHENTIK_CLIENT_SECRET,
     MOVIE_UPDATE_CRON: process.env.MOVIE_UPDATE_CRON,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

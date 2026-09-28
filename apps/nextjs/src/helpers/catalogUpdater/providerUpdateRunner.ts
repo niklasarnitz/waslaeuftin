@@ -27,7 +27,7 @@ const globalForRunner = globalThis as unknown as {
   activeProviderUpdateBatch?: string;
 };
 
-const errorToString = (error: unknown) =>
+export const errorToString = (error: unknown) =>
   error instanceof Error ? (error.stack ?? error.message) : String(error);
 
 const updateRun = async (
@@ -79,7 +79,16 @@ export const failInterruptedRuns = async ({
       })
     : { count: 0 };
 
-  return staleRuns.count + interruptedRuns.count;
+  const failed = staleRuns.count + interruptedRuns.count;
+  if (failed > 0) {
+    await sendPushoverNotification(
+      "Movie Update Interrupted",
+      `${failed} provider update run(s) did not finish and were marked as failed ` +
+        `(${interruptedRuns.count} interrupted by a server restart, ${staleRuns.count} without progress for 30 minutes).`,
+    );
+  }
+
+  return failed;
 };
 
 const findActiveRun = async () => {
@@ -295,9 +304,13 @@ export const startProviderUpdates = async ({
   }
 
   const { batchId, runs } = batch;
-  void executeBatch(batchId, runs, fetchers).catch((error: unknown) =>
-    console.error(`[ProviderUpdate] Batch ${batchId} crashed:`, error),
-  );
+  void executeBatch(batchId, runs, fetchers).catch(async (error: unknown) => {
+    console.error(`[ProviderUpdate] Batch ${batchId} crashed:`, error);
+    await sendPushoverNotification(
+      "Movie Update Crashed",
+      `Update batch ${batchId} crashed:\n${errorToString(error)}`,
+    );
+  });
 
   return { started: true, batchId };
 };

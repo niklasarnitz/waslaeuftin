@@ -1,8 +1,11 @@
 import { type Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import type { ProviderUpdateRun } from "@waslaeuftin/db";
+import {
+  SignInButton,
+  SignOutButton,
+} from "@waslaeuftin/app/admin/_components/AuthButtons";
 import { AutoRefresh } from "@waslaeuftin/app/admin/_components/AutoRefresh";
 import { ProgressBar } from "@waslaeuftin/app/admin/_components/ProgressBar";
 import { StartUpdateButton } from "@waslaeuftin/app/admin/_components/StartUpdateButton";
@@ -14,7 +17,8 @@ import {
   CardTitle,
 } from "@waslaeuftin/components/ui/card";
 import { db } from "@waslaeuftin/db/client";
-import { isAuthorizedAdmin } from "@waslaeuftin/helpers/adminAuth";
+import { isAdminAuthConfigured } from "@waslaeuftin/helpers/auth/authOptions";
+import { getAdminSession } from "@waslaeuftin/helpers/auth/getAdminSession";
 import { providerNames } from "@waslaeuftin/helpers/catalogUpdater/providerFetchers";
 import { cn } from "@waslaeuftin/lib/utils";
 
@@ -270,11 +274,42 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-export default async function AdminPage() {
-  // The proxy already guards /admin; checking again keeps the page safe if the
-  // proxy matcher ever changes.
-  if (!isAuthorizedAdmin((await headers()).get("authorization"))) {
+const SignInScreen = ({ error }: { error?: string }) => (
+  <main className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-24">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Admin</CardTitle>
+        <CardDescription>
+          Sign in with your Authentik account to see the movie update runs.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {error ? (
+          <p className="text-sm text-red-700 dark:text-red-400">
+            Sign-in failed ({error}). Please try again.
+          </p>
+        ) : null}
+        <SignInButton />
+      </CardContent>
+    </Card>
+  </main>
+);
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>;
+}) {
+  if (!isAdminAuthConfigured()) {
     notFound();
+  }
+
+  const session = await getAdminSession();
+  if (!session) {
+    const { error } = await searchParams;
+    return (
+      <SignInScreen error={typeof error === "string" ? error : undefined} />
+    );
   }
 
   const runsByProvider = await Promise.all(
@@ -332,7 +367,16 @@ export default async function AdminPage() {
             Refreshes every {updateActive ? "3" : "30"} seconds.
           </p>
         </div>
-        <StartUpdateButton label="Run all providers" disabled={updateActive} />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-500">
+            {session.user?.name ?? session.user?.email}
+          </span>
+          <SignOutButton />
+          <StartUpdateButton
+            label="Run all providers"
+            disabled={updateActive}
+          />
+        </div>
       </div>
 
       {latestBatch.length > 0 && latestRun ? (
