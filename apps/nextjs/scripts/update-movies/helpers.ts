@@ -4,6 +4,13 @@ export const CINEMA_BATCH_SIZE = 10;
 export const BATCH_DELAY_MS = 100;
 export const STALE_THRESHOLD_MS = 5 * 60 * 60 * 1000; // 5 hours
 
+// Lets callers (e.g. the tracked nightly runner) observe per-cinema progress of a
+// provider fetch without the fetchers knowing about persistence.
+export type FetchProgressReporter = {
+  onCinemasSelected: (total: number) => Promise<void> | void;
+  onChunkProcessed: (processed: number, failed: number) => Promise<void> | void;
+};
+
 export const sleep = async (delayMs: number) => {
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 };

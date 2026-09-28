@@ -36,7 +36,17 @@ const createResolvedMovie = (
   tmdbSearchFailedOn: params.tmdbSearchFailedOn ?? null,
 });
 
-export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
+export type ResolvePhase = "matching" | "tmdb" | "persisting";
+
+export type ResolveProgressReporter = {
+  onPhase: (phase: ResolvePhase, total: number) => Promise<void> | void;
+  onProgress: (done: number) => Promise<void> | void;
+};
+
+export const resolveAndPersistCatalog = async (
+  catalogs: ProviderCatalog[],
+  progress?: ResolveProgressReporter,
+) => {
   const rawTitlesSet = new Set<string>();
   const allShowings: ProviderCatalog["showings"] = [];
   const allMovies: ProviderCatalog["movies"] = [];
@@ -153,6 +163,7 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
   let tmdbUnmatched = 0;
 
   console.info(`[Resolver] Phase 2: Matching raw titles to database movies...`);
+  await progress?.onPhase("matching", rawTitles.length);
 
   for (const [index, rawTitle] of rawTitles.entries()) {
     const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
@@ -216,6 +227,8 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     console.info(`[Resolver]   → Not in DB, will fetch TMDB data`);
   }
 
+  await progress?.onProgress(rawTitles.length);
+
   // ─── Phase 3: Fetch TMDB data only for new or incomplete movies ──────────
   console.info(
     `[Resolver] Phase 3: Fetching TMDB data for ${moviesToFetchTmdbData.size} movies`,
@@ -235,6 +248,8 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     `[Resolver] Executing ${rawTitlesArray.length} TMDB evaluations in batches (max 10 per batch)...`,
   );
 
+  await progress?.onPhase("tmdb", rawTitlesArray.length);
+
   for (let i = 0; i < rawTitlesArray.length; i += TMDB_BATCH_SIZE) {
     const batchTitles = rawTitlesArray.slice(i, i + TMDB_BATCH_SIZE);
     const batchProgress = `${Math.min(i + TMDB_BATCH_SIZE, rawTitlesArray.length)}/${rawTitlesArray.length}`;
@@ -250,6 +265,7 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
 
     const batchResults = await Promise.allSettled(batchPromises);
     allEvaluationResults.push(...batchResults);
+    await progress?.onProgress(allEvaluationResults.length);
   }
 
   // Phase 3b: Start poster uploads for new TMDB matches in parallel; the
@@ -426,6 +442,7 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
 
   // ─── Phase 4: Persist to database ────────────────────────────────────────
   console.info(`[Resolver] Phase 4: Writing to database...`);
+  await progress?.onPhase("persisting", 0);
 
   // Upsert all canonical movies. Keep these outside a transaction: each upsert
   // is idempotent, and the inserted IDs are only used for the later createMany.

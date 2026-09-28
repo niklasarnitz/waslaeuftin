@@ -7,12 +7,15 @@ import {
   BATCH_DELAY_MS,
   chunkArray,
   CINEMA_BATCH_SIZE,
+  FetchProgressReporter,
   isCinemaStale,
   markCinemasFetched,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
-export const fetchCineplexxATCatalog = async (): Promise<ProviderCatalog> => {
+export const fetchCineplexxATCatalog = async (
+  progress?: FetchProgressReporter,
+): Promise<ProviderCatalog> => {
   const failedCinemas: string[] = [];
   const allMovies: ProviderCatalog["movies"] = [];
   const allShowings: ProviderCatalog["showings"] = [];
@@ -26,6 +29,8 @@ export const fetchCineplexxATCatalog = async (): Promise<ProviderCatalog> => {
   console.info(
     `[CineplexxAT] Found ${cineplexxAtCinemas.length} cinemas to fetch (${allCineplexxAtCinemas.length - cineplexxAtCinemas.length} skipped, recently fetched)`,
   );
+
+  await progress?.onCinemasSelected(cineplexxAtCinemas.length);
 
   const cinemaChunks = chunkArray(cineplexxAtCinemas, CINEMA_BATCH_SIZE);
 
@@ -54,6 +59,11 @@ export const fetchCineplexxATCatalog = async (): Promise<ProviderCatalog> => {
         failedCinemas.push(`${cinema.id}:${cinema.name} (${errorMessage})`);
       }
     }
+
+    await progress?.onChunkProcessed(
+      chunk.length,
+      cinemaResults.filter((result) => result.status === "rejected").length,
+    );
 
     if (index < cinemaChunks.length - 1) {
       await sleep(BATCH_DELAY_MS);

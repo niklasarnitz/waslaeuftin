@@ -215,3 +215,58 @@ model Reminder {
   @@index([tmdbMovieId])
   @@index([notifiedAt])
 }
+
+enum ProviderUpdateRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum ProviderUpdateRunPhase {
+  QUEUED
+  FETCHING
+  MATCHING
+  TMDB
+  PERSISTING
+  DONE
+}
+
+/// One movie/showing update of a single cinema provider. Runs started
+/// together (e.g. by the nightly cron) share a `batchId`. Progress fields are
+/// updated while the run is in flight so /admin can show live progress.
+model ProviderUpdateRun {
+  id       Int                     @id @default(autoincrement())
+  batchId  String
+  provider String
+  /// "cron", "manual" (admin page) or "cli"
+  trigger  String
+  status   ProviderUpdateRunStatus @default(QUEUED)
+  phase    ProviderUpdateRunPhase  @default(QUEUED)
+
+  /// Progress within the current phase (cinemas, titles, ...).
+  phaseTotal Int @default(0)
+  phaseDone  Int @default(0)
+
+  cinemasTotal     Int @default(0)
+  cinemasProcessed Int @default(0)
+  cinemasFailed    Int @default(0)
+
+  moviesFetched   Int?
+  showingsFetched Int?
+  showingsCreated Int?
+  canonicalMovies Int?
+  tmdbMatched     Int?
+  tmdbUnmatched   Int?
+
+  error String?
+
+  queuedAt   DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([provider, queuedAt])
+  @@index([batchId])
+  @@index([status])
+}

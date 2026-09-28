@@ -1,4 +1,9 @@
-export { Countries, Prisma } from "@prisma/client";
+export {
+  Countries,
+  Prisma,
+  ProviderUpdateRunPhase,
+  ProviderUpdateRunStatus,
+} from "@prisma/client";
 export type {
   Cinema,
   City,
@@ -7,6 +12,7 @@ export type {
   DeviceCinemaPopularity,
   KinoHeldCinemasMetadata,
   Movie,
+  ProviderUpdateRun,
   Reminder,
   Showing,
   TmdbMetadata,
