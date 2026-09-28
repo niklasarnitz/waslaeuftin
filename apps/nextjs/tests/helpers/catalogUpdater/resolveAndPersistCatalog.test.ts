@@ -52,17 +52,20 @@ const db = {
 mock.module("@waslaeuftin/db/client", () => ({ db }));
 mock.module("@waslaeuftin/env", () => ({
   env: {
-    MINIO_ENDPOINT: "http://localhost:9000",
-    MINIO_USE_SSL: false,
-    MINIO_ACCESS_KEY: "test",
-    MINIO_SECRET_KEY: "test",
-    MINIO_REGION: "test",
-    MINIO_MOVIE_COVERS_PREFIX: "movie-covers",
+    S3_ENDPOINT: "http://localhost:7070",
+    S3_FORCE_PATH_STYLE: true,
+    S3_ACCESS_KEY_ID: "test",
+    S3_SECRET_ACCESS_KEY: "test",
+    S3_REGION: "test",
+    S3_BUCKET: "test",
+    S3_MOVIE_COVERS_PREFIX: "movie-covers",
   },
 }));
-mock.module("minio", () => ({ Client: class MockMinioClient {} }));
-mock.module("@waslaeuftin/helpers/fileStorage/ensureMinioFolder", () => ({
-  ensureMinioFolder: mock(async () => undefined),
+mock.module("@waslaeuftin/helpers/fileStorage/createS3Client", () => ({
+  createS3Client: mock(() => ({})),
+}));
+mock.module("@waslaeuftin/helpers/fileStorage/assertBucketAccessible", () => ({
+  assertBucketAccessible: mock(async () => undefined),
 }));
 mock.module("@waslaeuftin/helpers/tmdb/TmdbMovieMatcher", () => ({
   TmdbMovieMatcher: class MockTmdbMovieMatcher {
@@ -105,8 +108,8 @@ mock.module("@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails", () => ({
 mock.module("@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata", () => ({
   upsertTmdbMetadata: mock(async () => undefined),
 }));
-mock.module("@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToMinio", () => ({
-  uploadTmdbPosterToMinio: mock(async () => ({
+mock.module("@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToS3", () => ({
+  uploadTmdbPosterToS3: mock(async () => ({
     publicUrl: "https://example.test/poster.jpg",
     objectKey: "movie-covers/poster.jpg",
   })),

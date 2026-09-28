@@ -1,5 +1,3 @@
-import { Client as MinioClient } from "minio";
-
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
 import {
   normalizeForComparison,
@@ -8,9 +6,12 @@ import {
 } from "@waslaeuftin/core";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
-import { ensureMinioFolder } from "@waslaeuftin/helpers/fileStorage/ensureMinioFolder";
-import { uploadTmdbPosterToMinio } from "@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToMinio";
+import { assertBucketAccessible } from "@waslaeuftin/helpers/fileStorage/assertBucketAccessible";
+import { createS3Client } from "@waslaeuftin/helpers/fileStorage/createS3Client";
+import { POSTER_UPLOAD_CONCURRENCY } from "@waslaeuftin/helpers/fileStorage/posterUploadConcurrency";
+import { uploadTmdbPosterToS3 } from "@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToS3";
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
+import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
 import { TmdbMovieMatcher } from "@waslaeuftin/helpers/tmdb/TmdbMovieMatcher";
 import { ResolvedMovie } from "@waslaeuftin/types/ResolvedMovie";
@@ -96,20 +97,11 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
 
   // ─── Phase 2: Match raw titles to existing database movies or mark as new ──
   const matcher = new TmdbMovieMatcher();
-  const minioClient = new MinioClient({
-    endPoint: new URL(env.MINIO_ENDPOINT).hostname,
-    port: new URL(env.MINIO_ENDPOINT).port
-      ? Number(new URL(env.MINIO_ENDPOINT).port)
-      : undefined,
-    useSSL: env.MINIO_USE_SSL,
-    accessKey: env.MINIO_ACCESS_KEY,
-    secretKey: env.MINIO_SECRET_KEY,
-    region: env.MINIO_REGION,
-  });
-  const normalizedPrefix = normalizePrefix(env.MINIO_MOVIE_COVERS_PREFIX);
-  const uploadedPosterCache = new Map<string, UploadedCover>();
+  const s3Client = createS3Client();
+  const normalizedPrefix = normalizePrefix(env.S3_MOVIE_COVERS_PREFIX);
+  const uploadedPosterCache = new Map<string, Promise<UploadedCover>>();
 
-  await ensureMinioFolder(minioClient, normalizedPrefix);
+  await assertBucketAccessible(s3Client);
 
   // Map: raw title -> ResolvedMovie
   const titleResolutionMap = new Map<string, ResolvedMovie>();
@@ -260,7 +252,46 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     allEvaluationResults.push(...batchResults);
   }
 
-  // Phase 3b: Process evaluation results sequentially (for poster uploads, etc.)
+  // Phase 3b: Start poster uploads for new TMDB matches in parallel; the
+  // sequential processing below only awaits them.
+  const posterUploadQueue = new RateLimitedQueue(POSTER_UPLOAD_CONCURRENCY, 0);
+  const posterUploads = new Map<number, Promise<UploadedCover | null>>();
+
+  for (const evaluationResult of allEvaluationResults) {
+    if (evaluationResult.status === "rejected") continue;
+
+    const match = evaluationResult.value.evaluation.acceptedCandidate;
+    if (
+      !match?.posterPath ||
+      dbMovieByTmdbId.has(match.tmdbMovieId) ||
+      posterUploads.has(match.tmdbMovieId)
+    ) {
+      continue;
+    }
+
+    posterUploads.set(
+      match.tmdbMovieId,
+      posterUploadQueue
+        .run(() =>
+          uploadTmdbPosterToS3(
+            s3Client,
+            match.title,
+            match,
+            normalizedPrefix,
+            uploadedPosterCache,
+          ),
+        )
+        .catch((error: unknown) => {
+          console.warn(
+            `[Resolver]   → Warning: Could not upload poster for ${match.tmdbMovieId}:`,
+            error,
+          );
+          return null;
+        }),
+    );
+  }
+
+  // Phase 3c: Process evaluation results sequentially
   for (const [index, evaluationResult] of allEvaluationResults.entries()) {
     const rawTitle = rawTitlesArray[index]!;
 
@@ -284,7 +315,7 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
     if (evaluation.acceptedCandidate) {
       const match = evaluation.acceptedCandidate;
 
-      // ─── Phase 3c: Re-check against database with TMDB ID ─────────────────
+      // ─── Phase 3d: Re-check against database with TMDB ID ─────────────────
       let dbMatchByTmbd = dbMovieByTmdbId.get(match.tmdbMovieId);
 
       if (dbMatchByTmbd) {
@@ -340,23 +371,10 @@ export const resolveAndPersistCatalog = async (catalogs: ProviderCatalog[]) => {
         );
       }
 
-      if (match.posterPath) {
-        try {
-          const uploaded = await uploadTmdbPosterToMinio(
-            minioClient,
-            match.title,
-            match,
-            normalizedPrefix,
-            uploadedPosterCache,
-          );
-          coverUrl = uploaded.publicUrl;
-          coverStorageKey = uploaded.objectKey;
-        } catch (error) {
-          console.warn(
-            `[Resolver]   → Warning: Could not upload poster for ${match.tmdbMovieId}:`,
-            error,
-          );
-        }
+      const uploaded = await posterUploads.get(match.tmdbMovieId);
+      if (uploaded) {
+        coverUrl = uploaded.publicUrl;
+        coverStorageKey = uploaded.objectKey;
       }
 
       const resolved = createResolvedMovie({
