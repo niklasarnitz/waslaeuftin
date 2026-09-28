@@ -60,6 +60,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            S3_PUBLIC_BASE_URL=${{ vars.S3_PUBLIC_BASE_URL || 'https://minio.app.arnitz.org/bookworm' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
