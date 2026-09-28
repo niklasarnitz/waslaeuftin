@@ -22,7 +22,7 @@ try {
   });
 
   console.info(
-    `[Re-evaluate Unmatched] Finished: updated=${result.updatedMovies}, considered=${result.consideredMovies}, skippedExistingCover=${result.skippedExistingCover}, lowConfidence=${result.skippedLowConfidence}, noPoster=${result.skippedNoPoster}, noMatch=${result.skippedNoTmdbMatch}`,
+    `[Re-evaluate Unmatched] Finished: updated=${result.updatedMovies}, considered=${result.consideredMovies}, skippedExistingCover=${result.skippedExistingCover}, lowConfidence=${result.skippedLowConfidence}, noPoster=${result.skippedNoPoster}, noMatch=${result.skippedNoTmdbMatch}, failedUploads=${result.failedUploads}`,
   );
 } finally {
   await db.$disconnect();
