@@ -3,6 +3,9 @@ import { type MetadataRoute } from "next";
 import { db } from "@waslaeuftin/db/client";
 import { encodeUmlauts } from "@waslaeuftin/helpers/umlautsFixer";
 
+// Render per request: the image is built without database access.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const cities = await db.city.findMany();
