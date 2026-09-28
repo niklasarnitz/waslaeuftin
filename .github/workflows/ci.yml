@@ -3,10 +3,8 @@ name: CI
 on:
   pull_request:
     branches: ["*"]
-  push:
-    branches: ["main"]
   merge_group:
-  # Called by image.yml so the image is only built once these checks pass.
+  # Pushes to main run these checks via image.yml, before the image is built.
   workflow_call:
 
 concurrency:
