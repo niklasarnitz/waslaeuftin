@@ -54,8 +54,10 @@ export async function registerNodeJobs() {
 async function scheduleMovieUpdates(
   cron: (typeof import("node-cron"))["default"],
 ) {
-  const { failInterruptedRuns, startProviderUpdates } =
+  const { errorToString, failInterruptedRuns, startProviderUpdates } =
     await import("@waslaeuftin/helpers/catalogUpdater/providerUpdateRunner");
+  const { sendPushoverNotification } =
+    await import("@waslaeuftin/helpers/notifications/sendPushoverNotification");
 
   try {
     const failed = await failInterruptedRuns({ serverBoot: true });
@@ -66,6 +68,10 @@ async function scheduleMovieUpdates(
     }
   } catch (error) {
     console.error("[movie-update-cron] could not clean up runs:", error);
+    await sendPushoverNotification(
+      "Movie Update Setup Failed",
+      `Could not clean up interrupted update runs on server start:\n${errorToString(error)}`,
+    );
   }
 
   if (MOVIE_UPDATE_CRON === "off") {
@@ -78,13 +84,21 @@ async function scheduleMovieUpdates(
     async () => {
       try {
         const result = await startProviderUpdates({ trigger: "cron" });
-        console.log(
-          result.started
-            ? `[movie-update-cron] started batch ${result.batchId}.`
-            : `[movie-update-cron] skipped: ${result.reason}`,
-        );
+        if (result.started) {
+          console.log(`[movie-update-cron] started batch ${result.batchId}.`);
+        } else {
+          console.warn(`[movie-update-cron] skipped: ${result.reason}`);
+          await sendPushoverNotification(
+            "Movie Update Skipped",
+            `The scheduled movie update did not start: ${result.reason}`,
+          );
+        }
       } catch (error) {
         console.error("[movie-update-cron] could not start updates:", error);
+        await sendPushoverNotification(
+          "Movie Update Failed",
+          `The scheduled movie update could not be started:\n${errorToString(error)}`,
+        );
       }
     },
     { timezone: MOVIE_UPDATE_TIMEZONE, name: "movie-updates" },

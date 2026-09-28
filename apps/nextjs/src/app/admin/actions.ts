@@ -1,20 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 
-import { isAuthorizedAdmin } from "@waslaeuftin/helpers/adminAuth";
+import { getAdminSession } from "@waslaeuftin/helpers/auth/getAdminSession";
 import { startProviderUpdates } from "@waslaeuftin/helpers/catalogUpdater/providerUpdateRunner";
 
 export type StartUpdateState = { ok: boolean; message: string } | null;
 
-// Server actions can be invoked from any route, so the proxy's /admin guard is
-// not enough — every action checks the credentials itself.
+// Server actions can be invoked from any route, so every action checks the
+// session itself instead of relying on the page's check.
 export async function startUpdateAction(
   _previousState: StartUpdateState,
   formData: FormData,
 ): Promise<StartUpdateState> {
-  if (!isAuthorizedAdmin((await headers()).get("authorization"))) {
+  if (!(await getAdminSession())) {
     return { ok: false, message: "Not authorized." };
   }
 

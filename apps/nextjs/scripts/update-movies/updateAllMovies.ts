@@ -5,7 +5,11 @@
 // Usage: bun run update:movies:all [ProviderName ...]
 import { db } from "@waslaeuftin/db/client";
 import { providerNames } from "@waslaeuftin/helpers/catalogUpdater/providerFetchers";
-import { runProviderUpdates } from "@waslaeuftin/helpers/catalogUpdater/providerUpdateRunner";
+import {
+  errorToString,
+  runProviderUpdates,
+} from "@waslaeuftin/helpers/catalogUpdater/providerUpdateRunner";
+import { sendPushoverNotification } from "@waslaeuftin/helpers/notifications/sendPushoverNotification";
 
 const requestedProviders = process.argv.slice(2);
 
@@ -22,6 +26,10 @@ try {
   }
 } catch (err) {
   console.error("Critical error during update:", err);
+  await sendPushoverNotification(
+    "Movie Update Failed",
+    `Critical error during update:\n${errorToString(err)}`,
+  );
   console.info(`Available providers: ${providerNames.join(", ")}`);
   process.exitCode = 1;
 } finally {
