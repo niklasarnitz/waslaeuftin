@@ -16,7 +16,13 @@ env:
   IMAGE: ghcr.io/niklasarnitz/waslaeuftin
 
 jobs:
+  # Typecheck, lint and prettier must pass before the image is built.
+  checks:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
   build:
+    needs: checks
     # delta is arm64; build natively instead of emulating.
     runs-on: ubuntu-24.04-arm
     permissions:

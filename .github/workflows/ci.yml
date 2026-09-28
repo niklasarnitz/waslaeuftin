@@ -6,6 +6,8 @@ on:
   push:
     branches: ["main"]
   merge_group:
+  # Called by image.yml so the image is only built once these checks pass.
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
