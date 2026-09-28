@@ -7,71 +7,80 @@ import {
   BATCH_DELAY_MS,
   chunkArray,
   CINEMA_BATCH_SIZE,
+  FetchProgressReporter,
   isCinemaStale,
   markCinemasFetched,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
-export const fetchComtradaCineOrderCatalog =
-  async (): Promise<ProviderCatalog> => {
-    const failedCinemas: string[] = [];
-    const allMovies: ProviderCatalog["movies"] = [];
-    const allShowings: ProviderCatalog["showings"] = [];
+export const fetchComtradaCineOrderCatalog = async (
+  progress?: FetchProgressReporter,
+): Promise<ProviderCatalog> => {
+  const failedCinemas: string[] = [];
+  const allMovies: ProviderCatalog["movies"] = [];
+  const allShowings: ProviderCatalog["showings"] = [];
 
-    const allComtradaCinemas = await db.cinema.findMany({
-      where: { comtradaCineOrderMetadata: { isNot: null } },
-      include: { comtradaCineOrderMetadata: true },
-    });
-    const comtradaCinemas = allComtradaCinemas.filter((c) =>
-      isCinemaStale(c.lastFetchedAt),
-    );
+  const allComtradaCinemas = await db.cinema.findMany({
+    where: { comtradaCineOrderMetadata: { isNot: null } },
+    include: { comtradaCineOrderMetadata: true },
+  });
+  const comtradaCinemas = allComtradaCinemas.filter((c) =>
+    isCinemaStale(c.lastFetchedAt),
+  );
+  console.info(
+    `[Comtrada] Found ${comtradaCinemas.length} cinemas to fetch (${allComtradaCinemas.length - comtradaCinemas.length} skipped, recently fetched)`,
+  );
+
+  await progress?.onCinemasSelected(comtradaCinemas.length);
+
+  const cinemaChunks = chunkArray(comtradaCinemas, CINEMA_BATCH_SIZE);
+
+  for (const [index, chunk] of cinemaChunks.entries()) {
     console.info(
-      `[Comtrada] Found ${comtradaCinemas.length} cinemas to fetch (${allComtradaCinemas.length - comtradaCinemas.length} skipped, recently fetched)`,
+      `[Comtrada][Chunk ${index + 1}/${cinemaChunks.length}] Fetching ${chunk.length} cinemas`,
+    );
+    const cinemaResults = await Promise.allSettled(
+      chunk.map((cinema) =>
+        getComtradaCineOrderMovies(
+          cinema.id,
+          cinema.comtradaCineOrderMetadata!,
+        ),
+      ),
     );
 
-    const cinemaChunks = chunkArray(comtradaCinemas, CINEMA_BATCH_SIZE);
+    for (const [resultIndex, result] of cinemaResults.entries()) {
+      const cinema = chunk[resultIndex];
+      if (!cinema) continue;
 
-    for (const [index, chunk] of cinemaChunks.entries()) {
-      console.info(
-        `[Comtrada][Chunk ${index + 1}/${cinemaChunks.length}] Fetching ${chunk.length} cinemas`,
-      );
-      const cinemaResults = await Promise.allSettled(
-        chunk.map((cinema) =>
-          getComtradaCineOrderMovies(
-            cinema.id,
-            cinema.comtradaCineOrderMetadata!,
-          ),
-        ),
-      );
-
-      for (const [resultIndex, result] of cinemaResults.entries()) {
-        const cinema = chunk[resultIndex];
-        if (!cinema) continue;
-
-        if (result.status === "fulfilled") {
-          allMovies.push(...result.value.movies);
-          allShowings.push(...result.value.showings);
-        } else {
-          const errorMessage =
-            result.reason instanceof Error
-              ? result.reason.message
-              : String(result.reason);
-          failedCinemas.push(`${cinema.id}:${cinema.name} (${errorMessage})`);
-        }
-      }
-
-      if (index < cinemaChunks.length - 1) {
-        await sleep(BATCH_DELAY_MS);
+      if (result.status === "fulfilled") {
+        allMovies.push(...result.value.movies);
+        allShowings.push(...result.value.showings);
+      } else {
+        const errorMessage =
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason);
+        failedCinemas.push(`${cinema.id}:${cinema.name} (${errorMessage})`);
       }
     }
 
-    if (failedCinemas.length > 0) {
-      throw new Error(
-        `Failed to fetch ${failedCinemas.length} Comtrada cinemas: ${failedCinemas.join(", ")}`,
-      );
+    await progress?.onChunkProcessed(
+      chunk.length,
+      cinemaResults.filter((result) => result.status === "rejected").length,
+    );
+
+    if (index < cinemaChunks.length - 1) {
+      await sleep(BATCH_DELAY_MS);
     }
+  }
 
-    await markCinemasFetched(comtradaCinemas.map((c) => c.id));
+  if (failedCinemas.length > 0) {
+    throw new Error(
+      `Failed to fetch ${failedCinemas.length} Comtrada cinemas: ${failedCinemas.join(", ")}`,
+    );
+  }
 
-    return { movies: allMovies, showings: allShowings };
-  };
+  await markCinemasFetched(comtradaCinemas.map((c) => c.id));
+
+  return { movies: allMovies, showings: allShowings };
+};

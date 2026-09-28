@@ -7,12 +7,15 @@ import {
   BATCH_DELAY_MS,
   chunkArray,
   CINEMA_BATCH_SIZE,
+  FetchProgressReporter,
   isCinemaStale,
   markCinemasFetched,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
-export const fetchCinfinityCatalog = async (): Promise<ProviderCatalog> => {
+export const fetchCinfinityCatalog = async (
+  progress?: FetchProgressReporter,
+): Promise<ProviderCatalog> => {
   const allMovies: ProviderCatalog["movies"] = [];
   const allShowings: ProviderCatalog["showings"] = [];
 
@@ -25,6 +28,8 @@ export const fetchCinfinityCatalog = async (): Promise<ProviderCatalog> => {
   console.info(
     `[Cinfinity] Found ${cinfinityCinemas.length} cinemas to fetch (${allCinfinityCinemas.length - cinfinityCinemas.length} skipped, recently fetched)`,
   );
+
+  await progress?.onCinemasSelected(cinfinityCinemas.length);
 
   const cinemaChunks = chunkArray(cinfinityCinemas, CINEMA_BATCH_SIZE);
 
@@ -41,6 +46,8 @@ export const fetchCinfinityCatalog = async (): Promise<ProviderCatalog> => {
 
     allMovies.push(...movies);
     allShowings.push(...showings);
+
+    await progress?.onChunkProcessed(chunk.length, 0);
 
     if (index < cinemaChunks.length - 1) {
       await sleep(BATCH_DELAY_MS);
