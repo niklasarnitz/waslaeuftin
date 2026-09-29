@@ -1,7 +1,7 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import type { ProviderUpdateRun } from "@waslaeuftin/db";
+import type { Countries, ProviderUpdateRun } from "@waslaeuftin/db";
 import {
   SignInButton,
   SignOutButton,
@@ -19,7 +19,7 @@ import {
 import { db } from "@waslaeuftin/db/client";
 import { isAdminAuthConfigured } from "@waslaeuftin/helpers/auth/authOptions";
 import { getAdminSession } from "@waslaeuftin/helpers/auth/getAdminSession";
-import { providerNames } from "@waslaeuftin/helpers/catalogUpdater/providerFetchers";
+import { providerFetchers } from "@waslaeuftin/helpers/catalogUpdater/providerFetchers";
 import { cn } from "@waslaeuftin/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,11 @@ export const metadata: Metadata = {
 const RUNS_PER_PROVIDER = 10;
 
 const movieUpdateCron = process.env.MOVIE_UPDATE_CRON || "0 3 * * *";
+
+const COUNTRY_LABELS: Record<Countries, string> = {
+  GERMANY: "Germany",
+  AUSTRIA: "Austria",
+};
 
 const PHASE_LABELS: Record<ProviderUpdateRun["phase"], string> = {
   QUEUED: "Queued",
@@ -136,11 +141,13 @@ const phaseDetail = (run: ProviderUpdateRun) => {
 const ProviderCard = ({
   provider,
   runs,
+  cinemaCount,
   updateActive,
   now,
 }: {
   provider: string;
   runs: ProviderUpdateRun[];
+  cinemaCount: number;
   updateActive: boolean;
   now: Date;
 }) => {
@@ -158,7 +165,9 @@ const ProviderCard = ({
               {latest ? <StatusBadge run={latest} /> : null}
             </CardTitle>
             <CardDescription>
-              Last success: {formatDate(lastSuccess?.finishedAt ?? null)}
+              {formatCount(cinemaCount)}{" "}
+              {cinemaCount === 1 ? "cinema" : "cinemas"} · Last success:{" "}
+              {formatDate(lastSuccess?.finishedAt ?? null)}
             </CardDescription>
           </div>
           <StartUpdateButton
@@ -274,6 +283,17 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+const StatCard = ({ label, value }: { label: string; value: number }) => (
+  <Card>
+    <CardHeader className="p-4">
+      <CardDescription>{label}</CardDescription>
+      <CardTitle className="text-2xl tabular-nums">
+        {formatCount(value)}
+      </CardTitle>
+    </CardHeader>
+  </Card>
+);
+
 const SignInScreen = ({ error }: { error?: string }) => (
   <main className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-24">
     <Card className="w-full">
@@ -312,15 +332,48 @@ export default async function AdminPage({
     );
   }
 
-  const runsByProvider = await Promise.all(
-    providerNames.map(async (provider) => ({
-      provider,
-      runs: await db.providerUpdateRun.findMany({
-        where: { provider },
-        orderBy: { queuedAt: "desc" },
-        take: RUNS_PER_PROVIDER,
-      }),
-    })),
+  const [movieCount, showingCount, cinemaCount, cityCount, cinemaCountries] =
+    await Promise.all([
+      db.movie.count(),
+      db.showing.count(),
+      db.cinema.count(),
+      db.city.count(),
+      db.cinema.groupBy({ by: ["country"], orderBy: { country: "asc" } }),
+    ]);
+
+  const providers = await Promise.all(
+    providerFetchers.map(async ({ name, cinemaWhere }) => {
+      const [runs, cinemasByCountry] = await Promise.all([
+        db.providerUpdateRun.findMany({
+          where: { provider: name },
+          orderBy: { queuedAt: "desc" },
+          take: RUNS_PER_PROVIDER,
+        }),
+        db.cinema.groupBy({
+          by: ["country"],
+          where: cinemaWhere,
+          _count: { _all: true },
+        }),
+      ]);
+      return {
+        provider: name,
+        runs,
+        cinemasByCountry: new Map(
+          cinemasByCountry.map((row) => [row.country, row._count._all]),
+        ),
+      };
+    }),
+  );
+
+  // A provider serving several countries is listed under each of them.
+  const countrySections = cinemaCountries.map(({ country }) => ({
+    country,
+    providers: providers.filter(({ cinemasByCountry }) =>
+      cinemasByCountry.has(country),
+    ),
+  }));
+  const providersWithoutCinemas = providers.filter(
+    ({ cinemasByCountry }) => cinemasByCountry.size === 0,
   );
 
   const latestRun = await db.providerUpdateRun.findFirst({
@@ -377,6 +430,14 @@ export default async function AdminPage({
             disabled={updateActive}
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard label="Movies" value={movieCount} />
+        <StatCard label="Showings" value={showingCount} />
+        <StatCard label="Cinemas" value={cinemaCount} />
+        <StatCard label="Cities" value={cityCount} />
+        <StatCard label="Countries" value={cinemaCountries.length} />
       </div>
 
       {latestBatch.length > 0 && latestRun ? (
@@ -438,17 +499,47 @@ export default async function AdminPage({
         </Card>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {runsByProvider.map(({ provider, runs }) => (
-          <ProviderCard
-            key={provider}
-            provider={provider}
-            runs={runs}
-            updateActive={updateActive}
-            now={now}
-          />
-        ))}
-      </div>
+      {countrySections.map(({ country, providers }) => (
+        <section key={country} className="space-y-3">
+          <h2 className="text-lg font-semibold">
+            {COUNTRY_LABELS[country]}{" "}
+            <span className="text-sm font-normal text-slate-500">
+              {providers.length}{" "}
+              {providers.length === 1 ? "provider" : "providers"}
+            </span>
+          </h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {providers.map(({ provider, runs, cinemasByCountry }) => (
+              <ProviderCard
+                key={provider}
+                provider={provider}
+                runs={runs}
+                cinemaCount={cinemasByCountry.get(country) ?? 0}
+                updateActive={updateActive}
+                now={now}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+
+      {providersWithoutCinemas.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Without cinemas</h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {providersWithoutCinemas.map(({ provider, runs }) => (
+              <ProviderCard
+                key={provider}
+                provider={provider}
+                runs={runs}
+                cinemaCount={0}
+                updateActive={updateActive}
+                now={now}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
