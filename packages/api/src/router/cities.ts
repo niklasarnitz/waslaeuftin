@@ -1,5 +1,4 @@
-import moment from "moment-timezone";
-
+import { getScheduleDayShowingFilter } from "@waslaeuftin/api/internal/scheduleDay";
 import {
   createTRPCRouter,
   publicProcedure,
@@ -15,10 +14,6 @@ import {
   CitySearchSchema,
   CitySlugSchema,
 } from "@waslaeuftin/validators";
-
-const SCHEDULE_TIMEZONE = "Europe/Berlin";
-
-const getScheduleDate = (date: Date) => moment(date).tz(SCHEDULE_TIMEZONE);
 
 const leanTmdbMetadataSelect = {
   tmdbId: true,
@@ -113,21 +108,8 @@ export const citiesRouter = createTRPCRouter({
   getCityMoviesAndShowingsBySlug: publicProcedure
     .input(CityMoviesAndShowingsInputSchema)
     .query(async ({ input, ctx }) => {
-      let { date } = input;
-
-      date ??= new Date();
-
-      // Use Berlin calendar days so mobile Date objects match the web URL dates.
-      const scheduleDate = getScheduleDate(date);
-      const start = scheduleDate.clone().startOf("day").toDate();
-      const end = scheduleDate.clone().endOf("day").toDate();
-
-      const showingsFilter = {
-        dateTime: {
-          gte: start,
-          lte: end,
-        },
-      };
+      // Without a date, today in each cinema's time zone.
+      const showingsFilter = getScheduleDayShowingFilter(input.date);
 
       const city = await ctx.db.city.findUnique({
         where: {
