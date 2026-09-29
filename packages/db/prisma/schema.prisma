@@ -115,6 +115,7 @@ model CinemaxxVueCinemasMetadata {
 enum Countries {
   GERMANY
   AUSTRIA
+  UNITED_KINGDOM
 }
 
 model Cinema {
@@ -137,6 +138,11 @@ model Cinema {
   cineplexxAtCinemaId          String?
   cinfinityCinemaId            String?
   myVueCinemaId                String?
+  /// Boxoffice (Webedia) theater ID, e.g. "X06V1" (Cineworld Leicester Square)
+  boxofficeTheaterId           String?
+  /// Site the theater is listed on, e.g. "https://www.cineworld.co.uk". Picks
+  /// the chain config in @waslaeuftin/cinema-providers (boxofficeChains).
+  boxofficeDomain              String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
   city                         City                        @relation(fields: [cityId], references: [id])
@@ -151,6 +157,7 @@ model Cinema {
   @@index([name])
   @@index([latitude, longitude])
   @@index([cinfinityCinemaId])
+  @@index([boxofficeTheaterId])
 }
 
 model City {
