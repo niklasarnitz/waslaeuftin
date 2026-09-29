@@ -1,10 +1,9 @@
 import { execFile } from "node:child_process";
 
-// Some providers sit behind bot protection that treats runtimes differently:
-// Comtrada's Cloudflare returns 403 for every request made from Node (fetch or
-// node:https, whatever the headers), but lets Bun's fetch through. The Next.js
-// server may run on Node, so `fetchRawWithBun` runs the request in a
-// short-lived Bun process there. Under Bun (CLI scripts, tests) it fetches
+// Some providers sit behind a Cloudflare setup that returns 403 for every
+// request made from Node (fetch or node:https, whatever the headers) but lets
+// Bun's fetch through. The Next.js server may run on Node, so there we run the
+// request in a short-lived Bun process. Under Bun (CLI scripts, tests) we fetch
 // directly.
 
 const TIMEOUT_MS = 60_000;
@@ -15,8 +14,7 @@ export interface RawResponse {
   body: string;
 }
 
-/** Fetches in the current process (Node's or Bun's fetch). */
-export const fetchRaw = async (
+export const fetchText = async (
   url: string,
   headers: Record<string, string>,
 ): Promise<RawResponse> => {
@@ -29,13 +27,13 @@ export const fetchRaw = async (
 
 // Runs in the Bun subprocess and prints a RawResponse.
 const BUN_FETCH_SCRIPT = `
-const url = process.env.FETCH_RAW_URL;
-const headers = JSON.parse(process.env.FETCH_RAW_HEADERS);
+const url = process.env.WASLAEUFTIN_FETCH_URL;
+const headers = JSON.parse(process.env.WASLAEUFTIN_FETCH_HEADERS);
 const response = await fetch(url, { headers });
 process.stdout.write(JSON.stringify({ status: response.status, body: await response.text() }));
 `;
 
-const fetchRawInBunProcess = (
+const fetchTextInBunProcess = (
   url: string,
   headers: Record<string, string>,
 ): Promise<RawResponse> =>
@@ -46,8 +44,8 @@ const fetchRawInBunProcess = (
       {
         env: {
           ...process.env,
-          FETCH_RAW_URL: url,
-          FETCH_RAW_HEADERS: JSON.stringify(headers),
+          WASLAEUFTIN_FETCH_URL: url,
+          WASLAEUFTIN_FETCH_HEADERS: JSON.stringify(headers),
         },
         timeout: TIMEOUT_MS,
         maxBuffer: MAX_BUFFER_BYTES,
@@ -70,16 +68,16 @@ const fetchRawInBunProcess = (
     );
   });
 
-/** Fetches with Bun's fetch, spawning Bun when running on Node. */
-export const fetchRawWithBun = (
+/** Fetches with Bun's fetch: directly under Bun, in a Bun subprocess under Node. */
+export const fetchTextWithBun = (
   url: string,
   headers: Record<string, string>,
 ): Promise<RawResponse> =>
   process.versions.bun
-    ? fetchRaw(url, headers)
-    : fetchRawInBunProcess(url, headers);
+    ? fetchText(url, headers)
+    : fetchTextInBunProcess(url, headers);
 
-export const describeFailedResponse = (url: string, response: RawResponse) => {
-  const snippet = response.body.slice(0, 200).replace(/\s+/g, " ");
-  return `Request to ${url} failed with status code ${response.status}: ${snippet}`;
+export const describeFailedResponse = ({ status, body }: RawResponse) => {
+  const snippet = body.slice(0, 200).replace(/\s+/g, " ");
+  return `Request failed with status code ${status}: ${snippet}`;
 };

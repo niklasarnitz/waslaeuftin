@@ -1,77 +1,76 @@
 import moment from "moment-timezone";
 
-import type { Countries } from "@waslaeuftin/db";
+import type { Prisma } from "@waslaeuftin/db";
+import { Countries } from "@waslaeuftin/db";
 
-// Showings are stored as absolute instants. Everything the user sees -- the
-// time of a showing and which day it belongs to -- is in the cinema's local
-// time, whoever is looking.
+// Clients send schedule dates as an instant on the intended Europe/Berlin
+// calendar day (noon UTC, see createScheduleDate in @waslaeuftin/core).
+const CLIENT_SCHEDULE_TIME_ZONE = "Europe/Berlin";
 
-/** Zone the clients' date parameters are encoded in (see core `createScheduleDate`). */
-const REQUEST_TIME_ZONE = "Europe/Berlin";
+const DEFAULT_SCHEDULE_TIME_ZONE = "Europe/Berlin";
 
-const COUNTRY_TIME_ZONES: Record<Countries, string> = {
-  GERMANY: "Europe/Berlin",
-  AUSTRIA: "Europe/Vienna",
-  UNITED_KINGDOM: "Europe/London",
+// Countries whose cinemas don't run on Berlin time.
+const SCHEDULE_TIME_ZONE_BY_COUNTRY: Partial<Record<Countries, string>> = {
+  [Countries.UNITED_KINGDOM]: "Europe/London",
 };
 
-const ALL_TIME_ZONES = Array.from(new Set(Object.values(COUNTRY_TIME_ZONES)));
+const OTHER_TIME_ZONE_COUNTRIES = Object.keys(
+  SCHEDULE_TIME_ZONE_BY_COUNTRY,
+) as Countries[];
 
-export const getTimeZoneForCountry = (country: Countries) =>
-  COUNTRY_TIME_ZONES[country];
+export const getScheduleTimeZone = (country: Countries) =>
+  SCHEDULE_TIME_ZONE_BY_COUNTRY[country] ?? DEFAULT_SCHEDULE_TIME_ZONE;
 
 /**
- * The requested calendar day in `timeZone`. A given date names a calendar day
- * (the web sends midnight, the apps noon UTC; both fall on the intended day in
- * Berlin); without one it is today where the cinema is.
+ * Start and end of the schedule day `date` in `timeZone`: the same calendar
+ * day, bounded by the cinema's local midnight. Without a date, today in
+ * `timeZone`.
  */
-const getScheduleDayRange = (date: Date | undefined, timeZone: string) => {
+export const getScheduleDayRange = (
+  date: Date | undefined,
+  timeZone: string,
+) => {
   const day = date
-    ? moment(date).tz(REQUEST_TIME_ZONE).format("YYYY-MM-DD")
-    : moment.tz(timeZone).format("YYYY-MM-DD");
-  const start = moment.tz(day, "YYYY-MM-DD", timeZone).startOf("day");
-
-  return { start: start.toDate(), end: start.clone().endOf("day").toDate() };
-};
-
-/**
- * Range covering the requested day in every supported time zone, for queries
- * across cinemas. Narrow the result per cinema with `localizeShowings`.
- */
-export const getScheduleDayQueryRange = (date: Date | undefined) => {
-  const ranges = ALL_TIME_ZONES.map((timeZone) =>
-    getScheduleDayRange(date, timeZone),
-  );
+    ? moment.tz(
+        moment(date).tz(CLIENT_SCHEDULE_TIME_ZONE).format("YYYY-MM-DD"),
+        timeZone,
+      )
+    : moment.tz(timeZone);
 
   return {
-    gte: new Date(Math.min(...ranges.map((r) => r.start.getTime()))),
-    lte: new Date(Math.max(...ranges.map((r) => r.end.getTime()))),
+    gte: day.clone().startOf("day").toDate(),
+    lte: day.clone().endOf("day").toDate(),
   };
 };
 
 /**
- * Adds the cinema's time zone to its showings so clients can show them in
- * local time. With `day`, also drops showings outside that day in the
- * cinema's time zone (`day.date` undefined meaning today).
+ * Showings on the schedule day `date`, where each showing's day is bounded by
+ * its cinema's local midnight (so a 23:30 showing in London stays on its day).
  */
-export const localizeShowings = <T extends { dateTime: Date }>(
+export const getScheduleDayShowingFilter = (
+  date: Date | undefined,
+): Prisma.ShowingWhereInput => ({
+  OR: [
+    {
+      cinema: { country: { notIn: OTHER_TIME_ZONE_COUNTRIES } },
+      dateTime: getScheduleDayRange(date, DEFAULT_SCHEDULE_TIME_ZONE),
+    },
+    ...OTHER_TIME_ZONE_COUNTRIES.map((country) => ({
+      cinema: { country },
+      dateTime: getScheduleDayRange(date, getScheduleTimeZone(country)),
+    })),
+  ],
+});
+
+/**
+ * Adds the cinema's time zone to its showings. Showings are stored as
+ * instants; clients format them in this zone, so a cinema shows its local
+ * time wherever the viewer is.
+ */
+export const withScheduleTimeZone = <T extends object>(
   showings: T[],
   country: Countries,
-  day?: { date: Date | undefined },
 ): (T & { timeZone: string })[] => {
-  const timeZone = getTimeZoneForCountry(country);
-  const range = day ? getScheduleDayRange(day.date, timeZone) : undefined;
-
-  const localized: (T & { timeZone: string })[] = [];
-  for (const showing of showings) {
-    if (
-      range &&
-      (showing.dateTime < range.start || showing.dateTime > range.end)
-    ) {
-      continue;
-    }
-    localized.push({ ...showing, timeZone });
-  }
-
-  return localized;
+  const timeZone = getScheduleTimeZone(country);
+  return showings.map((showing) => ({ ...showing, timeZone }));
 };
