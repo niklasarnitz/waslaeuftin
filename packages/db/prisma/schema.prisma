@@ -137,6 +137,7 @@ model Cinema {
   cineplexCinemaId             String?
   cineplexxAtCinemaId          String?
   cinfinityCinemaId            String?
+  odeonCinemaId                String?
   myVueCinemaId                String?
   /// Boxoffice (Webedia) theater ID, e.g. "X06V1" (Cineworld Leicester Square)
   boxofficeTheaterId           String?

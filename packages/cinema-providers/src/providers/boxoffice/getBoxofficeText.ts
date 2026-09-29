@@ -1,13 +1,13 @@
-import type { RawResponse } from "@waslaeuftin/cinema-providers/internal/fetchRaw";
+import type { RawResponse } from "@waslaeuftin/cinema-providers/internal/fetchText";
 import {
   describeFailedResponse,
-  fetchRaw,
-  fetchRawWithBun,
-} from "@waslaeuftin/cinema-providers/internal/fetchRaw";
+  fetchText,
+  fetchTextWithBun,
+} from "@waslaeuftin/cinema-providers/internal/fetchText";
 
 // Cineworld's site sometimes answers 403 behind a bot challenge. Try a plain
 // fetch with a browser User-Agent first, then Bun's fetch with its default
-// User-Agent (which gets past Comtrada's Cloudflare, see fetchRaw.ts). The
+// User-Agent (which gets past Comtrada's Cloudflare, see fetchText.ts). The
 // strategy that worked is remembered per host, so a run doesn't pay for the
 // failing one on every request.
 
@@ -21,8 +21,8 @@ const BROWSER_HEADERS = {
 type Strategy = (url: string) => Promise<RawResponse>;
 
 const strategies: Strategy[] = [
-  (url) => fetchRaw(url, BROWSER_HEADERS),
-  (url) => fetchRawWithBun(url, {}),
+  (url) => fetchText(url, BROWSER_HEADERS),
+  (url) => fetchTextWithBun(url, {}),
 ];
 
 const workingStrategyByHost = new Map<string, number>();
@@ -61,7 +61,7 @@ export const getBoxofficeText = async (url: string): Promise<string> => {
 
   throw new Error(
     lastResponse
-      ? describeFailedResponse(url, lastResponse)
+      ? `${url}: ${describeFailedResponse(lastResponse)}`
       : `Request to ${url} failed`,
   );
 };

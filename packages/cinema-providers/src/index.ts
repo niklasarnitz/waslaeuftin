@@ -31,3 +31,10 @@ export {
 export { getKinoHeldCinemas } from "@waslaeuftin/cinema-providers/internal/providers/kinoheld/getKinoHeldCinemas";
 export { getKinoHeldMovies } from "@waslaeuftin/cinema-providers/internal/providers/kinoheld/getKinoHeldMovies";
 export { getPremiumKinoMovies } from "@waslaeuftin/cinema-providers/internal/providers/premiumkino/getPremiumKinoMovies";
+export {
+  getOdeonMovies,
+  ODEON_TIME_ZONE,
+} from "@waslaeuftin/cinema-providers/internal/providers/odeon/getOdeonMovies";
+export { getOdeonApiConfig } from "@waslaeuftin/cinema-providers/internal/providers/odeon/odeonApi";
+export { getOdeonSites } from "@waslaeuftin/cinema-providers/internal/providers/odeon/getOdeonSites";
+export type { OdeonSite } from "@waslaeuftin/cinema-providers/internal/providers/odeon/types/OdeonOcapi";

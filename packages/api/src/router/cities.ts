@@ -1,6 +1,6 @@
 import {
-  getScheduleDayQueryRange,
-  localizeShowings,
+  getScheduleDayShowingFilter,
+  withScheduleTimeZone,
 } from "@waslaeuftin/api/internal/scheduleDay";
 import {
   createTRPCRouter,
@@ -111,12 +111,8 @@ export const citiesRouter = createTRPCRouter({
   getCityMoviesAndShowingsBySlug: publicProcedure
     .input(CityMoviesAndShowingsInputSchema)
     .query(async ({ input, ctx }) => {
-      const { date } = input;
-
-      // Narrowed to the day in each cinema's time zone below.
-      const showingsFilter = {
-        dateTime: getScheduleDayQueryRange(date),
-      };
+      // Without a date, today in each cinema's time zone.
+      const showingsFilter = getScheduleDayShowingFilter(input.date);
 
       const city = await ctx.db.city.findUnique({
         where: {
@@ -166,11 +162,11 @@ export const citiesRouter = createTRPCRouter({
         cinemas: city.cinemas.map((rawCinema) => {
           const cinema = {
             ...rawCinema,
-            showings: localizeShowings(rawCinema.showings, rawCinema.country, {
-              date,
-            }),
+            showings: withScheduleTimeZone(
+              rawCinema.showings,
+              rawCinema.country,
+            ),
           };
-
           const movieMap: Record<
             number,
             {

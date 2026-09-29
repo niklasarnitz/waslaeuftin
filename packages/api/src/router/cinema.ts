@@ -2,8 +2,8 @@ import type { z } from "zod";
 
 import type { db as prismaDb } from "@waslaeuftin/db";
 import {
-  getScheduleDayQueryRange,
-  localizeShowings,
+  getScheduleDayShowingFilter,
+  withScheduleTimeZone,
 } from "@waslaeuftin/api/internal/scheduleDay";
 import {
   createTRPCRouter,
@@ -119,9 +119,7 @@ const getNearbyCinemasForInput = async (
         },
       },
       showings: {
-        where: {
-          dateTime: getScheduleDayQueryRange(input.date),
-        },
+        where: getScheduleDayShowingFilter(input.date),
         orderBy: {
           dateTime: "asc",
         },
@@ -145,11 +143,8 @@ const getNearbyCinemasForInput = async (
     .map((rawCinema) => {
       const cinema = {
         ...rawCinema,
-        showings: localizeShowings(rawCinema.showings, rawCinema.country, {
-          date: input.date,
-        }),
+        showings: withScheduleTimeZone(rawCinema.showings, rawCinema.country),
       };
-
       // Group showings by movie
       const movieMap: Record<
         number,
@@ -370,7 +365,7 @@ const getNearbyMovieByTmdbId = async (
       nextShowingDate = earliest;
     }
 
-    const showingsWithoutMovie = localizeShowings(
+    const showingsWithoutMovie = withScheduleTimeZone(
       showings.map(({ movie: _, ...s }) => s),
       cinema.country,
     );
@@ -409,7 +404,7 @@ export const cinemaRouter = createTRPCRouter({
     .input(CinemaBySlugInputSchema)
     .query(async ({ input, ctx }) => {
       const showingDateFilter = input.date
-        ? { dateTime: getScheduleDayQueryRange(input.date) }
+        ? getScheduleDayShowingFilter(input.date)
         : undefined;
 
       const rawCinema = await ctx.db.cinema.findFirst({
@@ -450,11 +445,7 @@ export const cinemaRouter = createTRPCRouter({
 
       const cinema = {
         ...rawCinema,
-        showings: localizeShowings(
-          rawCinema.showings,
-          rawCinema.country,
-          input.date ? { date: input.date } : undefined,
-        ),
+        showings: withScheduleTimeZone(rawCinema.showings, rawCinema.country),
       };
 
       // Group showings by movie to preserve the movies[] shape for the frontend
@@ -537,9 +528,7 @@ export const cinemaRouter = createTRPCRouter({
             },
           },
           showings: {
-            where: {
-              dateTime: getScheduleDayQueryRange(date),
-            },
+            where: getScheduleDayShowingFilter(date),
             orderBy: {
               dateTime: "asc",
             },
@@ -562,11 +551,8 @@ export const cinemaRouter = createTRPCRouter({
       const mappedCinemas = cinemas.map((rawCinema) => {
         const cinema = {
           ...rawCinema,
-          showings: localizeShowings(rawCinema.showings, rawCinema.country, {
-            date,
-          }),
+          showings: withScheduleTimeZone(rawCinema.showings, rawCinema.country),
         };
-
         const movieMap: Record<
           number,
           {
