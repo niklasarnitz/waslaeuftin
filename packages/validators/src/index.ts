@@ -69,7 +69,7 @@ export const DeviceIdSchema = z.string().min(1).max(128);
 export const RegisterDeviceInputSchema = z.object({
   deviceId: DeviceIdSchema,
   expoPushToken: z.string().min(1).optional(),
-  country: z.enum(["GERMANY", "AUSTRIA"]).optional(),
+  country: z.enum(["GERMANY", "AUSTRIA", "UNITED_KINGDOM"]).optional(),
 });
 
 export const ReportNearbyCinemasInputSchema = z.object({

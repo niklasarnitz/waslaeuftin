@@ -115,6 +115,7 @@ model CinemaxxVueCinemasMetadata {
 enum Countries {
   GERMANY
   AUSTRIA
+  UNITED_KINGDOM
 }
 
 model Cinema {
@@ -136,6 +137,7 @@ model Cinema {
   cineplexCinemaId             String?
   cineplexxAtCinemaId          String?
   cinfinityCinemaId            String?
+  odeonCinemaId                String?
   myVueCinemaId                String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)
