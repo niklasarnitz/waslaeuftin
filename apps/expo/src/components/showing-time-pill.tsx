@@ -2,7 +2,7 @@ import { Alert, Pressable, Share, Text } from "react-native";
 import * as Haptics from "expo-haptics";
 
 import type { ListingShowing as Showing } from "@waslaeuftin/core";
-import { categorizeShowingTags } from "@waslaeuftin/core";
+import { categorizeShowingTags, formatTime } from "@waslaeuftin/core";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 
 interface ShowingTimePillProps {
@@ -10,14 +10,6 @@ interface ShowingTimePillProps {
   titleTags?: string[];
   movieName?: string;
   cinemaName?: string;
-}
-
-function formatTime(dateTimeStr: Date | string) {
-  const d = dateTimeStr instanceof Date ? dateTimeStr : new Date(dateTimeStr);
-  if (isNaN(d.getTime())) return "??:??";
-  const hours = d.getHours().toString().padStart(2, "0");
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
 }
 
 async function openBooking(url: string | null) {
@@ -30,7 +22,8 @@ export function ShowingTimePill({
   movieName,
   cinemaName,
 }: ShowingTimePillProps) {
-  const timeStr = formatTime(showing.dateTime);
+  // In the cinema's time zone, not the device's.
+  const timeStr = formatTime(showing.dateTime, showing.timeZone);
   const { prominentTags, infoItems } = categorizeShowingTags(
     titleTags ?? [],
     showing.showingAdditionalData,
@@ -47,6 +40,7 @@ export function ShowingTimePill({
           weekday: "short",
           day: "2-digit",
           month: "short",
+          timeZone: showing.timeZone,
         })
       : "";
     const movieTitle = movieName ? `„${movieName}“` : "dieser Film";

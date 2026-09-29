@@ -122,7 +122,11 @@ export const MovieCard = ({
             {movie.nextShowing && (
               <span className="border-border/80 bg-background/80 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
                 <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                Nächste um {formatShowingTime(movie.nextShowing.dateTime)}
+                Nächste um{" "}
+                {formatShowingTime(
+                  movie.nextShowing.dateTime,
+                  movie.nextShowing.timeZone,
+                )}
               </span>
             )}
             {meta?.certification && (

@@ -1,3 +1,5 @@
+import { getHoursInTimeZone } from "../date/index";
+
 export interface CategorizedShowingTags {
   prominentTags: string[];
   infoItems: string[];
@@ -135,6 +137,8 @@ export function isShowingMatchingFilters(
   showingDateTime: Date | string,
   showingTags: string[],
   filters: ShowingFilterOptions,
+  /** Time zone of the cinema; the time window is in its local time. */
+  timeZone?: string,
 ): boolean {
   // 1. Time filter
   if (filters.timeWindow !== "all") {
@@ -143,7 +147,7 @@ export function isShowingMatchingFilters(
         ? showingDateTime
         : new Date(showingDateTime);
     if (!isNaN(d.getTime())) {
-      const hour = d.getHours();
+      const hour = getHoursInTimeZone(d, timeZone);
       const minHour = parseInt(filters.timeWindow, 10);
       if (hour < minHour) {
         return false;

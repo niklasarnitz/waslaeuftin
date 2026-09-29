@@ -1,7 +1,10 @@
 import type { z } from "zod";
-import moment from "moment-timezone";
 
 import type { db as prismaDb } from "@waslaeuftin/db";
+import {
+  getScheduleDayQueryRange,
+  localizeShowings,
+} from "@waslaeuftin/api/internal/scheduleDay";
 import {
   createTRPCRouter,
   publicProcedure,
@@ -20,13 +23,6 @@ import {
 
 type NearbyCinemasInput = z.infer<typeof NearbyCinemasInputSchema>;
 type DbClient = typeof prismaDb;
-const SCHEDULE_TIMEZONE = "Europe/Berlin";
-
-const getScheduleDate = (date: Date | undefined) => {
-  return date
-    ? moment(date).tz(SCHEDULE_TIMEZONE)
-    : moment.tz(SCHEDULE_TIMEZONE);
-};
 
 // Find nearby cinema IDs + distances using a raw SQL haversine query with bounding-box prefilter.
 const getNearbyCinemaDistances = async (
@@ -104,10 +100,6 @@ const getNearbyCinemasForInput = async (
   input: NearbyCinemasInput,
   db: DbClient,
 ) => {
-  const scheduleDate = getScheduleDate(input.date);
-  const todayStart = scheduleDate.clone().startOf("day").toDate();
-  const endDate = scheduleDate.clone().endOf("day").toDate();
-
   const { cinemaIds, distanceById } = await getNearbyCinemaDistances(input, db);
 
   if (cinemaIds.length === 0) {
@@ -128,10 +120,7 @@ const getNearbyCinemasForInput = async (
       },
       showings: {
         where: {
-          dateTime: {
-            gte: todayStart,
-            lte: endDate,
-          },
+          dateTime: getScheduleDayQueryRange(input.date),
         },
         orderBy: {
           dateTime: "asc",
@@ -153,7 +142,14 @@ const getNearbyCinemasForInput = async (
   });
 
   return cinemas
-    .map((cinema) => {
+    .map((rawCinema) => {
+      const cinema = {
+        ...rawCinema,
+        showings: localizeShowings(rawCinema.showings, rawCinema.country, {
+          date: input.date,
+        }),
+      };
+
       // Group showings by movie
       const movieMap: Record<
         number,
@@ -343,7 +339,7 @@ const getNearbyMovieByTmdbId = async (
   type GroupedShowing = Omit<
     (typeof cinemas)[number]["showings"][number],
     "movie"
-  >;
+  > & { timeZone: string };
 
   let name: string | null = null;
   let coverUrl: string | null = null;
@@ -374,7 +370,10 @@ const getNearbyMovieByTmdbId = async (
       nextShowingDate = earliest;
     }
 
-    const showingsWithoutMovie = showings.map(({ movie: _, ...s }) => s);
+    const showingsWithoutMovie = localizeShowings(
+      showings.map(({ movie: _, ...s }) => s),
+      cinema.country,
+    );
 
     groupedCinemas.push({
       cinema: {
@@ -409,17 +408,11 @@ export const cinemaRouter = createTRPCRouter({
   getCinemaBySlug: publicProcedure
     .input(CinemaBySlugInputSchema)
     .query(async ({ input, ctx }) => {
-      const scheduleDate = input.date ? getScheduleDate(input.date) : undefined;
-      const showingDateFilter = scheduleDate
-        ? {
-            dateTime: {
-              gte: scheduleDate.clone().startOf("day").toDate(),
-              lte: scheduleDate.clone().endOf("day").toDate(),
-            },
-          }
+      const showingDateFilter = input.date
+        ? { dateTime: getScheduleDayQueryRange(input.date) }
         : undefined;
 
-      const cinema = await ctx.db.cinema.findFirst({
+      const rawCinema = await ctx.db.cinema.findFirst({
         where: {
           slug: input.cinemaSlug,
         },
@@ -451,9 +444,18 @@ export const cinemaRouter = createTRPCRouter({
         },
       });
 
-      if (!cinema) {
+      if (!rawCinema) {
         return null;
       }
+
+      const cinema = {
+        ...rawCinema,
+        showings: localizeShowings(
+          rawCinema.showings,
+          rawCinema.country,
+          input.date ? { date: input.date } : undefined,
+        ),
+      };
 
       // Group showings by movie to preserve the movies[] shape for the frontend
       const movieMap: Record<
@@ -523,10 +525,6 @@ export const cinemaRouter = createTRPCRouter({
         return [];
       }
 
-      const scheduleDate = getScheduleDate(date);
-      const todayStart = scheduleDate.clone().startOf("day").toDate();
-      const endDate = scheduleDate.clone().endOf("day").toDate();
-
       const cinemas = await ctx.db.cinema.findMany({
         where: {
           id: { in: cinemaIds },
@@ -540,10 +538,7 @@ export const cinemaRouter = createTRPCRouter({
           },
           showings: {
             where: {
-              dateTime: {
-                gte: todayStart,
-                lte: endDate,
-              },
+              dateTime: getScheduleDayQueryRange(date),
             },
             orderBy: {
               dateTime: "asc",
@@ -564,7 +559,14 @@ export const cinemaRouter = createTRPCRouter({
         },
       });
 
-      const mappedCinemas = cinemas.map((cinema) => {
+      const mappedCinemas = cinemas.map((rawCinema) => {
+        const cinema = {
+          ...rawCinema,
+          showings: localizeShowings(rawCinema.showings, rawCinema.country, {
+            date,
+          }),
+        };
+
         const movieMap: Record<
           number,
           {

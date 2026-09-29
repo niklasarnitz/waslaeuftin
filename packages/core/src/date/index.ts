@@ -47,31 +47,87 @@ export function normalizeToStartOfDay(date: Date): Date {
   return createScheduleDate(0, date);
 }
 
-export function formatTime(dateTimeStr: Date | string): string {
-  const d = dateTimeStr instanceof Date ? dateTimeStr : new Date(dateTimeStr);
-  if (isNaN(d.getTime())) return "??:??";
-  const hours = d.getHours().toString().padStart(2, "0");
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
+const zonedPartsFormatters = new Map<string, Intl.DateTimeFormat>();
+
+const getZonedParts = (date: Date, timeZone: string) => {
+  let formatter = zonedPartsFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+    zonedPartsFormatters.set(timeZone, formatter);
+  }
+
+  const values = Object.fromEntries(
+    formatter.formatToParts(date).map((part) => [part.type, part.value]),
+  );
+
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+    hour: Number(values.hour),
+    minute: Number(values.minute),
+  };
+};
+
+const toDate = (value: Date | string) =>
+  value instanceof Date ? value : new Date(value);
+
+/**
+ * Hour (0-23) of a showing in its cinema's time zone. Showings are stored as
+ * absolute instants; the API adds the cinema's `timeZone` to each one.
+ */
+export function getHoursInTimeZone(
+  dateTime: Date | string,
+  timeZone: string = SCHEDULE_TIME_ZONE,
+): number {
+  return getZonedParts(toDate(dateTime), timeZone).hour;
 }
 
-export function formatShowingTime(dateTimeStr: Date | string): string {
-  const d = dateTimeStr instanceof Date ? dateTimeStr : new Date(dateTimeStr);
+/** "HH:mm" in the given time zone (the cinema's, not the viewer's). */
+export function formatTime(
+  dateTimeStr: Date | string,
+  timeZone: string = SCHEDULE_TIME_ZONE,
+): string {
+  const d = toDate(dateTimeStr);
   if (isNaN(d.getTime())) return "??:??";
-  const now = new Date();
-  const isToday =
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear();
+  const { hour, minute } = getZonedParts(d, timeZone);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
 
-  const time = formatTime(d);
+/**
+ * "HH:mm" for showings today, otherwise "DD.MM. HH:mm", both in the given time
+ * zone (the cinema's, not the viewer's).
+ */
+export function formatShowingTime(
+  dateTimeStr: Date | string,
+  timeZone: string = SCHEDULE_TIME_ZONE,
+): string {
+  const d = toDate(dateTimeStr);
+  if (isNaN(d.getTime())) return "??:??";
+
+  const showing = getZonedParts(d, timeZone);
+  const now = getZonedParts(new Date(), timeZone);
+  const isToday =
+    showing.day === now.day &&
+    showing.month === now.month &&
+    showing.year === now.year;
+
+  const time = formatTime(d, timeZone);
 
   if (isToday) {
     return time;
   }
 
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(showing.day).padStart(2, "0");
+  const month = String(showing.month).padStart(2, "0");
   return `${day}.${month}. ${time}`;
 }
 
