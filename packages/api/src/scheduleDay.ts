@@ -1,7 +1,6 @@
 import moment from "moment-timezone";
 
-import type { Prisma } from "@waslaeuftin/db";
-import { Countries } from "@waslaeuftin/db";
+import type { Countries, Prisma } from "@waslaeuftin/db";
 
 // Clients send schedule dates as an instant on the intended Europe/Berlin
 // calendar day (noon UTC, see createScheduleDate in @waslaeuftin/core).
@@ -10,9 +9,7 @@ const CLIENT_SCHEDULE_TIME_ZONE = "Europe/Berlin";
 const DEFAULT_SCHEDULE_TIME_ZONE = "Europe/Berlin";
 
 // Countries whose cinemas don't run on Berlin time.
-const SCHEDULE_TIME_ZONE_BY_COUNTRY: Partial<Record<Countries, string>> = {
-  [Countries.UNITED_KINGDOM]: "Europe/London",
-};
+const SCHEDULE_TIME_ZONE_BY_COUNTRY: Partial<Record<Countries, string>> = {};
 
 const OTHER_TIME_ZONE_COUNTRIES = Object.keys(
   SCHEDULE_TIME_ZONE_BY_COUNTRY,

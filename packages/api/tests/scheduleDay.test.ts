@@ -14,7 +14,7 @@ const appDate = new Date("2026-09-29T12:00:00.000Z");
 describe("scheduleDay", () => {
   test("maps countries to their time zones", () => {
     expect(getScheduleTimeZone("GERMANY")).toBe("Europe/Berlin");
-    expect(getScheduleTimeZone("UNITED_KINGDOM")).toBe("Europe/London");
+    expect(getScheduleTimeZone("AUSTRIA")).toBe("Europe/Berlin");
   });
 
   test("selects the day in the cinema's local time", () => {
@@ -33,9 +33,6 @@ describe("scheduleDay", () => {
   test("adds the cinema's time zone to its showings", () => {
     const dateTime = new Date("2026-12-15T19:00:00.000Z");
 
-    expect(
-      withScheduleTimeZone([{ id: 1, dateTime }], "UNITED_KINGDOM"),
-    ).toEqual([{ id: 1, dateTime, timeZone: "Europe/London" }]);
     expect(withScheduleTimeZone([{ id: 1, dateTime }], "GERMANY")).toEqual([
       { id: 1, dateTime, timeZone: "Europe/Berlin" },
     ]);

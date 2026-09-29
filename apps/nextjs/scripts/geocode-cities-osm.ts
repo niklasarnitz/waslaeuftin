@@ -51,7 +51,6 @@ const fetchCityCoordinates = async (
 const COUNTRY_CODE_MAP: Record<string, string> = {
   GERMANY: "de",
   AUSTRIA: "at",
-  UNITED_KINGDOM: "gb",
 };
 
 const main = async () => {
