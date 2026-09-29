@@ -221,6 +221,7 @@ export default function HomeIndex() {
                 s.dateTime,
                 s.showingAdditionalData ?? [],
                 filters,
+                s.timeZone,
               ),
             );
             return { ...entry, showings: matchingShowings };

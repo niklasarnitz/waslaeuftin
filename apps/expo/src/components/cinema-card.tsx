@@ -8,6 +8,7 @@ interface Showing {
   dateTime: Date | string;
   bookingUrl: string | null;
   showingAdditionalData: string[];
+  timeZone?: string;
 }
 
 interface Movie {

@@ -57,6 +57,7 @@ function toGroupedMovie(data: NearbyMovie): GroupedMovie {
       dateTime: showing.dateTime,
       bookingUrl: showing.bookingUrl,
       showingAdditionalData: showing.showingAdditionalData,
+      timeZone: showing.timeZone,
     })),
   }));
 

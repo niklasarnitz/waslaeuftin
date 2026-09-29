@@ -16,7 +16,7 @@ export const ShowingTimePill = ({
   movieName,
   cinemaSlug,
 }: ShowingTimePillProps) => {
-  const formattedTime = formatShowingTime(showing.dateTime);
+  const formattedTime = formatShowingTime(showing.dateTime, showing.timeZone);
   const ariaLabelText = `Tickets für ${movieName} um ${formattedTime} Uhr buchen`;
 
   const dateIso =

@@ -430,7 +430,10 @@ export const NearbyCinemasSection = () => {
                       <p className="bg-muted/40 text-muted-foreground mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] sm:mt-3 sm:px-2.5 sm:py-1.5 sm:text-xs">
                         <Ticket className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         Nächste Vorstellung um{" "}
-                        {formatShowingTime(nextShowing.dateTime)}
+                        {formatShowingTime(
+                          nextShowing.dateTime,
+                          nextShowing.timeZone,
+                        )}
                       </p>
                     )}
                   </article>

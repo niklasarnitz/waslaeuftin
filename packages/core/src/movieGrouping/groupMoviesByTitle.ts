@@ -5,6 +5,7 @@ import type {
   ListingShowing,
   TmdbMetadata,
 } from "./types";
+import { getHoursInTimeZone } from "../date/index";
 import { normalizeMovieTitle } from "../titleNormalization/normalizeMovieTitle";
 
 export interface SourceShowing {
@@ -13,6 +14,8 @@ export interface SourceShowing {
   bookingUrl?: string | null;
   rawMovieName?: string;
   showingAdditionalData?: string[] | null;
+  /** IANA time zone of the cinema, e.g. "Europe/London". */
+  timeZone?: string;
 }
 
 export interface SourceMovie {
@@ -81,7 +84,7 @@ export function groupMoviesByTitle(
         // Check filters
         if (filters) {
           if (filters.timeWindow && filters.timeWindow !== "all") {
-            const hour = d.getHours();
+            const hour = getHoursInTimeZone(d, showing.timeZone);
             const minHour = parseInt(filters.timeWindow, 10);
             if (hour < minHour) continue;
           }
@@ -151,6 +154,7 @@ export function groupMoviesByTitle(
           rawMovieName: rawName,
           showingAdditionalData: showing.showingAdditionalData,
           tags,
+          timeZone: showing.timeZone,
         });
       }
 
