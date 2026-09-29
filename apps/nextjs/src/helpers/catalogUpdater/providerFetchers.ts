@@ -1,5 +1,6 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
 import type { FetchProgressReporter } from "@waslaeuftin/scripts/update-movies/helpers";
+import { fetchBoxofficeCatalog } from "@waslaeuftin/scripts/update-movies/fetchBoxofficeCatalog";
 import { fetchCineplexCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexCatalog";
 import { fetchCineplexxATCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexxATMovies";
 import { fetchCineStarCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineStarCatalog";
@@ -23,6 +24,7 @@ export const providerFetchers: ProviderFetcher[] = [
   { name: "KinoTicketsExpress", fetch: fetchKinoTicketsExpressCatalog },
   { name: "PremiumKino", fetch: fetchPremiumKinoCatalog },
   { name: "CineplexxAT", fetch: fetchCineplexxATCatalog },
+  { name: "Boxoffice", fetch: fetchBoxofficeCatalog },
 ];
 
 export const providerNames = providerFetchers.map((provider) => provider.name);
