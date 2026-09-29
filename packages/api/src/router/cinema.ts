@@ -1,7 +1,7 @@
 import type { z } from "zod";
-import moment from "moment-timezone";
 
 import type { db as prismaDb } from "@waslaeuftin/db";
+import { getScheduleDayShowingFilter } from "@waslaeuftin/api/internal/scheduleDay";
 import {
   createTRPCRouter,
   publicProcedure,
@@ -20,13 +20,6 @@ import {
 
 type NearbyCinemasInput = z.infer<typeof NearbyCinemasInputSchema>;
 type DbClient = typeof prismaDb;
-const SCHEDULE_TIMEZONE = "Europe/Berlin";
-
-const getScheduleDate = (date: Date | undefined) => {
-  return date
-    ? moment(date).tz(SCHEDULE_TIMEZONE)
-    : moment.tz(SCHEDULE_TIMEZONE);
-};
 
 // Find nearby cinema IDs + distances using a raw SQL haversine query with bounding-box prefilter.
 const getNearbyCinemaDistances = async (
@@ -104,10 +97,6 @@ const getNearbyCinemasForInput = async (
   input: NearbyCinemasInput,
   db: DbClient,
 ) => {
-  const scheduleDate = getScheduleDate(input.date);
-  const todayStart = scheduleDate.clone().startOf("day").toDate();
-  const endDate = scheduleDate.clone().endOf("day").toDate();
-
   const { cinemaIds, distanceById } = await getNearbyCinemaDistances(input, db);
 
   if (cinemaIds.length === 0) {
@@ -127,12 +116,7 @@ const getNearbyCinemasForInput = async (
         },
       },
       showings: {
-        where: {
-          dateTime: {
-            gte: todayStart,
-            lte: endDate,
-          },
-        },
+        where: getScheduleDayShowingFilter(input.date),
         orderBy: {
           dateTime: "asc",
         },
@@ -409,14 +393,8 @@ export const cinemaRouter = createTRPCRouter({
   getCinemaBySlug: publicProcedure
     .input(CinemaBySlugInputSchema)
     .query(async ({ input, ctx }) => {
-      const scheduleDate = input.date ? getScheduleDate(input.date) : undefined;
-      const showingDateFilter = scheduleDate
-        ? {
-            dateTime: {
-              gte: scheduleDate.clone().startOf("day").toDate(),
-              lte: scheduleDate.clone().endOf("day").toDate(),
-            },
-          }
+      const showingDateFilter = input.date
+        ? getScheduleDayShowingFilter(input.date)
         : undefined;
 
       const cinema = await ctx.db.cinema.findFirst({
@@ -523,10 +501,6 @@ export const cinemaRouter = createTRPCRouter({
         return [];
       }
 
-      const scheduleDate = getScheduleDate(date);
-      const todayStart = scheduleDate.clone().startOf("day").toDate();
-      const endDate = scheduleDate.clone().endOf("day").toDate();
-
       const cinemas = await ctx.db.cinema.findMany({
         where: {
           id: { in: cinemaIds },
@@ -539,12 +513,7 @@ export const cinemaRouter = createTRPCRouter({
             },
           },
           showings: {
-            where: {
-              dateTime: {
-                gte: todayStart,
-                lte: endDate,
-              },
-            },
+            where: getScheduleDayShowingFilter(date),
             orderBy: {
               dateTime: "asc",
             },
