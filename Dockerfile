@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # Production image for the Next.js app (waslaeuft.in), deployed by Komodo from niklasarnitz/ops.
-# Runtime mirrors the former Coolify/Nixpacks build: Node 22 + Bun, `next start` on port 3000.
+# Node 22 + Bun image; the server runs on the Bun runtime (`bun --bun next start`, see apps/nextjs
+# package.json) on port 3000. Plain `bun run` would honour next's node shebang and run on Node.
 # The .ipa/.apk under apps/nextjs/public are Git LFS objects; the build context must contain the real files
 # (the Image workflow checks them out with `git lfs pull`).
 

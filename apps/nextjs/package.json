@@ -16,7 +16,7 @@
     "geocode:cinemas": "bun run scripts/geocode-cinemas-osm.ts",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "reevaluate:unmatched:movies": "bun run with-env -- bun scripts/update-movies/reevaluateUnmatchedMovies.ts",
-    "start": "bun run with-env -- next start",
+    "start": "bun run with-env -- bun --bun next start",
     "sync:covers:all": "bun run scripts/update-movies/syncAllMovieCovers.ts",
     "test": "bun test",
     "test:tmdb:confidence": "bun run scripts/update-movies/testTmdbConfidenceScore.ts",
