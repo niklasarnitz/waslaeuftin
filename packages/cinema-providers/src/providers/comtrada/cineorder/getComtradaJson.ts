@@ -1,11 +1,12 @@
 import { execFile } from "node:child_process";
 
-// Comtrada's Cloudflare returns 403 for every request made from Node (fetch
-// or node:https, whatever the headers), but lets Bun's fetch through. The
-// Next.js server runs on Node, so there we run the request in a short-lived
-// Bun process. Under Bun (CLI scripts, tests) we fetch directly.
-const CHROME_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+// Comtrada's Cloudflare returns 403 for every request made from Node (fetch or
+// node:https, whatever the headers), but lets Bun's fetch through. The Next.js
+// server may run on Node, so there we run the request in a short-lived Bun
+// process. Under Bun (CLI scripts, tests) we fetch directly.
+//
+// Keep Bun's default User-Agent: a spoofed browser User-Agent (e.g. Chrome) is
+// blocked too, even from Bun.
 
 const TIMEOUT_MS = 60_000;
 const MAX_BUFFER_BYTES = 64 * 1024 * 1024;
@@ -70,16 +71,9 @@ export const getComtradaJson = async <T>(
   url: string,
   headers: Record<string, string>,
 ): Promise<T> => {
-  const requestHeaders = {
-    "User-Agent": CHROME_USER_AGENT,
-    Accept: "application/json, text/plain, */*",
-    "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
-    ...headers,
-  };
-
   const { status, body } = process.versions.bun
-    ? await fetchRaw(url, requestHeaders)
-    : await fetchRawWithBun(url, requestHeaders);
+    ? await fetchRaw(url, headers)
+    : await fetchRawWithBun(url, headers);
 
   if (status < 200 || status >= 300) {
     const snippet = body.slice(0, 200).replace(/\s+/g, " ");
