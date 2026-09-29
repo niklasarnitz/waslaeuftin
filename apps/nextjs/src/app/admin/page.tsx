@@ -36,7 +36,6 @@ const movieUpdateCron = process.env.MOVIE_UPDATE_CRON || "0 3 * * *";
 const COUNTRY_LABELS: Record<Countries, string> = {
   GERMANY: "Germany",
   AUSTRIA: "Austria",
-  UNITED_KINGDOM: "United Kingdom",
 };
 
 const PHASE_LABELS: Record<ProviderUpdateRun["phase"], string> = {

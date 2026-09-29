@@ -1,7 +1,6 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
 import type { Prisma } from "@waslaeuftin/db";
 import type { FetchProgressReporter } from "@waslaeuftin/scripts/update-movies/helpers";
-import { fetchBoxofficeCatalog } from "@waslaeuftin/scripts/update-movies/fetchBoxofficeCatalog";
 import { fetchCineplexCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexCatalog";
 import { fetchCineplexxATCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexxATMovies";
 import { fetchCineStarCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineStarCatalog";
@@ -9,7 +8,6 @@ import { fetchCinfinityCatalog } from "@waslaeuftin/scripts/update-movies/fetchC
 import { fetchComtradaCineOrderCatalog } from "@waslaeuftin/scripts/update-movies/fetchComtradaCineOrderCatalog";
 import { fetchKinoHeldCatalog } from "@waslaeuftin/scripts/update-movies/fetchKinoHeldCatalog";
 import { fetchKinoTicketsExpressCatalog } from "@waslaeuftin/scripts/update-movies/fetchKinoTicketsExpressCatalog";
-import { fetchOdeonCatalog } from "@waslaeuftin/scripts/update-movies/fetchOdeonCatalog";
 import { fetchPremiumKinoCatalog } from "@waslaeuftin/scripts/update-movies/fetchPremiumKinoCatalog";
 
 export type ProviderFetcher = {
@@ -59,19 +57,6 @@ export const providerFetchers: ProviderFetcher[] = [
     name: "CineplexxAT",
     fetch: fetchCineplexxATCatalog,
     cinemaWhere: { cineplexxAtCinemaId: { not: null } },
-  },
-  {
-    name: "Odeon",
-    fetch: fetchOdeonCatalog,
-    cinemaWhere: { odeonCinemaId: { not: null } },
-  },
-  {
-    name: "Boxoffice",
-    fetch: fetchBoxofficeCatalog,
-    cinemaWhere: {
-      boxofficeTheaterId: { not: null },
-      boxofficeDomain: { not: null },
-    },
   },
 ];
 

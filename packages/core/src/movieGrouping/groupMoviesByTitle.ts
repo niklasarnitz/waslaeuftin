@@ -14,7 +14,7 @@ export interface SourceShowing {
   bookingUrl?: string | null;
   rawMovieName?: string;
   showingAdditionalData?: string[] | null;
-  /** IANA time zone of the cinema, e.g. "Europe/London". */
+  /** IANA time zone of the cinema, e.g. "Europe/Berlin". */
   timeZone?: string;
 }
 

@@ -19,7 +19,7 @@ export interface ListingShowing {
   rawMovieName?: string;
   showingAdditionalData?: string[] | null;
   tags?: string[];
-  /** IANA time zone of the cinema, e.g. "Europe/London". */
+  /** IANA time zone of the cinema, e.g. "Europe/Berlin". */
   timeZone?: string;
 }
 
