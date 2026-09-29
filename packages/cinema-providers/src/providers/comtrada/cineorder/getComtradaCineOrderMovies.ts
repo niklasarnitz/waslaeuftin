@@ -1,7 +1,7 @@
 import moment from "moment-timezone";
-import xior from "xior";
 
 import type { ComtradaCineOrderMetadata } from "@waslaeuftin/db";
+import { getComtradaJson } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getComtradaJson";
 import {
   type ComtradaCineOrderMovie,
   type ComtradaCineOrderMoviePerformance,
@@ -19,15 +19,9 @@ export const getComtradaCineOrderMovies = async (
   cinemaId: number,
   metadata: ComtradaCineOrderMetadata,
 ) => {
-  const xiorInstance = xior.create();
-
-  const { data } = await xiorInstance.get<ComtradaCineOrderMovie[]>(
+  const data = await getComtradaJson<ComtradaCineOrderMovie[]>(
     `${metadata.backendUrl}/api/films`,
-    {
-      headers: {
-        "Center-Oid": metadata.centerId,
-      },
-    },
+    { "Center-Oid": metadata.centerId },
   );
 
   if (!data) {
