@@ -21,7 +21,10 @@ export const fetchKinoHeldCatalog = async (
   const allShowings: ProviderCatalog["showings"] = [];
 
   const allKinoHeldCinemas = await db.cinema.findMany({
-    where: { kinoHeldCinemasMetadata: { isNot: null } },
+    where: {
+      kinoHeldCinemasMetadata: { isNot: null },
+      cinemaxxVueCinemasMetadataId: null,
+    },
     include: { kinoHeldCinemasMetadata: true },
   });
   const kinoHeldCinemas = allKinoHeldCinemas.filter((c) =>

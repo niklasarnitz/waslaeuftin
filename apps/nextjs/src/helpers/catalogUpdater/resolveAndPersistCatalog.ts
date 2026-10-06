@@ -1,4 +1,5 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
+import type { Prisma } from "@waslaeuftin/db";
 import {
   normalizeForComparison,
   normalizeMovieTitle,
@@ -46,6 +47,9 @@ export type ResolveProgressReporter = {
 export const resolveAndPersistCatalog = async (
   catalogs: ProviderCatalog[],
   progress?: ResolveProgressReporter,
+  persistShowings?: (
+    showings: Prisma.ShowingCreateManyInput[],
+  ) => Promise<number>,
 ) => {
   const rawTitlesSet = new Set<string>();
   const allShowings: ProviderCatalog["showings"] = [];
@@ -594,12 +598,21 @@ export const resolveAndPersistCatalog = async (
   // createMany in batches of 1000, skipping duplicates
   const BATCH_SIZE = 1000;
   let createdCount = 0;
-  for (let i = 0; i < showingData.length; i += BATCH_SIZE) {
-    const result = await db.showing.createMany({
-      data: showingData.slice(i, i + BATCH_SIZE),
-      skipDuplicates: true,
-    });
-    createdCount += result.count;
+  if (persistShowings) {
+    if (showingData.length !== allShowings.length) {
+      throw new Error(
+        "Cannot replace a cinema catalog with unresolved showings",
+      );
+    }
+    createdCount = await persistShowings(showingData);
+  } else {
+    for (let i = 0; i < showingData.length; i += BATCH_SIZE) {
+      const result = await db.showing.createMany({
+        data: showingData.slice(i, i + BATCH_SIZE),
+        skipDuplicates: true,
+      });
+      createdCount += result.count;
+    }
   }
 
   console.info(

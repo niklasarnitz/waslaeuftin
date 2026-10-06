@@ -12,30 +12,38 @@ const MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 export interface RawResponse {
   status: number;
   body: string;
+  cookies?: string[];
 }
 
 export const fetchText = async (
   url: string,
   headers: Record<string, string>,
+  method: "GET" | "POST" = "GET",
 ): Promise<RawResponse> => {
   const response = await fetch(url, {
     headers,
+    method,
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  return { status: response.status, body: await response.text() };
+  return {
+    status: response.status,
+    body: await response.text(),
+    cookies: response.headers.getSetCookie(),
+  };
 };
 
 // Runs in the Bun subprocess and prints a RawResponse.
 const BUN_FETCH_SCRIPT = `
 const url = process.env.WASLAEUFTIN_FETCH_URL;
 const headers = JSON.parse(process.env.WASLAEUFTIN_FETCH_HEADERS);
-const response = await fetch(url, { headers });
-process.stdout.write(JSON.stringify({ status: response.status, body: await response.text() }));
+const response = await fetch(url, { headers, method: process.env.WASLAEUFTIN_FETCH_METHOD });
+process.stdout.write(JSON.stringify({ status: response.status, body: await response.text(), cookies: response.headers.getSetCookie() }));
 `;
 
 const fetchTextInBunProcess = (
   url: string,
   headers: Record<string, string>,
+  method: "GET" | "POST" = "GET",
 ): Promise<RawResponse> =>
   new Promise((resolve, reject) => {
     execFile(
@@ -45,6 +53,7 @@ const fetchTextInBunProcess = (
         env: {
           ...process.env,
           WASLAEUFTIN_FETCH_URL: url,
+          WASLAEUFTIN_FETCH_METHOD: method,
           WASLAEUFTIN_FETCH_HEADERS: JSON.stringify(headers),
         },
         timeout: TIMEOUT_MS,
@@ -72,10 +81,11 @@ const fetchTextInBunProcess = (
 export const fetchTextWithBun = (
   url: string,
   headers: Record<string, string>,
+  method: "GET" | "POST" = "GET",
 ): Promise<RawResponse> =>
   process.versions.bun
-    ? fetchText(url, headers)
-    : fetchTextInBunProcess(url, headers);
+    ? fetchText(url, headers, method)
+    : fetchTextInBunProcess(url, headers, method);
 
 export const describeFailedResponse = ({ status, body }: RawResponse) => {
   const snippet = body.slice(0, 200).replace(/\s+/g, " ");

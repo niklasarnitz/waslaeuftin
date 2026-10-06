@@ -31,6 +31,27 @@ Start the Expo client separately:
 bun --filter @waslaeuftin/expo dev
 ```
 
+## CinemaxX / Vue
+
+CinemaxX uses its direct guest API, including HOLI Hamburg. The `CinemaxxVue`
+provider participates in nightly and manual updates. Each successful refresh
+replaces that cinema's schedule and updates `lastFetchedAt` in one transaction;
+failed or empty feeds retain the previous schedule.
+
+To migrate existing Kinoheld cinema records without changing IDs or slugs, run
+from the repository root with the database, TMDB, and S3 environment configured:
+
+```bash
+bun apps/nextjs/scripts/migrate-cinemaxx-vue-cinemas.ts
+bun apps/nextjs/scripts/migrate-cinemaxx-vue-cinemas.ts --apply
+```
+
+The first command previews exact venue matches. Applying validates all feeds,
+saves a rollback snapshot under `.cache`, and atomically replaces the schedules
+and provider mappings. Cinemas absent from the database are reported, not created.
+Deploy the provider code along with the migration so subsequent nightly updates
+continue using the direct source.
+
 ## Verification
 
 ```bash

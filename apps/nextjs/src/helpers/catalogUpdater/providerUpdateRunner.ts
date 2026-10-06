@@ -159,15 +159,18 @@ const executeRun = async (run: ProviderUpdateRun, fetcher: ProviderFetcher) => {
     });
 
     if (catalog.movies.length > 0 || catalog.showings.length > 0) {
-      const result = await resolveAndPersistCatalog([catalog], {
-        onPhase: (phase, total) =>
-          updateRun(run.id, {
-            phase: RESOLVE_PHASES[phase],
-            phaseTotal: total,
-            phaseDone: 0,
-          }),
-        onProgress: (done) => updateRun(run.id, { phaseDone: done }),
-      });
+      const result = await (fetcher.persist ?? resolveAndPersistCatalog)(
+        [catalog],
+        {
+          onPhase: (phase, total) =>
+            updateRun(run.id, {
+              phase: RESOLVE_PHASES[phase],
+              phaseTotal: total,
+              phaseDone: 0,
+            }),
+          onProgress: (done) => updateRun(run.id, { phaseDone: done }),
+        },
+      );
 
       await updateRun(run.id, {
         showingsCreated: result.totalShowings,
