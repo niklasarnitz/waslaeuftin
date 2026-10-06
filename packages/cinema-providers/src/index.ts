@@ -19,3 +19,9 @@ export {
 export { getKinoHeldCinemas } from "@waslaeuftin/cinema-providers/internal/providers/kinoheld/getKinoHeldCinemas";
 export { getKinoHeldMovies } from "@waslaeuftin/cinema-providers/internal/providers/kinoheld/getKinoHeldMovies";
 export { getPremiumKinoMovies } from "@waslaeuftin/cinema-providers/internal/providers/premiumkino/getPremiumKinoMovies";
+export {
+  createCinemaxxVueClient,
+  getCinemaxxVueCinemas,
+  getCinemaxxVueMovies,
+} from "@waslaeuftin/cinema-providers/internal/providers/cinemaxx-vue/getCinemaxxVueMovies";
+export type { CinemaxxVueCinema } from "@waslaeuftin/cinema-providers/internal/providers/cinemaxx-vue/getCinemaxxVueMovies";

@@ -1,6 +1,10 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
 import type { Prisma } from "@waslaeuftin/db";
+import type { resolveAndPersistCatalog } from "@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog";
 import type { FetchProgressReporter } from "@waslaeuftin/scripts/update-movies/helpers";
+import { db } from "@waslaeuftin/db/client";
+import { persistCinemaxxVueCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog";
+import { fetchCinemaxxVueCatalog } from "@waslaeuftin/scripts/update-movies/fetchCinemaxxVueCatalog";
 import { fetchCineplexCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexCatalog";
 import { fetchCineplexxATCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexxATMovies";
 import { fetchCineStarCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineStarCatalog";
@@ -15,9 +19,40 @@ export type ProviderFetcher = {
   fetch: (progress?: FetchProgressReporter) => Promise<ProviderCatalog>;
   /** Selects the cinemas this provider fetches showings for. */
   cinemaWhere: Prisma.CinemaWhereInput;
+  persist?: typeof resolveAndPersistCatalog;
 };
 
 export const providerFetchers: ProviderFetcher[] = [
+  {
+    name: "CinemaxxVue",
+    fetch: fetchCinemaxxVueCatalog,
+    cinemaWhere: { cinemaxxVueCinemasMetadataId: { not: null } },
+    persist: async (catalogs, progress) => {
+      const ids = [
+        ...new Set(
+          catalogs.flatMap((catalog) =>
+            catalog.showings.map((showing) => showing.cinemaId),
+          ),
+        ),
+      ];
+      const cinemas = await db.cinema.findMany({
+        where: { id: { in: ids } },
+        include: { cinemaxxVueCinemasMetadata: true },
+      });
+      return persistCinemaxxVueCatalog(
+        catalogs,
+        cinemas.map((cinema) => {
+          if (!cinema.cinemaxxVueCinemasMetadata)
+            throw new Error(`Missing CinemaxX/Vue metadata for ${cinema.id}`);
+          return {
+            id: cinema.id,
+            providerCinemaId: cinema.cinemaxxVueCinemasMetadata.cinemaId,
+          };
+        }),
+        progress,
+      );
+    },
+  },
   {
     name: "CineStar",
     fetch: fetchCineStarCatalog,
@@ -41,7 +76,10 @@ export const providerFetchers: ProviderFetcher[] = [
   {
     name: "KinoHeld",
     fetch: fetchKinoHeldCatalog,
-    cinemaWhere: { kinoHeldCinemasMetadataId: { not: null } },
+    cinemaWhere: {
+      kinoHeldCinemasMetadataId: { not: null },
+      cinemaxxVueCinemasMetadataId: null,
+    },
   },
   {
     name: "KinoTicketsExpress",

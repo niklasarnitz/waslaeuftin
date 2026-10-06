@@ -22,7 +22,21 @@ let acceptedCandidate: {
 } | null = null;
 let fetchTmdbMovieDetailsError: Error | null = null;
 
+const replacementTransaction = {
+  showing: {
+    deleteMany: mock(async (_params: unknown) => ({ count: 1 })),
+    createMany: mock(async (params: { data: unknown[] }) => ({
+      count: params.data.length,
+    })),
+  },
+  cinema: { update: mock(async (_params: unknown) => ({})) },
+};
+
 const db = {
+  $transaction: mock(
+    (callback: (tx: typeof replacementTransaction) => Promise<number>) =>
+      callback(replacementTransaction),
+  ),
   movie: {
     findMany: mock(async () => existingMovies),
     upsert: mock(async (params: { create: { canonicalKey: string } }) => {
@@ -240,5 +254,84 @@ describe("resolveAndPersistCatalog", () => {
       canonicalKey: "tmdb:67890",
       tmdbMovieId: null,
     });
+  });
+  test("replaces only migrated cinemas and switches mappings in the same transaction", async () => {
+    const { persistCinemaxxVueCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
+    const result = await persistCinemaxxVueCatalog(
+      [
+        {
+          movies: [{ cinemaId: 1490, name: "Direct Movie" }],
+          showings: [
+            {
+              cinemaId: 1490,
+              movieName: "Direct Movie",
+              dateTime: new Date("2026-10-06T18:00:00Z"),
+              bookingUrl:
+                "https://www.cinemaxx.de/buchtickets/zusammenfassung/1931/film/1",
+            },
+          ],
+        },
+      ],
+      [{ id: 1490, providerCinemaId: 1931 }],
+    );
+    expect(result.totalShowings).toBe(1);
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+    expect(db.showing.createMany).not.toHaveBeenCalled();
+    expect(replacementTransaction.showing.deleteMany).toHaveBeenCalledWith({
+      where: { cinemaId: { in: [1490] } },
+    });
+    expect(replacementTransaction.cinema.update).toHaveBeenCalledWith({
+      where: { id: 1490 },
+      data: {
+        kinoHeldCinemasMetadata: { disconnect: true },
+        cinemaxxVueCinemasMetadata: {
+          upsert: { create: { cinemaId: 1931 }, update: { cinemaId: 1931 } },
+        },
+        lastFetchedAt: expect.any(Date),
+      },
+    });
+  });
+
+  test("refuses empty direct catalogs before touching stored sources or showings", async () => {
+    const { persistCinemaxxVueCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
+    const calls = db.$transaction.mock.calls.length;
+    await expect(
+      persistCinemaxxVueCatalog(
+        [{ movies: [], showings: [] }],
+        [{ id: 1490, providerCinemaId: 1931 }],
+      ),
+    ).rejects.toThrow("empty");
+    expect(db.$transaction.mock.calls.length).toBe(calls);
+  });
+
+  test("does not switch sources if inserting the replacement schedule fails", async () => {
+    const { persistCinemaxxVueCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
+    const updates = replacementTransaction.cinema.update.mock.calls.length;
+    replacementTransaction.showing.createMany.mockImplementationOnce(() =>
+      Promise.reject(new Error("insert failed")),
+    );
+    await expect(
+      persistCinemaxxVueCatalog(
+        [
+          {
+            movies: [{ cinemaId: 1490, name: "Film" }],
+            showings: [
+              {
+                cinemaId: 1490,
+                movieName: "Film",
+                dateTime: new Date("2026-10-06T18:00:00Z"),
+              },
+            ],
+          },
+        ],
+        [{ id: 1490, providerCinemaId: 1931 }],
+      ),
+    ).rejects.toThrow("insert failed");
+    expect(replacementTransaction.cinema.update.mock.calls.length).toBe(
+      updates,
+    );
   });
 });
