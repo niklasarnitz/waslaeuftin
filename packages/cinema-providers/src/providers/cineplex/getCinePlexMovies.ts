@@ -65,6 +65,7 @@ export const getCineplexMovies = async (
   }[],
 ) => {
   const { data } = await client.query({
+    fetchPolicy: "no-cache",
     query: getQuery(cinemas.map((cinema) => cinema.cineplexCinemaId)),
   });
 

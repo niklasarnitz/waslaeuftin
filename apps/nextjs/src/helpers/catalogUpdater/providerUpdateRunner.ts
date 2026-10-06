@@ -131,23 +131,26 @@ const executeRun = async (run: ProviderUpdateRun, fetcher: ProviderFetcher) => {
   let cinemasFailed = 0;
 
   try {
-    const catalog = await fetcher.fetch({
-      onCinemasSelected: (total) =>
-        updateRun(run.id, {
-          cinemasTotal: total,
-          phaseTotal: total,
-          phaseDone: 0,
-        }),
-      onChunkProcessed: (processed, failed) => {
-        cinemasProcessed += processed;
-        cinemasFailed += failed;
-        return updateRun(run.id, {
-          cinemasProcessed,
-          cinemasFailed,
-          phaseDone: cinemasProcessed,
-        });
+    const catalog = await fetcher.fetch(
+      {
+        onCinemasSelected: (total) =>
+          updateRun(run.id, {
+            cinemasTotal: total,
+            phaseTotal: total,
+            phaseDone: 0,
+          }),
+        onChunkProcessed: (processed, failed) => {
+          cinemasProcessed += processed;
+          cinemasFailed += failed;
+          return updateRun(run.id, {
+            cinemasProcessed,
+            cinemasFailed,
+            phaseDone: cinemasProcessed,
+          });
+        },
       },
-    });
+      { force: run.trigger === "manual" },
+    );
 
     console.info(
       `[ProviderUpdate] ${fetcher.name}: fetched ${catalog.movies.length} movies, ${catalog.showings.length} showings`,

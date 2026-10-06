@@ -1,21 +1,25 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
-import type { FetchProgressReporter } from "@waslaeuftin/scripts/update-movies/helpers";
+import type {
+  FetchProgressReporter,
+  ProviderFetchOptions,
+} from "@waslaeuftin/scripts/update-movies/helpers";
 import { createCinemaxxVueClient } from "@waslaeuftin/cinema-providers/server";
 import { db } from "@waslaeuftin/db/client";
 import {
   chunkArray,
-  isCinemaStale,
+  shouldFetchCinema,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export const fetchCinemaxxVueCatalog = async (
   progress?: FetchProgressReporter,
+  options?: ProviderFetchOptions,
 ): Promise<ProviderCatalog> => {
   const cinemas = (
     await db.cinema.findMany({
       where: { cinemaxxVueCinemasMetadataId: { not: null } },
       include: { cinemaxxVueCinemasMetadata: true },
     })
-  ).filter((cinema) => isCinemaStale(cinema.lastFetchedAt));
+  ).filter((cinema) => shouldFetchCinema(cinema.lastFetchedAt, options));
   const client = createCinemaxxVueClient();
   const catalog: ProviderCatalog = { movies: [], showings: [] };
   await progress?.onCinemasSelected(cinemas.length);

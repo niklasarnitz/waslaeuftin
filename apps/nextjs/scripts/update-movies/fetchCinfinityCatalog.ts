@@ -1,3 +1,4 @@
+import type { ProviderFetchOptions } from "@waslaeuftin/scripts/update-movies/helpers";
 import {
   getCinfinityMovies,
   ProviderCatalog,
@@ -8,13 +9,14 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  isCinemaStale,
   markCinemasFetched,
+  shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export const fetchCinfinityCatalog = async (
   progress?: FetchProgressReporter,
+  options?: ProviderFetchOptions,
 ): Promise<ProviderCatalog> => {
   const allMovies: ProviderCatalog["movies"] = [];
   const allShowings: ProviderCatalog["showings"] = [];
@@ -23,7 +25,7 @@ export const fetchCinfinityCatalog = async (
     where: { cinfinityCinemaId: { not: null } },
   });
   const cinfinityCinemas = allCinfinityCinemas.filter((cinema) =>
-    isCinemaStale(cinema.lastFetchedAt),
+    shouldFetchCinema(cinema.lastFetchedAt, options),
   );
   console.info(
     `[Cinfinity] Found ${cinfinityCinemas.length} cinemas to fetch (${allCinfinityCinemas.length - cinfinityCinemas.length} skipped, recently fetched)`,

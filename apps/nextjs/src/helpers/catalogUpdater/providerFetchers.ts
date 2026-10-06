@@ -1,7 +1,10 @@
 import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
 import type { Prisma } from "@waslaeuftin/db";
 import type { resolveAndPersistCatalog } from "@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog";
-import type { FetchProgressReporter } from "@waslaeuftin/scripts/update-movies/helpers";
+import type {
+  FetchProgressReporter,
+  ProviderFetchOptions,
+} from "@waslaeuftin/scripts/update-movies/helpers";
 import { db } from "@waslaeuftin/db/client";
 import { persistCinemaxxVueCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog";
 import { fetchCinemaxxVueCatalog } from "@waslaeuftin/scripts/update-movies/fetchCinemaxxVueCatalog";
@@ -16,7 +19,10 @@ import { fetchPremiumKinoCatalog } from "@waslaeuftin/scripts/update-movies/fetc
 
 export type ProviderFetcher = {
   name: string;
-  fetch: (progress?: FetchProgressReporter) => Promise<ProviderCatalog>;
+  fetch: (
+    progress?: FetchProgressReporter,
+    options?: ProviderFetchOptions,
+  ) => Promise<ProviderCatalog>;
   /** Selects the cinemas this provider fetches showings for. */
   cinemaWhere: Prisma.CinemaWhereInput;
   persist?: typeof resolveAndPersistCatalog;

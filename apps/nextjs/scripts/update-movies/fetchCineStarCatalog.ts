@@ -1,3 +1,4 @@
+import type { ProviderFetchOptions } from "@waslaeuftin/scripts/update-movies/helpers";
 import {
   getCineStarMovies,
   ProviderCatalog,
@@ -8,13 +9,14 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  isCinemaStale,
   markCinemasFetched,
+  shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export const fetchCineStarCatalog = async (
   progress?: FetchProgressReporter,
+  options?: ProviderFetchOptions,
 ): Promise<ProviderCatalog> => {
   const failedCinemas: string[] = [];
   const allMovies: ProviderCatalog["movies"] = [];
@@ -24,7 +26,7 @@ export const fetchCineStarCatalog = async (
     where: { cineStarCinemaId: { not: null } },
   });
   const cinestarCinemas = allCinestarCinemas.filter((c) =>
-    isCinemaStale(c.lastFetchedAt),
+    shouldFetchCinema(c.lastFetchedAt, options),
   );
   console.info(
     `[CineStar] Found ${cinestarCinemas.length} cinemas to fetch (${allCinestarCinemas.length - cinestarCinemas.length} skipped, recently fetched)`,

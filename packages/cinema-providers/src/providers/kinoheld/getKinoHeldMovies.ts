@@ -83,6 +83,7 @@ export async function getKinoHeldMoviesInner(
   allData: ShowGroup[] = [],
 ): Promise<ShowGroup[]> {
   const { data } = await client.query({
+    fetchPolicy: "no-cache",
     query: FETCH_SHOW_GROUPS_FOR_CINEMA,
     variables: {
       cinemaId: metadata.centerId,

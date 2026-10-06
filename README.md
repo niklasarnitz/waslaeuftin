@@ -36,7 +36,9 @@ bun --filter @waslaeuftin/expo dev
 CinemaxX uses its direct guest API, including HOLI Hamburg. The `CinemaxxVue`
 provider participates in nightly and manual updates. Each successful refresh
 replaces that cinema's schedule and updates `lastFetchedAt` in one transaction;
-failed or empty feeds retain the previous schedule.
+failed or empty feeds retain the previous schedule. Manual Run actions always
+refetch all cinemas for the selected providers; scheduled updates retain the
+five-hour freshness filter.
 
 To migrate existing Kinoheld cinema records without changing IDs or slugs, run
 from the repository root with the database, TMDB, and S3 environment configured:
