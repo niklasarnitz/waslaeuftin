@@ -1,3 +1,4 @@
+import type { ProviderFetchOptions } from "@waslaeuftin/scripts/update-movies/helpers";
 import {
   getCineplexxATMovies,
   ProviderCatalog,
@@ -8,13 +9,14 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  isCinemaStale,
   markCinemasFetched,
+  shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export const fetchCineplexxATCatalog = async (
   progress?: FetchProgressReporter,
+  options?: ProviderFetchOptions,
 ): Promise<ProviderCatalog> => {
   const failedCinemas: string[] = [];
   const allMovies: ProviderCatalog["movies"] = [];
@@ -24,7 +26,7 @@ export const fetchCineplexxATCatalog = async (
     where: { cineplexxAtCinemaId: { not: null } },
   });
   const cineplexxAtCinemas = allCineplexxAtCinemas.filter((c) =>
-    isCinemaStale(c.lastFetchedAt),
+    shouldFetchCinema(c.lastFetchedAt, options),
   );
   console.info(
     `[CineplexxAT] Found ${cineplexxAtCinemas.length} cinemas to fetch (${allCineplexxAtCinemas.length - cineplexxAtCinemas.length} skipped, recently fetched)`,

@@ -1,3 +1,4 @@
+import type { ProviderFetchOptions } from "@waslaeuftin/scripts/update-movies/helpers";
 import {
   getPremiumKinoMovies,
   ProviderCatalog,
@@ -8,13 +9,14 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  isCinemaStale,
   markCinemasFetched,
+  shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export const fetchPremiumKinoCatalog = async (
   progress?: FetchProgressReporter,
+  options?: ProviderFetchOptions,
 ): Promise<ProviderCatalog> => {
   const failedCinemas: string[] = [];
   const allMovies: ProviderCatalog["movies"] = [];
@@ -24,7 +26,7 @@ export const fetchPremiumKinoCatalog = async (
     where: { premiumKinoSubdomain: { not: null } },
   });
   const premiumKinoCinemas = allPremiumKinoCinemas.filter((c) =>
-    isCinemaStale(c.lastFetchedAt),
+    shouldFetchCinema(c.lastFetchedAt, options),
   );
   console.info(
     `[PremiumKino] Found ${premiumKinoCinemas.length} cinemas to fetch (${allPremiumKinoCinemas.length - premiumKinoCinemas.length} skipped, recently fetched)`,

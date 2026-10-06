@@ -6,6 +6,10 @@ export const STALE_THRESHOLD_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 // Lets callers (e.g. the tracked nightly runner) observe per-cinema progress of a
 // provider fetch without the fetchers knowing about persistence.
+export interface ProviderFetchOptions {
+  force?: boolean;
+}
+
 export type FetchProgressReporter = {
   onCinemasSelected: (total: number) => Promise<void> | void;
   onChunkProcessed: (processed: number, failed: number) => Promise<void> | void;
@@ -19,6 +23,11 @@ export const isCinemaStale = (lastFetchedAt: Date | null): boolean => {
   if (!lastFetchedAt) return true;
   return Date.now() - lastFetchedAt.getTime() > STALE_THRESHOLD_MS;
 };
+
+export const shouldFetchCinema = (
+  lastFetchedAt: Date | null,
+  options?: ProviderFetchOptions,
+): boolean => options?.force === true || isCinemaStale(lastFetchedAt);
 
 export const markCinemasFetched = async (cinemaIds: number[]) => {
   if (cinemaIds.length === 0) return;
