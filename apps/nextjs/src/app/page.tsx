@@ -5,11 +5,17 @@ import { SiteWrapper } from "@waslaeuftin/components/SiteWrapper";
 import { JsonLd } from "@waslaeuftin/components/StructuredData/JsonLd";
 import { Constants } from "@waslaeuftin/globals/Constants";
 import { getPathName } from "@waslaeuftin/helpers/getPathName";
+import { listingMetadata } from "@waslaeuftin/helpers/seo";
 
 export const dynamic = "force-dynamic";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string; searchQuery?: string }>;
+}): Promise<Metadata> {
   return {
+    ...listingMetadata("/", true, await searchParams),
     title: `${Constants.home.title} | ${Constants.appName}`,
     description: Constants.home.cta,
   };

@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 
+import { WebVitals } from "@waslaeuftin/components/WebVitals";
 import { env } from "@waslaeuftin/env";
 
 export const Analytics = async () => {
@@ -12,11 +13,14 @@ export const Analytics = async () => {
     env.UMAMI_WEBSITE_ID
   ) {
     return (
-      <script
-        defer
-        src={`${env.UMAMI_URL}/script.js`}
-        data-website-id={env.UMAMI_WEBSITE_ID}
-      ></script>
+      <>
+        <WebVitals />
+        <script
+          defer
+          src={`${env.UMAMI_URL}/script.js`}
+          data-website-id={env.UMAMI_WEBSITE_ID}
+        ></script>
+      </>
     );
   }
 

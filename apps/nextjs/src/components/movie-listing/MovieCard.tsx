@@ -67,7 +67,7 @@ export const MovieCard = ({
       </div>
 
       <div className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 sm:grid-cols-[100px_minmax(0,1fr)] md:grid-cols-[120px_minmax(0,1fr)] md:gap-5 lg:grid-cols-[140px_minmax(0,1fr)]">
-        <div className="space-y-2">
+        <div className="space-y-2 sm:row-span-2">
           <MovieCover
             title={movie.name}
             coverUrl={movie.coverUrl}
@@ -233,31 +233,17 @@ export const MovieCard = ({
               )}
             </div>
           )}
-
-          {/* Cinema showings — desktop */}
-          <div className="hidden sm:mt-4 sm:block sm:space-y-3">
-            {sortedCinemas.map((cinemaEntry) => (
-              <CinemaShowingsCard
-                key={`${movie.name}-${cinemaEntry.cinema.id}-desktop`}
-                cinemaEntry={cinemaEntry}
-                movieName={movie.name}
-                maxShowings={maxShowingsPerCinema}
-              />
-            ))}
-          </div>
         </div>
-      </div>
-
-      {/* Cinema showings — mobile */}
-      <div className="mt-3 space-y-2 sm:hidden">
-        {sortedCinemas.map((cinemaEntry) => (
-          <CinemaShowingsCard
-            key={`${movie.name}-${cinemaEntry.cinema.id}-mobile`}
-            cinemaEntry={cinemaEntry}
-            movieName={movie.name}
-            maxShowings={maxShowingsPerCinema}
-          />
-        ))}
+        <div className="col-span-2 space-y-2 sm:col-span-1 sm:col-start-2 sm:row-start-2 sm:space-y-3">
+          {sortedCinemas.map((cinemaEntry) => (
+            <CinemaShowingsCard
+              key={`${movie.name}-${cinemaEntry.cinema.id}`}
+              cinemaEntry={cinemaEntry}
+              movieName={movie.name}
+              maxShowings={maxShowingsPerCinema}
+            />
+          ))}
+        </div>
       </div>
     </article>
   );

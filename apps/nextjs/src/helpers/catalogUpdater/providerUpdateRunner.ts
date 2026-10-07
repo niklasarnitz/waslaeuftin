@@ -7,6 +7,7 @@ import { db } from "@waslaeuftin/db/client";
 import { providerFetchers } from "@waslaeuftin/helpers/catalogUpdater/providerFetchers";
 import { resolveAndPersistCatalog } from "@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog";
 import { sendPushoverNotification } from "@waslaeuftin/helpers/notifications/sendPushoverNotification";
+import { markCinemasFetched } from "@waslaeuftin/scripts/update-movies/helpers";
 
 export type ProviderUpdateTrigger = "cron" | "manual" | "cli";
 
@@ -182,6 +183,8 @@ const executeRun = async (run: ProviderUpdateRun, fetcher: ProviderFetcher) => {
         tmdbUnmatched: result.tmdbUnmatched,
       });
     }
+
+    await markCinemasFetched(catalog.fetchedCinemaIds ?? []);
 
     await updateRun(run.id, {
       status: "SUCCEEDED",

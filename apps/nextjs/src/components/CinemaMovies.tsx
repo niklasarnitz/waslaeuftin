@@ -3,16 +3,18 @@
 import { ArrowUpDown, Film } from "lucide-react";
 
 import type { ListingCinema } from "@waslaeuftin/core";
+import type { compactCinemaProgramme } from "@waslaeuftin/helpers/compactMovieProgramme";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { groupMoviesByTitle } from "@waslaeuftin/core";
+import { getDateString } from "@waslaeuftin/helpers/similarity/getDateString";
 import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
-import { type api } from "@waslaeuftin/trpc/server";
 
 export type CinemaMoviesProps = {
-  cinema: NonNullable<Awaited<ReturnType<typeof api.cinemas.getCinemaBySlug>>>;
+  date?: string;
+  cinema: ReturnType<typeof compactCinemaProgramme>;
 };
 
-export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
+export const CinemaMovies = ({ cinema, date }: CinemaMoviesProps) => {
   const [sortBy, setSortBy] = useSortPreference("popularity");
 
   const normalizedCinema: ListingCinema & {
@@ -52,7 +54,8 @@ export const CinemaMovies = ({ cinema }: CinemaMoviesProps) => {
             {groupedMovies.length} Filme
           </span>
           <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
-            {totalShowings} Vorstellungen heute
+            {totalShowings} Vorstellungen{" "}
+            {getDateString(date ?? new Date().toISOString())}
           </span>
         </div>
 

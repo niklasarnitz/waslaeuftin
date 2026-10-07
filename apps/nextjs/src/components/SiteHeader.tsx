@@ -1,11 +1,13 @@
 import { Film } from "lucide-react";
-import moment from "moment-timezone";
 
 import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
 import { Constants } from "@waslaeuftin/globals/Constants";
+import {
+  cinemaProgramme,
+  cityProgramme,
+} from "@waslaeuftin/helpers/programmeData";
 import { getDateString } from "@waslaeuftin/helpers/similarity/getDateString";
 import { umlautsFixer } from "@waslaeuftin/helpers/umlautsFixer";
-import { api } from "@waslaeuftin/trpc/server";
 
 const CityHeader = async ({
   date,
@@ -16,7 +18,7 @@ const CityHeader = async ({
 }) => {
   const citySlug = pathname.split("/")[2] ?? "";
 
-  const city = await api.cities.getCityBySlug(umlautsFixer(citySlug));
+  const city = await cityProgramme(umlautsFixer(citySlug), date ?? undefined);
 
   if (!city) return <></>;
 
@@ -42,10 +44,10 @@ const CinemaHeader = async ({
 }) => {
   const cinemaSlug = pathname.split("/")[2] ?? "";
 
-  const cinema = await api.cinemas.getCinemaBySlug({
-    cinemaSlug,
-    date: date ? moment(date).toDate() : undefined,
-  });
+  const cinema = await cinemaProgramme(
+    umlautsFixer(cinemaSlug),
+    date ?? undefined,
+  );
 
   if (!cinema) return <></>;
 

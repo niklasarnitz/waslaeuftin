@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Rechtliche Informationen | wasläuft.in",
+  description: "Datenschutz und rechtliche Informationen zu wasläuft.in.",
+  alternates: { canonical: "/legal" },
+};
+
 export default function Legal() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 p-4">

@@ -5,24 +5,20 @@ import { Film } from "lucide-react";
 
 import type { WebShowingFilterOptions } from "@waslaeuftin/components/ShowingFilterBar";
 import type { ListingCinema } from "@waslaeuftin/core";
+import type { compactCityProgramme } from "@waslaeuftin/helpers/compactCityProgramme";
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import { ShowingFilterBar } from "@waslaeuftin/components/ShowingFilterBar";
 import { groupMoviesByTitle } from "@waslaeuftin/core";
+import { getDateString } from "@waslaeuftin/helpers/similarity/getDateString";
 import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
-import { type api } from "@waslaeuftin/trpc/server";
-
-type CityMoviesAndShowings = NonNullable<
-  Awaited<ReturnType<typeof api.cities.getCityMoviesAndShowingsBySlug>>
->;
 
 export type MoviesByCinemaListProps = {
-  city: CityMoviesAndShowings;
+  city: ReturnType<typeof compactCityProgramme>;
   date?: string;
 };
 
 export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
-  void date;
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
   const [showingFilters, setShowingFilters] = useState<WebShowingFilterOptions>(
     {
@@ -34,7 +30,9 @@ export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
 
   const normalizedCinemas: Array<
     ListingCinema & {
-      movies: (typeof city.cinemas)[number]["movies"];
+      movies: ((typeof city.cinemas)[number]["movies"][number] & {
+        tmdbMetadata: (typeof city.movieMetadata)[string];
+      })[];
     }
   > = useMemo(
     () =>
@@ -45,9 +43,12 @@ export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
         city: { slug: city.slug, name: city.name },
         distanceKm: null,
         href: `/cinema/${cinema.slug}`,
-        movies: cinema.movies,
+        movies: cinema.movies.map((movie) => ({
+          ...movie,
+          tmdbMetadata: city.movieMetadata[movie.name] ?? null,
+        })),
       })),
-    [city.cinemas, city.name, city.slug],
+    [city.cinemas, city.name, city.slug, city.movieMetadata],
   );
 
   const effectiveSelectedCinemaSlugs = useMemo(() => {
@@ -129,7 +130,8 @@ export const MoviesByCinemaList = ({ city, date }: MoviesByCinemaListProps) => {
           {isCinemaFilterActive ? "ausgewählt" : "verfügbar"}
         </span>
         <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
-          {totalShowings} Vorstellungen
+          {totalShowings} Vorstellungen{" "}
+          {getDateString(date ?? new Date().toISOString())}
         </span>
       </div>
 

@@ -1,5 +1,8 @@
 "use client";
 
+import { useId, useState } from "react";
+import { ChevronDown } from "lucide-react";
+
 import type { CinemaFilterOption } from "@waslaeuftin/core";
 
 type CinemaFilterBarProps = {
@@ -16,13 +19,24 @@ export const CinemaFilterBar = ({
   onClear,
 }: CinemaFilterBarProps) => {
   const isActive = selectedSlugs.length > 0;
+  const [expanded, setExpanded] = useState(false);
+  const optionsId = useId();
+  // Keep selected cinemas visible even after closing the full list.
+  const visibleOptions = expanded
+    ? options
+    : options.filter(
+        (cinema, index) => index < 5 || selectedSlugs.includes(cinema.slug),
+      );
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-      <span className="text-foreground/60 text-[11px] font-semibold tracking-[0.14em] uppercase sm:text-xs">
+    <div
+      id={optionsId}
+      className="flex flex-wrap items-center gap-1.5 sm:gap-2"
+    >
+      <span className="text-muted-foreground mr-1 text-xs font-medium">
         Nach Kino filtern
       </span>
-      {options.map((cinema) => {
+      {visibleOptions.map((cinema) => {
         const isSelected = selectedSlugs.includes(cinema.slug);
 
         return (
@@ -41,6 +55,21 @@ export const CinemaFilterBar = ({
           </button>
         );
       })}
+      {options.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          aria-controls={optionsId}
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex min-h-8 items-center gap-1 rounded-md px-2 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none"
+        >
+          {expanded ? "Weniger Kinos anzeigen" : "Alle Kinos anzeigen"}
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+      )}
       {isActive && (
         <button
           type="button"
