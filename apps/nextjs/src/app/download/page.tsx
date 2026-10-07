@@ -18,6 +18,7 @@ const ALTSTORE_DEEP_LINK =
 
 export function generateMetadata(): Metadata {
   return {
+    alternates: { canonical: "/download" },
     title: `App herunterladen | ${Constants.appName}`,
     description:
       "Lade die wasläuft.in App für Android (APK) oder iOS (über AltStore) herunter.",

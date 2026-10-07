@@ -9,7 +9,6 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  markCinemasFetched,
   shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
@@ -82,7 +81,9 @@ export const fetchComtradaCineOrderCatalog = async (
     );
   }
 
-  await markCinemasFetched(comtradaCinemas.map((c) => c.id));
-
-  return { movies: allMovies, showings: allShowings };
+  return {
+    movies: allMovies,
+    showings: allShowings,
+    fetchedCinemaIds: comtradaCinemas.map((cinema) => cinema.id),
+  };
 };

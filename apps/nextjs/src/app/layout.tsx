@@ -1,5 +1,6 @@
 import "@waslaeuftin/styles/globals.css";
 
+import type { Metadata } from "next";
 import { Libre_Franklin, Rubik } from "next/font/google";
 import Link from "next/link";
 import moment from "moment-timezone";
@@ -7,6 +8,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Analytics } from "@waslaeuftin/components/Analytics";
 import { SmartBanner } from "@waslaeuftin/components/SmartBanner";
+import { SITE_URL } from "@waslaeuftin/helpers/seo";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 
 const rubik = Rubik({
@@ -23,7 +25,8 @@ const libre_franklin = Libre_Franklin({
   variable: "--font-libre_franklin",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "wasläuft․in",
   description:
     "wasläuft․in ist ein Projekt, das es zum Ziel hat, eine Überblicksseite für deine Stadt bereitzustellen, auf der du siehst, welche Filme heute und in der Zukunft in deiner Stadt laufen.",

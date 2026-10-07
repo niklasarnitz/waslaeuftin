@@ -9,7 +9,6 @@ import {
   chunkArray,
   CINEMA_BATCH_SIZE,
   FetchProgressReporter,
-  markCinemasFetched,
   shouldFetchCinema,
   sleep,
 } from "@waslaeuftin/scripts/update-movies/helpers";
@@ -78,7 +77,9 @@ export const fetchCineplexxATCatalog = async (
     );
   }
 
-  await markCinemasFetched(cineplexxAtCinemas.map((c) => c.id));
-
-  return { movies: allMovies, showings: allShowings };
+  return {
+    movies: allMovies,
+    showings: allShowings,
+    fetchedCinemaIds: cineplexxAtCinemas.map((cinema) => cinema.id),
+  };
 };

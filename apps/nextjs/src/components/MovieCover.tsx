@@ -59,8 +59,9 @@ export const MovieCover = ({
         src={coverUrl}
         alt={`Filmcover von ${title}`}
         fill
-        sizes="(max-width: 768px) 30vw, 140px"
+        sizes="(min-width: 1024px) 140px, (min-width: 768px) 120px, (min-width: 640px) 100px, 80px"
         loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
         className="object-cover"
         onError={() => setHasImageError(true)}
       />

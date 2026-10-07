@@ -1,10 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import moment from "moment-timezone";
 import { useQueryState } from "nuqs";
 
 import { DatePicker } from "@waslaeuftin/components/ui/date-picker";
+import {
+  parseCalendarDate,
+  scheduleCalendarDate,
+  serializeCalendarDate,
+} from "@waslaeuftin/helpers/calendarDate";
 
 export const UrlDatePicker = (
   props: { citySlug: string } | { cinemaSlug: string },
@@ -12,14 +16,18 @@ export const UrlDatePicker = (
   void props;
 
   const [date, setDate] = useQueryState("date", {
-    parse: (query) => moment(query).toDate(),
-    serialize: (date) => moment(date).format("YYYY-MM-DD"),
+    parse: parseCalendarDate,
+    serialize: serializeCalendarDate,
     shallow: false,
   });
 
   const updateDate = useCallback(
     async (date: Date | undefined) => {
-      if (moment(date).isSame(moment(), "day")) {
+      if (
+        !date ||
+        serializeCalendarDate(date) ===
+          serializeCalendarDate(scheduleCalendarDate())
+      ) {
         await setDate(null);
       } else {
         await setDate(date ?? null);
@@ -31,14 +39,19 @@ export const UrlDatePicker = (
   const quickDateButtons = [
     {
       label: "Heute",
-      value: moment().toDate(),
-      isActive: !date || moment(date).isSame(moment(), "day"),
+      value: scheduleCalendarDate(),
+      isActive:
+        !date ||
+        serializeCalendarDate(date) ===
+          serializeCalendarDate(scheduleCalendarDate()),
     },
     {
       label: "Morgen",
-      value: moment().add(1, "day").toDate(),
+      value: scheduleCalendarDate(1),
       isActive:
-        Boolean(date) && moment(date).isSame(moment().add(1, "day"), "day"),
+        Boolean(date) &&
+        serializeCalendarDate(date!) ===
+          serializeCalendarDate(scheduleCalendarDate(1)),
     },
   ];
 
@@ -63,7 +76,10 @@ export const UrlDatePicker = (
           </button>
         ))}
       </div>
-      <DatePicker value={date ?? moment().toDate()} onChange={updateDate} />
+      <DatePicker
+        value={date ?? scheduleCalendarDate()}
+        onChange={updateDate}
+      />
     </div>
   );
 };
