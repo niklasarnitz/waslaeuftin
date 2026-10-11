@@ -46,6 +46,54 @@ describe("scoreTmdbCandidate", () => {
     expect(score).toBeGreaterThan(0.9);
   });
 
+  test("ranks the popular subtitled Terminator 2 above an obscure exact original title", () => {
+    const correct = createMockResult({
+      id: 280,
+      title: "Terminator 2 - Tag der Abrechnung",
+      original_title: "Terminator 2: Judgment Day",
+      release_date: "1991-07-03",
+      popularity: 34.9553,
+    });
+    const collision = createMockResult({
+      id: 66664,
+      title: "Contaminator",
+      original_title: "Terminator 2",
+      release_date: "1989-03-17",
+      popularity: 1.1709,
+    });
+
+    expect(scoreTmdbCandidate("terminator 2", correct)).toBeGreaterThan(0.68);
+    expect(scoreTmdbCandidate("terminator 2", correct)).toBeGreaterThan(
+      scoreTmdbCandidate("terminator 2", collision),
+    );
+  });
+
+  test("does not erase popularity differences between identical Vaterland titles", () => {
+    const current = createMockResult({
+      title: "Vaterland",
+      original_title: "Ojczyzna",
+      release_date: "2026-06-19",
+      popularity: 9.024,
+    });
+    const old = createMockResult({
+      title: "Vaterland",
+      original_title: "Fatherland",
+      release_date: "1994-11-26",
+      popularity: 3.7638,
+    });
+
+    expect(scoreTmdbCandidate("vaterland", current)).toBeGreaterThan(
+      scoreTmdbCandidate("vaterland", old),
+    );
+  });
+
+  test("does not confuse a title prefix with a sequel or a longer word", () => {
+    for (const title of ["Terminator 20", "Terminator 2: Judgment Day"]) {
+      const result = createMockResult({ title, original_title: title });
+      expect(scoreTmdbCandidate("terminator", result)).toBeLessThan(0.68);
+    }
+  });
+
   test("penalizes result without a poster", () => {
     const unrelatedWithPoster = createMockResult({
       title: "Unrelated",
@@ -90,15 +138,29 @@ describe("scoreTmdbCandidate", () => {
     expect(scoreWith - scoreWithout).toBeCloseTo(0.2);
   });
 
-  test("boosts score for year match", () => {
+  test("honors an explicit release year even for a less popular older film", () => {
     const result = createMockResult({
-      title: "Inception",
-      release_date: "2010-07-16",
+      title: "Vaterland",
+      original_title: "Fatherland",
+      release_date: "1994-11-26",
+      popularity: 0,
     });
-    const scoreWithYearMatch = scoreTmdbCandidate("inception 2010", result);
-    const scoreWithoutYearMatch = scoreTmdbCandidate("inception 2011", result);
+    expect(scoreTmdbCandidate("vaterland", result, 1994)).toBeGreaterThan(0.68);
+    expect(scoreTmdbCandidate("vaterland", result, 2026)).toBe(0);
+    expect(
+      scoreTmdbCandidate("vaterland", { ...result, release_date: null }, 2026),
+    ).toBe(0);
+  });
 
-    expect(scoreWithYearMatch).toBeGreaterThan(scoreWithoutYearMatch);
+  test("does not treat a year in the actual movie title as a release year", () => {
+    const result = createMockResult({
+      title: "2001: Odyssee im Weltraum",
+      original_title: "2001: A Space Odyssey",
+      release_date: "1968-04-02",
+    });
+    expect(
+      scoreTmdbCandidate("2001 odyssee im weltraum", result),
+    ).toBeGreaterThan(0.68);
   });
 
   test("boosts score for inclusion", () => {

@@ -128,7 +128,13 @@ export const resolveAndPersistCatalog = async (
   const moviesToFetchTmdbData = new Set<string>(); // raw titles
 
   const resolveWithFallback = (rawTitle: string): ResolvedMovie => {
-    const normalizedForFallback = normalizeMovieTitle(rawTitle).normalizedTitle;
+    const releaseYear = rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0];
+    const normalizedForFallback = [
+      normalizeMovieTitle(rawTitle).normalizedTitle,
+      releaseYear,
+    ]
+      .filter(Boolean)
+      .join(" ");
     const comparisonKey = normalizeForComparison(normalizedForFallback);
     const canonicalKey = `title:${comparisonKey}`;
 
@@ -172,10 +178,11 @@ export const resolveAndPersistCatalog = async (
   for (const [index, rawTitle] of rawTitles.entries()) {
     const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
     const comparisonKey = normalizeForComparison(normalizedTitle);
+    const hasReleaseYear = /\((?:19|20)\d{2}\)/.test(rawTitle);
 
     // Check if we already resolved a title with the same comparison key
     const existingByComparison =
-      comparisonKey.length > 0
+      comparisonKey.length > 0 && !hasReleaseYear
         ? resolutionByComparisonKey.get(comparisonKey)
         : undefined;
 
@@ -190,7 +197,9 @@ export const resolveAndPersistCatalog = async (
 
     // Try to find in database by normalized title
     const dbCandidates = dbMoviesByNormalizedTitle.get(comparisonKey) ?? [];
-    let dbMatch = dbCandidates.length > 0 ? dbCandidates[0] : null;
+    // A title-only cached match cannot establish the requested release year.
+    let dbMatch =
+      !hasReleaseYear && dbCandidates.length > 0 ? dbCandidates[0] : null;
 
     if (dbMatch) {
       // Found in database
@@ -327,6 +336,7 @@ export const resolveAndPersistCatalog = async (
 
     const { evaluation } = evaluationResult.value;
     const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
+    const releaseYear = rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0];
 
     console.info(
       `[Resolver] [${index + 1}/${allEvaluationResults.length}] Processing TMDB result for: "${rawTitle}"`,
@@ -350,7 +360,7 @@ export const resolveAndPersistCatalog = async (
         const tmdbComparisonKey = normalizeForComparison(
           resolved.normalizedTitle,
         );
-        if (tmdbComparisonKey.length > 0) {
+        if (tmdbComparisonKey.length > 0 && !releaseYear) {
           resolutionByComparisonKey.set(tmdbComparisonKey, resolved);
         }
 
@@ -400,7 +410,9 @@ export const resolveAndPersistCatalog = async (
       const resolved = createResolvedMovie({
         canonicalKey,
         name: match.title,
-        normalizedTitle,
+        normalizedTitle: releaseYear
+          ? `${normalizedTitle} ${releaseYear}`
+          : normalizedTitle,
         tmdbMovieId: tmdbMetadataStored ? match.tmdbMovieId : null,
         coverUrl,
         coverStorageKey,
@@ -410,7 +422,7 @@ export const resolveAndPersistCatalog = async (
       titleResolutionMap.set(rawTitle, resolved);
       canonicalMovieMap.set(canonicalKey, resolved);
       const newComparisonKey = normalizeForComparison(resolved.normalizedTitle);
-      if (newComparisonKey.length > 0) {
+      if (newComparisonKey.length > 0 && !releaseYear) {
         resolutionByComparisonKey.set(newComparisonKey, resolved);
       }
 

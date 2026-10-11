@@ -175,6 +175,83 @@ describe("resolveAndPersistCatalog", () => {
     });
   });
 
+  test("does not reuse a cached title-only film for an explicitly different release year", async () => {
+    existingMovies = [
+      {
+        id: 42,
+        canonicalKey: "tmdb:11248",
+        name: "Vaterland",
+        normalizedTitle: "Vaterland",
+        tmdbMovieId: 11248,
+        coverUrl: "https://example.test/old.jpg",
+        coverStorageKey: "old.jpg",
+        coverConfidence: 1,
+        tmdbSearchFailedOn: null,
+      },
+    ];
+    storedTmdbMetadataIds.add(11248);
+    storedTmdbMetadataIds.add(1437696);
+    acceptedCandidate = {
+      tmdbMovieId: 1437696,
+      title: "Vaterland",
+      posterPath: "/current.jpg",
+      confidence: 0.95,
+    };
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+
+    await resolveAndPersistCatalog([
+      {
+        movies: [
+          { cinemaId: 10, name: "Vaterland" },
+          { cinemaId: 10, name: "Vaterland (2026)" },
+        ],
+        showings: ["Vaterland", "Vaterland (2026)"].map((movieName, index) => ({
+          cinemaId: 10,
+          movieName,
+          dateTime: new Date(`2026-10-${11 + index}T18:00:00Z`),
+        })),
+      },
+    ]);
+
+    expect(upsertedMovies[1]).toMatchObject({
+      tmdbMovieId: 1437696,
+      normalizedTitle: "Vaterland (2026)",
+    });
+    expect(createdShowings[0]).toMatchObject({
+      movieId: 1,
+      rawMovieName: "Vaterland",
+    });
+    expect(createdShowings[1]).toMatchObject({
+      movieId: 2,
+      rawMovieName: "Vaterland (2026)",
+    });
+  });
+
+  test("keeps separate release years when no TMDB match is available", async () => {
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: ["Vaterland (1994)", "Vaterland (2026)"].map(
+          (movieName, index) => ({
+            cinemaId: 10,
+            movieName,
+            dateTime: new Date(`2026-10-${11 + index}T18:00:00Z`),
+          }),
+        ),
+      },
+    ]);
+
+    expect(upsertedMovies).toEqual([
+      expect.objectContaining({ canonicalKey: "title:vaterland 1994" }),
+      expect.objectContaining({ canonicalKey: "title:vaterland 2026" }),
+    ]);
+    expect(createdShowings[0]).toMatchObject({ movieId: 1 });
+    expect(createdShowings[1]).toMatchObject({ movieId: 2 });
+  });
+
   test("does not write a TMDB foreign key when metadata persistence fails", async () => {
     acceptedCandidate = {
       tmdbMovieId: 12345,

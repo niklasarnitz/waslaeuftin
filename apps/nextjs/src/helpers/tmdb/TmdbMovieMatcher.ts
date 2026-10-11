@@ -1,4 +1,8 @@
-import { normalizeForComparison, normalizeMovieTitle } from "@waslaeuftin/core";
+import {
+  extractYear,
+  normalizeForComparison,
+  normalizeMovieTitle,
+} from "@waslaeuftin/core";
 import { env } from "@waslaeuftin/env";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
 import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
@@ -18,7 +22,12 @@ export class TmdbMovieMatcher {
     const normalizedTitle = normalizeForComparison(
       normalizedMovieTitleForSearch,
     );
-    const cacheKey = normalizedTitle || normalizeForComparison(title);
+    // Read the explicit year before normalization removes metadata brackets.
+    // Bare numbers can be part of the title (e.g. 2001: A Space Odyssey).
+    const requestedYear = extractYear(
+      title.match(/\((?:19|20)\d{2}\)/)?.[0] ?? "",
+    );
+    const cacheKey = `${normalizedTitle || normalizeForComparison(title)}|${requestedYear ?? ""}`;
 
     const cached = this.searchCache.get(cacheKey);
     if (cached) {
@@ -39,6 +48,12 @@ export class TmdbMovieMatcher {
         searchUrl.searchParams.set("language", "de-DE");
         searchUrl.searchParams.set("include_adult", "false");
         searchUrl.searchParams.set("page", "1");
+        if (requestedYear) {
+          searchUrl.searchParams.set(
+            "primary_release_year",
+            String(requestedYear),
+          );
+        }
 
         const searchResponse = await fetch(searchUrl, {
           headers: { Accept: "application/json" },
@@ -68,7 +83,11 @@ export class TmdbMovieMatcher {
           posterPath: movieResult.poster_path,
           releaseDate: movieResult.release_date,
           popularity: movieResult.popularity,
-          confidence: scoreTmdbCandidate(normalizedTitle, movieResult),
+          confidence: scoreTmdbCandidate(
+            normalizedTitle,
+            movieResult,
+            requestedYear,
+          ),
           sourceQuery: query,
         });
       }
