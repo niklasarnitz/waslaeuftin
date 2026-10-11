@@ -1,3 +1,5 @@
+import type { MovieIdentityEvidence } from "@waslaeuftin/validators";
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export interface RawProviderShowing {
@@ -6,4 +8,7 @@ export interface RawProviderShowing {
   dateTime: Date;
   bookingUrl?: string | null;
   showingAdditionalData?: string[] | null;
+  provider?: string;
+  providerFilmId?: string;
+  evidence?: MovieIdentityEvidence;
 }

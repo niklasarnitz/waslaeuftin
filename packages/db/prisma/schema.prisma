@@ -14,6 +14,12 @@ model Showing {
   rawMovieName          String
   createdAt             DateTime @default(now())
   updatedAt             DateTime @default(now()) @updatedAt
+  sourceProvider        String?
+  providerFilmId        String?
+  sourceEvidence        Json?
+  matcherVersion        Int?
+  matchEvaluatedAt      DateTime?
+  matchEvaluation       Json?
 
   cinemaId Int
   movieId  Int
@@ -25,6 +31,7 @@ model Showing {
   @@index([cinemaId, dateTime])
   @@index([movieId, dateTime])
   @@index([movieId, cinemaId])
+  @@index([cinemaId, sourceProvider, providerFilmId])
 }
 
 model Movie {

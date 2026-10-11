@@ -163,13 +163,13 @@ describe("scoreTmdbCandidate", () => {
     ).toBeGreaterThan(0.68);
   });
 
-  test("boosts score for inclusion", () => {
+  test("does not erase a named episode to match an unspecified franchise", () => {
     const result = createMockResult({
       title: "Star Wars: Episode IV - A New Hope",
     });
     const score = scoreTmdbCandidate("star wars", result);
 
-    expect(score).toBeGreaterThan(0.3);
+    expect(score).toBeLessThan(0.68);
   });
 
   test("low score for unrelated movie", () => {

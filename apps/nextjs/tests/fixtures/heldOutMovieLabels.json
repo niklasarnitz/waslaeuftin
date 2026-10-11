@@ -1,0 +1,945 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-11T20:50:20.003918+00:00",
+  "caseCount": 20,
+  "identityLevel": "TMDB movie identity, not screening date or cut-specific edition",
+  "evidenceSemantics": {
+    "productionYear": "Year of primary TMDB release_date; no independent production-period claim.",
+    "runtimeMinutes": "Primary TMDB film runtime, not necessarily this screening edition.",
+    "null": "Insufficient single-film identity evidence in the input, or explicitly multi-film programme."
+  },
+  "independence": {
+    "selection": "Exact real catalog name/rawMovieName strings. Only catalog titles and occurrence record IDs were used; stored identities, confidence, checks, and matcher predictions were not used for labels.",
+    "exclusion": "Manually excluded entire film families represented by all 329 development inputs and matcher test literals, including candidate movies and imported sneak fixtures. No selected family overlaps: Good Will Hunting; Big Lebowski; Inception; Lives of Others; Donnie Darko; Amelie; Spirited Away; Erin Brockovich; Shawshank Redemption; Alien; Totoro; Grand Budapest Hotel; Interstellar; Pulp Fiction; Blade Runner; Back to the Future; Psycho; Sabrina; Scarface; Matrix.",
+    "method": "Direct read-only TMDB search and movie detail endpoints; full response objects retained. Manual primary title/original-title/release-year review; no matcher invocation, scoring, normalization helper, or stored-ID lookup. Presentation phrases interpreted manually, not with application code.",
+    "exclusionFiles": [
+      {
+        "path": ".amp/in/artifacts/catalog-live-audit.json",
+        "sha256": "fc145b6771560f6999b27f1f8f62c948e38c23f9d8c5c035ea0a49f6cc9c16c9"
+      },
+      {
+        "path": "apps/nextjs/tests/helpers/tmdb/TmdbMovieMatcher.test.ts",
+        "sha256": "05f3e051edff025d6e2e8237127cf0524350ee355b4c74d74ecd5bce880a7dc5"
+      },
+      {
+        "path": "apps/nextjs/tests/fixtures/auditedSneakTitles.ts",
+        "sha256": "ac624bf101b5380d9c1525cbf9100bea59907d0da590f99647ad8e3c7da5182a"
+      }
+    ],
+    "excludedDevelopmentTitles": [
+      "Emil und die Detektive",
+      "Emil und die Detektive (2026)",
+      "Vaterland (2026)",
+      "Resident Evil",
+      "Das gewisse Etwas",
+      "Vaterland",
+      "Pressure",
+      "Andre Rieu's 2026: Let it Snow",
+      "DER HERR DER RINGE - DIE GEFÄHRTEN - JUBILÄUM 25 JAHRE",
+      "RBO 2026/27: Carmen (The Royal Opera)",
+      "Back to the Beginning",
+      "Berliner Philharmoniker: Silvesterkonzert 2026/27",
+      "Dune: Part Three Early Fan Preview",
+      "Sneak Preview",
+      "Manon (Royal Ballet), RBO 2026",
+      "MET 2026/27 Giuseppe Verdi: MACBETH",
+      "MET Opera: Macbeth (2026)",
+      "MET Opera: Otello (2027)",
+      "Dune: Part Three Vorpremiere",
+      "Die Tribute von Panem 3 - Mockingjay Teil 2",
+      "RBO 2026/27: Der Nussknacker (The Royal Ballet)",
+      "MET 2026/27 Giacomo Puccini: LA FANCIULLA DEL WEST",
+      "RBO 2026/27: Götterdämmerung (The Royal Opera)",
+      "Met Opera: La Fanciulla Del West (2027)",
+      "Berliner Philharmoniker - Live im Kino 2026/27: Silvesterkonzert",
+      "Hirten",
+      "RBO 2026/27: Schwanensee (The Royal Ballet)",
+      "ARNIE & BARNEY – RETTEN DAS WASSER",
+      "RBO 2026/27: Romeo und Julia (The Royal Ballet)",
+      "RBO 2026/27: Così fan tutte (The Royal Opera)",
+      "The Rocky Horror Picture Show",
+      "Alice im Wunderland",
+      "RBO 2026/27: Tosca (The Royal Opera)",
+      "RBO 2026/27: Manon (The Royal Ballet)",
+      "GLAUBE",
+      "GLAUBE (LOS DOMINGOS)",
+      "Meine Freundin Conni 2 - Abenteuer mit Kranich Klaus",
+      "Halloween 1 - Die Nacht des Grauens",
+      "MET Opera: Samson et Dalila (2026)",
+      "Heimsuchung",
+      "Die Tribute von Panem 3 - Mockingjay Teil 1",
+      "RBO Live 2026-27: The Royal Opera Tosca",
+      "Sacrifice",
+      "Pettersson & Findus: Das schönste Weihnachten überhaupt (2017)",
+      "RBO 2025/26: Giselle (The Royal Ballet)",
+      "BERLINER PHILHARMONIKER - SILVESTERKONZERT 2026 / 2027",
+      "MET 2026/27 Richard Wagner: PARSIFAL",
+      "Saint-Saens: Samson et Dalila (MET live im Kino)",
+      "Nur ein kleines bisschen Glück",
+      "The Piano Tuner (2022)",
+      "Obsession",
+      "MET OPERA: Verdi MACBETH",
+      "Verdi: Otello",
+      "MET OPERA: Verdi OTELLO",
+      "MET Opera: La Fanciulla del West-Puccini(2027)",
+      "Der Herr der Ringe 2 (Extended Version)",
+      "Met Opera: Manon (2027)",
+      "MET 2026/27 Jules Massenet: MANON ",
+      "Momo",
+      "EIN MÜNCHNER IM HIMMEL – DER TOD IST ERST DER ANFANG D, ab 6",
+      "Shrek - Der tollkühne Held (25 Jahre)",
+      "MET Opera: Parsifal (2027)",
+      "Terminator 2 (OV, 70mm)",
+      "Schwanensee (Opera national de Paris)",
+      "BERLINER PHILHARMONIKER - DAS SILVESTERKONZERT",
+      "Met 2021/22: Rigoletto",
+      "From Inside Out - Die Architektur von Peter Zumthor",
+      "DER POLAR EXPRESS",
+      "MET OPERA: COSÌ FAN TUTTE (2026)",
+      "Backrooms",
+      "Massenet: Manon (MET live im Kino)",
+      "MET OPERA: Puccini LA FANCIULLA DEL WEST",
+      "MET Opera 2014: Carmen",
+      "Wagner: Parsifal (MET live im Kino)",
+      "Sneak OV",
+      "Island 63 66 N",
+      " (2024)",
+      "PAN'S LABYRINTH (BEST OF CINEMA)",
+      "Niki de Saint Phalle",
+      "Queen - Budapest",
+      "Gruppo di famiglia in un interno - Gewalt und Leidenschaft",
+      "Dirty Dancing",
+      "RAMMSTEIN",
+      "COME TI MUOVI, SBAGLI - Immer verkehrt",
+      "NIKO 3 – REISE ZU DEN POLARLICHTERN",
+      "Halloween 2 - Das Grauen kehrt zurück",
+      "Freitag der 13",
+      "Hungarian Rhapsody – Queen Live In Budapest",
+      "Met Opera 2026/27: Giuseppe Verdi MACBETH",
+      "OASIS: DON'T LOOK BACK IN ANGER , ab 12",
+      "Tosca (2027)",
+      "Do You Love Me",
+      "Schwanensee (2027)",
+      "Das Ding aus einer anderen Welt (1951)",
+      "Dune",
+      "RBO live 2027: Götterdämmerung",
+      "Suspiria",
+      "HANNAH ARENDT - Denken ist gefährlichZum 120. Geb. von Hannah Arendt",
+      "Nur noch ein einziges Mal – It ends with us",
+      "Les Misérables",
+      "Paradise",
+      "RBO: Der Nussknacker (2026)",
+      "Niko - Reise zu den Polarlichtern (Mein erster Kinobesuch)",
+      "Monet (2027)",
+      "Zombie 2 - Day of the Dead",
+      "Drishyam 3 - The Conclusion",
+      "DIE HÄSCHENSCHULE-DER GROßE EIERKLAU",
+      "Titanic",
+      "Pettersson und Findus",
+      "Quichotte",
+      "Vertiginous",
+      "BENJAMIN BLÜMCHEN (WA)",
+      "Billie",
+      "HORROR-NACHT",
+      "Wir waren das dunkle Herz der Stadt - der Untergang der Hamburger Gängeviertel",
+      "MET Opera: Eugen Onegin",
+      "Terrifier 1",
+      "Little Women",
+      "Kreator - Wacken Open Air",
+      "HANNAH ARENDT",
+      "Heidi",
+      "Nightmare on Elm Street - Mörderische Träume",
+      "Der Pecker",
+      "OLDBOY (2003)",
+      "HEIDI (1965)",
+      "Elvis",
+      "Met Opera 2026/27: Giuseppe Verdi OTELLO",
+      "Crematory - Wacken Open air",
+      "Dawn of the Dead",
+      "Amorphis - Wacken Open Air",
+      "Ruinenschleicher & Schachterleis",
+      "Alestorm - Wacken Open Air",
+      "Iwan der Schreckliche Teil 1",
+      "Le Journal d`une femme de chambre",
+      "Roma",
+      "RBO 2026/27: Alice im Wunderland (The Royal Ballet)",
+      "Double Feature: Grindhouse",
+      "Pulse (2001)",
+      "HEXEN HEXEN (1990)",
+      "Guru",
+      "Der kleine Rabe Socke",
+      "ES - Kapitel 1",
+      "Terminator",
+      "Der Astronaut",
+      "La La Land",
+      "THE CHRONOLOGY OF WATER - FLINTA* Filmabend",
+      "Peterchens Mondfahrt (2022)",
+      "Bis ans Ende der Welt - Teil 1",
+      "Maschine",
+      "Delegation",
+      "IM ANGESICHT DES TODES",
+      "SUPERNOVA",
+      "Huis clos",
+      "Chile (Live-Reportage)",
+      "No Mercy",
+      "A Star is Born",
+      "Giacomo Puccini: La Fanciulla Del West - Metropolitan Opera 2018/19",
+      "Belle & Sebastian",
+      "Unheimliche Schattenlichter",
+      "Barbie",
+      "Holiday",
+      "Stalingrad (WA:2025)",
+      "The Fog – Nebel des Grauens",
+      "Das Schweigen / Tystnaden",
+      "Abbath - Wacken Open Air",
+      "Algorithmen",
+      "Happy Together",
+      "Geschlossene Gesellschaft",
+      "Ring (1998)",
+      "Der gestiefelte Kater",
+      "Kabaddi 5 - After the Final Match",
+      "The Sea",
+      "Candyman",
+      "Anruf für einen Toten (1966)",
+      "Der Pate",
+      "Requiem (2019)",
+      "Saturday Night Fever",
+      "Sissi",
+      "Durchgedreht",
+      "Nachts im Museum",
+      "Drácula",
+      "NONNA",
+      "The Harvest",
+      "FRAUEN AM RANDE DES NERVENZUSAMMENBRUCHS1988 Die schönsten",
+      "Shiver",
+      "SimsalaGrimm Mitmachkino",
+      "Tödliche Weihnachten - The Long Kiss Goodnight",
+      "Der Junge und die Welt (Boy & the World)",
+      "Prom Night",
+      "The Fog",
+      "BARBARA (2012)",
+      "Silvesterkonzert der Berliner Philharmoniker",
+      "Der Kleine Rabe Socke 3 - Suche nach dem verlorenen Schatz",
+      "La Strada - Das Lied der Straße (1956)",
+      "Tagebuch einer Kammerzofe",
+      "SUKKUBUS",
+      "Vampyr",
+      "Tiger & Dragon (2001)",
+      "HELLBOUND - HELLRAISER 2",
+      "Star Trek - Der Film - Directors Cut",
+      "Lustiges Petterson & Findus Mitmachkino 2026",
+      "Die Schöne und das Biest",
+      "Brüno",
+      "Chocolat",
+      "Downtown",
+      "Metropolis",
+      "Andrea Bocelli",
+      "Bon Voyage...",
+      "Max und Moritz (1956)",
+      "Jumanji 3 - Open World",
+      " (2025)",
+      "NOSFERATU",
+      "DAS INDISCHE GRABMAL (TEIL 1, DIE SENDUNG DES YOGHI)",
+      "Pinocchio",
+      "DAS INDISCHE GRABMAL (TEIL 2, DER TIGER VON ESCHNAPUR)",
+      "Into the Deep",
+      "Final Destination 6 Bloodlines",
+      "Festtagsspaß mit Peppa - Das Kinoerlebnis",
+      "Le Cri des gardes - The Fence",
+      "Andre Rieu's 2026 Christmas Concert Let It Snow",
+      "Der schlimmste Mensch der Welt (2022)",
+      "Der perfekte Urlaub",
+      "HYBE CHEERING PARTY",
+      "BTS WORLD TOUR 'ARIRANG' IN BUENOS AIRES: LIVE VIEWING",
+      "Frühstück - Chopin",
+      "RBO Live 2026/27: Tosca (Royal Opera)",
+      "Sneak Preview Ansbach",
+      "Gaming im Kino - 3 Stunden",
+      "Frühstück bei Audrey",
+      "ENHYPEN VR CONCERT: IMMERSION",
+      "ICONIC MOVIE",
+      "Rammstein Live in Mexiko City",
+      "Moscas - Fliegen und andere Gäste",
+      "Panem-Mockingjay 1+2",
+      "ENHYPEN WORLD TOUR 'BLOOD SAGA'",
+      "Herr der Ringe Ext. Trilogie",
+      "CineSpecial: Rammstein - Live in Mexico City",
+      "Edmund und Luzie - Winterabenteuer",
+      "André Rieu - Maastricht-Konzert 2023: Love is All Around",
+      "MET Opera 2024/25: Jacques Offenbach LES CONTES D´HOFFMANN",
+      "RBO 26/27: Alice im Wunderland (Royal Ballet) (Aufz.)",
+      "RBO Live 2026/27: Alice im Wunderland (Royal Ballet)",
+      "Zauberhafte Schwestern 2",
+      "Sneak",
+      "Sneak Preview FSK 18",
+      "Der Herr der Ringe Triple (Extended Version)",
+      "CHOPIN - EINE SONATE IN PARIS",
+      "Lieblingsmenschen",
+      "League of Legends Worlds 26 - Finals in Cinema",
+      "BTS WORLD TOUR 'ARIRANG' IN SÃO PAULO: LIVE VIEWING",
+      "Tabaluga & Leo",
+      "RB&O Live 2024/25: HOFFMANNS ERZÄHLUNGEN",
+      "DER FRECHSTE TROLL DER WELT",
+      "May I Speak with the Enemy?",
+      "Pornfilmfestival Berlin 2026",
+      "Stray Kids World Tour <RUN IT> LIVE VIEWING – CineSpecial",
+      "Gaming im Kino - 4 Stunden",
+      "Verdi: Macbeth (Berliner Staatsoper)",
+      "Sneak Preview FSK 16",
+      "Albrecht Weinberg - Es ist immer in meinem Kopf",
+      "Der Herr der Ringe 1 (Extended Version) (25th Anniversary)",
+      "When Tomatoes Met Wagner",
+      "RBO Live 2026/27: Carmen (Royal Opera)",
+      "RBO Live 2026/27: Schwanensee (Royal Ballet)",
+      "Der Herr der Ringe 3 (Extended Version)",
+      "Die Tribute von Panem 1-4 (2D)",
+      "Ein Bus voller Leben",
+      "Kurz Film Tour 2026 - Rolle 6",
+      "Offener Projektraum",
+      "The Royal Opera House: La Bohème",
+      "Junkies of Dreaming - Mahler 3 Currentzis",
+      "RBO Live 2026/27: Der Nussknacker (Royal Ballet)",
+      "Über Unterbiberger - Vom Woid in die Welt",
+      "Überraschungspremiere",
+      "RBO Live 2026/27: Götterdämmerung (Royal Opera)",
+      "CineSpecial: Der Herr der Ringe - Die zwei Türme (Extended)",
+      "CineSpecial: Ozzy & Black Sabbath: Back To The Beginning",
+      "CineSpecial: Der Herr der Ringe - Die Rückkehr des Königs (Extended)",
+      "Unsafe",
+      "CineSpecial: Der Herr der Ringe - Die Gefährten (Extended)",
+      "Puella Magi Madoka Magica Der Film - Walpurgisnacht: Rising",
+      "André Rieu's Weihnachtskonzert 2026: Let it Snow - CineSpecial",
+      "Sneak Over",
+      "Das GEHEIMNIS der ZAHNFEE",
+      "MET Opera: Manon-J.Massenet (2027)",
+      "MET Opera: Parsifal-R.Wagner(2027)",
+      "Met Opera 2026-27: Macbeth - Giuseppe Verdi",
+      "CineSpecial: Halloween - Die Nacht des Grauens (4K)",
+      "League of Legends Worlds 2026 - Finals in Cinema (engl.)",
+      "Lands of No Return: Gohar Martirosyan",
+      "11FREUNDE live",
+      "Live aus der MET: Wagner: Parsifal",
+      "Common Roads: Georg Gartz und Pete Clarke",
+      "Live aus der MET: Saint-Saëns: Samson et Dalila",
+      "Live aus der MET: Verdi: Macbeth",
+      "POETRY SLAM KETSCH",
+      "The Royal Ballett 2026/27: Der Nussknacker",
+      "OMV Poetry Slam",
+      "Live aus der MET: Verdi: Otello",
+      "Kommissar Jennerwein – Hochsaison",
+      "Der Exorzist (Director' s Cut)",
+      "RBO 26/27: Carmen (Royal Opera) (Aufz.)",
+      "Into the Wild - In die Wildnis",
+      "Sonderveranstaltung",
+      "Met Opera 2026-27: Samson et Dalila - Camille Saint-Saëns",
+      "Der Herr der Ringe 2 (Extented Version)",
+      "League of Legends World Championship Finals 2019",
+      "Corona - auf der Suche nach der Wahrheit",
+      "Die Berliner Philharmoniker LIVE: Das Silvesterkonzert 2026-27",
+      "Der Herr der Ringe 1 (Extented Version) (25th Anniversary)",
+      "007 auf der Suche nach der Seele",
+      "Der kleine Maulwurf",
+      "Der Herr der Ringe 3 (Extented Version)",
+      "Rammstein-Live in Mexio City",
+      "Live aus der MET: Puccini: La Fanciulla del West",
+      "Live aus der MET: Massenet: Manon",
+      "SCHEREREIEN",
+      "48/49 Revolution in Baden",
+      "Offenes Spiel",
+      "Geisterpark",
+      "Tom Cruise",
+      "SAALVERMIETUNG LICHTSPIELHAUS",
+      "GIOIA MIA - Mein Sommer mit Nonna",
+      "FILMKUNST: Vaterland",
+      "CineSneak - Die Überraschungspreview",
+      "TRE CIOTOLE - Drei Abschiede",
+      "V&K: Terminator 2: Tag der Abrechnung 35th Anniversary",
+      "Der perfekte Urlaub - CineLady Preview",
+      "Lord Of The Rings Triple (Extended Version - English)"
+    ],
+    "limitations": "Primary TMDB metadata is permitted by the task but is community maintained; this is not distributor-verified screening-specific metadata. Search responses are page 1 (API page metadata retained), not an exhaustive identity universe. Labels with exact same-title versions are left unresolved. Online web search was unavailable; no distributor claims are made."
+  },
+  "cases": [
+    {
+      "title": "Good Will Hunting",
+      "expectedTmdbId": 489,
+      "stratum": "ordinary",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 552305,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Good+Will+Hunting&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/489?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/489"
+      ],
+      "productionYear": 1997,
+      "originalTitle": "Good Will Hunting",
+      "director": "Gus Van Sant",
+      "runtimeMinutes": 126,
+      "primaryMetadata": {
+        "title": "Good Will Hunting",
+        "releaseDate": "1997-12-05"
+      },
+      "justification": "Primary TMDB metadata identifies Good Will Hunting (1997), original title Good Will Hunting; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "The Big Lebowski",
+      "expectedTmdbId": 115,
+      "stratum": "ordinary",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 320,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 320,
+          "field": "rawMovieName",
+          "showings": 2
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=The+Big+Lebowski&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/115?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/115"
+      ],
+      "productionYear": 1998,
+      "originalTitle": "The Big Lebowski",
+      "director": "Joel Coen / Ethan Coen",
+      "runtimeMinutes": 117,
+      "primaryMetadata": {
+        "title": "The Big Lebowski",
+        "releaseDate": "1998-03-06"
+      },
+      "justification": "Primary TMDB metadata identifies The Big Lebowski (1998), original title The Big Lebowski; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Inception",
+      "expectedTmdbId": 27205,
+      "stratum": "ordinary",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 409,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 409,
+          "field": "rawMovieName",
+          "showings": 6
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Inception&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/27205?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/27205"
+      ],
+      "productionYear": 2010,
+      "originalTitle": "Inception",
+      "director": "Christopher Nolan",
+      "runtimeMinutes": 148,
+      "primaryMetadata": {
+        "title": "Inception",
+        "releaseDate": "2010-07-15"
+      },
+      "justification": "Primary TMDB metadata identifies Inception (2010), original title Inception; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Das Leben der Anderen",
+      "expectedTmdbId": 582,
+      "stratum": "ordinary",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 32911,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 32911,
+          "field": "rawMovieName",
+          "showings": 6
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Das+Leben+der+Anderen&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/582?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/582"
+      ],
+      "productionYear": 2006,
+      "originalTitle": "Das Leben der Anderen",
+      "director": "Florian Henckel von Donnersmarck",
+      "runtimeMinutes": 137,
+      "primaryMetadata": {
+        "title": "Das Leben der Anderen",
+        "releaseDate": "2006-03-23"
+      },
+      "justification": "Primary TMDB metadata identifies Das Leben der Anderen (2006), original title Das Leben der Anderen; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Donnie Darko",
+      "expectedTmdbId": 141,
+      "stratum": "ordinary",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 34190,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Donnie+Darko&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/141?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/141"
+      ],
+      "productionYear": 2001,
+      "originalTitle": "Donnie Darko",
+      "director": "Richard Kelly",
+      "runtimeMinutes": 113,
+      "primaryMetadata": {
+        "title": "Donnie Darko",
+        "releaseDate": "2001-01-19"
+      },
+      "justification": "Primary TMDB metadata identifies Donnie Darko (2001), original title Donnie Darko; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Die fabelhafte Welt der Amélie",
+      "expectedTmdbId": 194,
+      "stratum": "localized",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 31136,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Die+fabelhafte+Welt+der+Am%C3%A9lie&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/194?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/194"
+      ],
+      "productionYear": 2001,
+      "originalTitle": "Le Fabuleux Destin d'Amélie Poulain",
+      "director": "Jean-Pierre Jeunet",
+      "runtimeMinutes": 122,
+      "primaryMetadata": {
+        "title": "Die fabelhafte Welt der Amélie",
+        "releaseDate": "2001-04-25"
+      },
+      "justification": "Primary TMDB metadata identifies Die fabelhafte Welt der Amélie (2001), original title Le Fabuleux Destin d'Amélie Poulain; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Chihiros Reise ins Zauberland",
+      "expectedTmdbId": 129,
+      "stratum": "localized",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 450,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 450,
+          "field": "rawMovieName",
+          "showings": 20
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Chihiros+Reise+ins+Zauberland&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/129?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/129"
+      ],
+      "productionYear": 2001,
+      "originalTitle": "千と千尋の神隠し",
+      "director": "Hayao Miyazaki",
+      "runtimeMinutes": 125,
+      "primaryMetadata": {
+        "title": "Chihiros Reise ins Zauberland",
+        "releaseDate": "2001-07-20"
+      },
+      "justification": "Primary TMDB metadata identifies Chihiros Reise ins Zauberland (2001), original title 千と千尋の神隠し; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "ERIN BROCKOVICH - Eine wahre Geschichte",
+      "expectedTmdbId": 462,
+      "stratum": "localized",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 26521,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=ERIN+BROCKOVICH+-+Eine+wahre+Geschichte&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Erin+Brockovich&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/462?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/462"
+      ],
+      "productionYear": 2000,
+      "originalTitle": "Erin Brockovich",
+      "director": "Steven Soderbergh",
+      "runtimeMinutes": 131,
+      "primaryMetadata": {
+        "title": "Erin Brockovich",
+        "releaseDate": "2000-03-17"
+      },
+      "justification": "Primary TMDB metadata identifies Erin Brockovich (2000), original title Erin Brockovich; exact film-title match, not a stored catalog identity. The German descriptive suffix does not supply a competing film identity; the complete original title is preserved."
+    },
+    {
+      "title": "Die Verurteilten",
+      "expectedTmdbId": 278,
+      "stratum": "localized",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 277,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 277,
+          "field": "rawMovieName",
+          "showings": 1
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Die+Verurteilten&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/278?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/278"
+      ],
+      "productionYear": 1994,
+      "originalTitle": "The Shawshank Redemption",
+      "director": "Frank Darabont",
+      "runtimeMinutes": 142,
+      "primaryMetadata": {
+        "title": "Die Verurteilten",
+        "releaseDate": "1994-09-23"
+      },
+      "justification": "Primary TMDB metadata identifies Die Verurteilten (1994), original title The Shawshank Redemption; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Alien - Das unheimliche Wesen aus einer fremden Welt",
+      "expectedTmdbId": 348,
+      "stratum": "localized",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 44123,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Alien+-+Das+unheimliche+Wesen+aus+einer+fremden+Welt&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/348?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/348"
+      ],
+      "productionYear": 1979,
+      "originalTitle": "Alien",
+      "director": "Ridley Scott",
+      "runtimeMinutes": 117,
+      "primaryMetadata": {
+        "title": "Alien - Das unheimliche Wesen aus einer fremden Welt",
+        "releaseDate": "1979-05-25"
+      },
+      "justification": "Primary TMDB metadata identifies Alien - Das unheimliche Wesen aus einer fremden Welt (1979), original title Alien; exact film-title match, not a stored catalog identity."
+    },
+    {
+      "title": "Studio Ghibli: Mein Nachbar Totoro",
+      "expectedTmdbId": 8392,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 127549,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Studio+Ghibli%3A+Mein+Nachbar+Totoro&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Mein+Nachbar+Totoro&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/8392?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/8392"
+      ],
+      "productionYear": 1988,
+      "originalTitle": "となりのトトロ",
+      "director": "Hayao Miyazaki",
+      "runtimeMinutes": 86,
+      "primaryMetadata": {
+        "title": "Mein Nachbar Totoro",
+        "releaseDate": "1988-04-16"
+      },
+      "justification": "Primary TMDB metadata identifies Mein Nachbar Totoro (1988), original title となりのトトロ; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Mein Nachbar Totoro intact; screening/programme year is not treated as production year."
+    },
+    {
+      "title": "STRICKKINO: Grand Budapest Hotel",
+      "expectedTmdbId": 120467,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 270466,
+          "field": "rawMovieName",
+          "showings": 1
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=STRICKKINO%3A+Grand+Budapest+Hotel&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Grand+Budapest+Hotel&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/120467?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/120467"
+      ],
+      "productionYear": 2014,
+      "originalTitle": "The Grand Budapest Hotel",
+      "director": "Wes Anderson",
+      "runtimeMinutes": 99,
+      "primaryMetadata": {
+        "title": "Grand Budapest Hotel",
+        "releaseDate": "2014-02-26"
+      },
+      "justification": "Primary TMDB metadata identifies Grand Budapest Hotel (2014), original title The Grand Budapest Hotel; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Grand Budapest Hotel intact; screening/programme year is not treated as production year."
+    },
+    {
+      "title": "Sommerkino 2026: Interstellar",
+      "expectedTmdbId": 157336,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 335019,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Sommerkino+2026%3A+Interstellar&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Interstellar&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/157336?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/157336"
+      ],
+      "productionYear": 2014,
+      "originalTitle": "Interstellar",
+      "director": "Christopher Nolan",
+      "runtimeMinutes": 169,
+      "primaryMetadata": {
+        "title": "Interstellar",
+        "releaseDate": "2014-11-04"
+      },
+      "justification": "Primary TMDB metadata identifies Interstellar (2014), original title Interstellar; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Interstellar intact; screening/programme year is not treated as production year."
+    },
+    {
+      "title": "(Throwback Thursday) Pulp Fiction",
+      "expectedTmdbId": 680,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 289524,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=%28Throwback+Thursday%29+Pulp+Fiction&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Pulp+Fiction&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/680?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/680"
+      ],
+      "productionYear": 1994,
+      "originalTitle": "Pulp Fiction",
+      "director": "Quentin Tarantino",
+      "runtimeMinutes": 154,
+      "primaryMetadata": {
+        "title": "Pulp Fiction",
+        "releaseDate": "1994-09-10"
+      },
+      "justification": "Primary TMDB metadata identifies Pulp Fiction (1994), original title Pulp Fiction; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Pulp Fiction intact; screening/programme year is not treated as production year."
+    },
+    {
+      "title": "CTB-Klassiker: Blade Runner - Final Cut",
+      "expectedTmdbId": 78,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 33769,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=CTB-Klassiker%3A+Blade+Runner+-+Final+Cut&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Blade+Runner&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/78?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/78"
+      ],
+      "productionYear": 1982,
+      "originalTitle": "Blade Runner",
+      "director": "Ridley Scott",
+      "primaryMetadata": {
+        "title": "Der Blade Runner",
+        "releaseDate": "1982-06-25"
+      },
+      "justification": "Primary TMDB metadata identifies Der Blade Runner (1982), original title Blade Runner; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Blade Runner intact; screening/programme year is not treated as production year. Label is film-level only, not a separate edit identity; runtime is deliberately omitted because this evidence does not verify the Final Cut duration."
+    },
+    {
+      "title": "40 JAHRE ZURÜCK IN DIE ZUKUNFT",
+      "expectedTmdbId": 105,
+      "stratum": "presentation",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 77433,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=40+JAHRE+ZUR%C3%9CCK+IN+DIE+ZUKUNFT&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Zur%C3%BCck+in+die+Zukunft&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/105?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/105"
+      ],
+      "productionYear": 1985,
+      "originalTitle": "Back to the Future",
+      "director": "Robert Zemeckis",
+      "runtimeMinutes": 116,
+      "primaryMetadata": {
+        "title": "Zurück in die Zukunft",
+        "releaseDate": "1985-07-03"
+      },
+      "justification": "Primary TMDB metadata identifies Zurück in die Zukunft (1985), original title Back to the Future; exact film-title match, not a stored catalog identity. The observed presentation wording leaves the complete named film Zurück in die Zukunft intact; screening/programme year is not treated as production year."
+    },
+    {
+      "title": "Psycho (1960)",
+      "expectedTmdbId": 539,
+      "stratum": "explicit-year-remake",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 279,
+          "field": "rawMovieName",
+          "showings": 1
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Psycho+%281960%29&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Psycho&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/539?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://api.themoviedb.org/3/movie/11252?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/539",
+        "https://www.themoviedb.org/movie/11252"
+      ],
+      "productionYear": 1960,
+      "originalTitle": "Psycho",
+      "director": "Alfred Hitchcock",
+      "runtimeMinutes": 109,
+      "primaryMetadata": {
+        "title": "Psycho",
+        "releaseDate": "1960-06-22"
+      },
+      "justification": "Primary TMDB metadata identifies Psycho (1960), original title Psycho; exact film-title match, not a stored catalog identity. Explicit catalog year 1960 agrees with ID 539 and rules out the independently retrieved 1998 remake ID 11252."
+    },
+    {
+      "title": "Sabrina",
+      "expectedTmdbId": null,
+      "stratum": "ambiguous-remake",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 630192,
+          "field": "name"
+        },
+        {
+          "catalogRecordId": 630192,
+          "field": "rawMovieName",
+          "showings": 1
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Sabrina&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/6620?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://api.themoviedb.org/3/movie/11860?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/6620",
+        "https://www.themoviedb.org/movie/11860"
+      ],
+      "candidateEvidence": [
+        {
+          "tmdbId": 6620,
+          "title": "Sabrina",
+          "originalTitle": "Sabrina",
+          "productionYear": 1954,
+          "director": "Billy Wilder"
+        },
+        {
+          "tmdbId": 11860,
+          "title": "Sabrina",
+          "originalTitle": "Sabrina",
+          "productionYear": 1995,
+          "director": "Sydney Pollack"
+        }
+      ],
+      "justification": "Primary TMDB metadata independently confirms distinct same-title films in 1954 (Billy Wilder) and 1995 (Sydney Pollack), in addition to other search hits. The bare observed input supplies neither year nor director. Null means insufficient input identity evidence, not that Sabrina is not a film."
+    },
+    {
+      "title": "Scarface",
+      "expectedTmdbId": null,
+      "stratum": "ambiguous-remake",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 24736,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Scarface&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/111?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://api.themoviedb.org/3/movie/877?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/111",
+        "https://www.themoviedb.org/movie/877"
+      ],
+      "candidateEvidence": [
+        {
+          "tmdbId": 111,
+          "title": "Scarface",
+          "originalTitle": "Scarface",
+          "productionYear": 1983,
+          "director": "Brian De Palma"
+        },
+        {
+          "tmdbId": 877,
+          "title": "Scarface - Narbengesicht",
+          "originalTitle": "Scarface",
+          "productionYear": 1932,
+          "director": "Howard Hawks"
+        }
+      ],
+      "justification": "Primary TMDB original-title metadata confirms Scarface in 1932 (Howard Hawks) and 1983 (Brian De Palma). The German title for 1932 includes Narbengesicht but its original title is exactly Scarface. A bare input does not establish which version; no popularity or stored mapping is used to guess."
+    },
+    {
+      "title": "Matrix Trilogie",
+      "expectedTmdbId": null,
+      "stratum": "multi-film-programme",
+      "catalogOccurrences": [
+        {
+          "catalogRecordId": 339825,
+          "field": "name"
+        }
+      ],
+      "sourceUrls": [
+        "https://api.themoviedb.org/3/search/movie?query=Matrix+Trilogie&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/search/movie?query=Matrix&language=de-DE&include_adult=false",
+        "https://api.themoviedb.org/3/movie/603?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://api.themoviedb.org/3/movie/604?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://api.themoviedb.org/3/movie/605?language=de-DE&append_to_response=credits,alternative_titles",
+        "https://www.themoviedb.org/movie/603",
+        "https://www.themoviedb.org/movie/604",
+        "https://www.themoviedb.org/movie/605"
+      ],
+      "candidateEvidence": [
+        {
+          "tmdbId": 603,
+          "title": "Matrix",
+          "originalTitle": "The Matrix",
+          "productionYear": 1999,
+          "director": "Lana Wachowski / Lilly Wachowski"
+        },
+        {
+          "tmdbId": 604,
+          "title": "Matrix Reloaded",
+          "originalTitle": "The Matrix Reloaded",
+          "productionYear": 2003,
+          "director": "Lilly Wachowski / Lana Wachowski"
+        },
+        {
+          "tmdbId": 605,
+          "title": "Matrix Revolutions",
+          "originalTitle": "The Matrix Revolutions",
+          "productionYear": 2003,
+          "director": "Lana Wachowski / Lilly Wachowski"
+        }
+      ],
+      "justification": "The observed input explicitly names a trilogy, not one film. Primary TMDB metadata confirms separate Matrix (1999), Matrix Reloaded (2003) and Matrix Revolutions (2003) identities. No single expectedTmdbId represents this multi-film programme; null is intentional."
+    }
+  ]
+}

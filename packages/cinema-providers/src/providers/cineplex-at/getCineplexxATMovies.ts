@@ -32,9 +32,25 @@ export const getCineplexxATMovies = async (
   const movies = data.map((movie) => ({
     name: movie.titleCalculated ?? movie.title.replaceAll("*", ""),
     cinemaId,
+    provider: "CineplexxAT",
+    providerFilmId: movie.id,
+    evidence: {
+      originalTitle: movie.titleOriginalCalculated?.trim() || undefined,
+      director:
+        movie.directors
+          ?.map((name) => name.trim())
+          .filter(Boolean)
+          .join(" / ") ||
+        movie.director?.trim() ||
+        undefined,
+      runtimeMinutes:
+        Number.isInteger(movie.runTime) && movie.runTime > 0
+          ? movie.runTime
+          : undefined,
+    },
   }));
 
-  const showings = data.map((movie) =>
+  const showings = data.map((movie, index) =>
     movie.sessions.map(
       (s) =>
         ({
@@ -52,11 +68,15 @@ export const getCineplexxATMovies = async (
           ),
           cinemaId,
           movieName: movie.titleCalculated ?? movie.title.replaceAll("*", ""),
+          provider: movies[index]!.provider,
+          providerFilmId: movies[index]!.providerFilmId,
+          evidence: movies[index]!.evidence,
         }) satisfies RawProviderShowing,
     ),
   );
 
   return {
+    provider: "CineplexxAT",
     movies,
     showings,
   };

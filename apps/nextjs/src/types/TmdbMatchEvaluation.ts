@@ -1,9 +1,46 @@
-import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
+import { z } from "zod";
 
-export type TmdbMatchEvaluation = {
-  requestedTitle: string;
-  normalizedTitle: string;
-  threshold: number;
-  bestCandidate: TmdbScoredMatch | null;
-  acceptedCandidate: TmdbScoredMatch | null;
-};
+const ScoredMatchSchema = z.object({
+  tmdbMovieId: z.number().int().positive(),
+  title: z.string(),
+  originalTitle: z.string(),
+  posterPath: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  popularity: z.number(),
+  confidence: z.number().min(0).max(1),
+  sourceQuery: z.string(),
+});
+export const TmdbMatchEvaluationSchema = z.object({
+  requestedTitle: z.string(),
+  normalizedTitle: z.string(),
+  threshold: z.number(),
+  bestCandidate: ScoredMatchSchema.nullable(),
+  acceptedCandidate: ScoredMatchSchema.nullable(),
+  decisionReason: z
+    .enum([
+      "matched",
+      "ambiguous",
+      "missing-poster",
+      "insufficient-evidence",
+      "identity-evidence-conflict",
+      "conflicting-year",
+      "programme",
+      "unannounced-screening",
+      "missing-production-context",
+    ])
+    .optional(),
+  candidates: z.array(ScoredMatchSchema).optional(),
+  rejectedCandidates: z
+    .array(
+      z.object({
+        tmdbMovieId: z.number().int().positive(),
+        directorConflict: z.boolean(),
+        runtimeConflict: z.boolean(),
+        observedDirectors: z.array(z.string()),
+        observedRuntime: z.number().nullable(),
+      }),
+    )
+    .optional(),
+});
+
+export type TmdbMatchEvaluation = z.infer<typeof TmdbMatchEvaluationSchema>;

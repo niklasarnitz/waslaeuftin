@@ -1,4 +1,12 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 
 const upsertedMovies: unknown[] = [];
 const createdShowings: unknown[] = [];
@@ -14,13 +22,17 @@ let existingMovies: Array<{
   tmdbSearchFailedOn: Date | null;
 }> = [];
 let storedTmdbMetadataIds = new Set<number>();
-let acceptedCandidate: {
+type AcceptedCandidate = {
   tmdbMovieId: number;
   title: string;
   posterPath: string | null;
   confidence: number;
-} | null = null;
+};
+let acceptedCandidate: AcceptedCandidate | null = null;
 let fetchTmdbMovieDetailsError: Error | null = null;
+let evaluationError: Error | null = null;
+const acceptedCandidatesByYear = new Map<number, AcceptedCandidate>();
+let cachedShowings: object[] = [];
 
 const replacementTransaction = {
   showing: {
@@ -55,6 +67,8 @@ const db = {
     ),
   },
   showing: {
+    findMany: mock(async () => cachedShowings),
+    updateMany: mock(async (_params: unknown) => ({ count: 1 })),
     createMany: mock(async (params: { data: unknown[] }) => {
       createdShowings.push(...params.data);
       return { count: params.data.length };
@@ -73,6 +87,7 @@ mock.module("@waslaeuftin/env", () => ({
     S3_REGION: "test",
     S3_BUCKET: "test",
     S3_MOVIE_COVERS_PREFIX: "movie-covers",
+    TMDB_MIN_CONFIDENCE_SCORE: 0.68,
   },
 }));
 mock.module("@waslaeuftin/helpers/fileStorage/createS3Client", () => ({
@@ -80,13 +95,6 @@ mock.module("@waslaeuftin/helpers/fileStorage/createS3Client", () => ({
 }));
 mock.module("@waslaeuftin/helpers/fileStorage/assertBucketAccessible", () => ({
   assertBucketAccessible: mock(async () => undefined),
-}));
-mock.module("@waslaeuftin/helpers/tmdb/TmdbMovieMatcher", () => ({
-  TmdbMovieMatcher: class MockTmdbMovieMatcher {
-    async evaluate() {
-      return { acceptedCandidate };
-    }
-  },
 }));
 mock.module("@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails", () => ({
   fetchTmdbMovieDetails: mock(async (tmdbMovieId: number) => {
@@ -130,17 +138,52 @@ mock.module("@waslaeuftin/helpers/fileStorage/uploadTmdbPosterToS3", () => ({
 }));
 
 describe("resolveAndPersistCatalog", () => {
+  let restoreMatcher: () => void;
+  beforeEach(async () => {
+    const { TmdbMovieMatcher } =
+      await import("@waslaeuftin/helpers/tmdb/TmdbMovieMatcher");
+    const spy = spyOn(
+      TmdbMovieMatcher.prototype,
+      "evaluate",
+    ).mockImplementation(async (title, evidence) => {
+      if (evaluationError) throw evaluationError;
+      const year =
+        evidence?.productionYear ?? Number(title.match(/\((\d{4})\)/)?.[1]);
+      const candidate = acceptedCandidatesByYear.get(year) ?? acceptedCandidate;
+      return {
+        requestedTitle: title,
+        normalizedTitle: title,
+        threshold: 0.68,
+        bestCandidate: null,
+        acceptedCandidate: candidate
+          ? {
+              ...candidate,
+              originalTitle: candidate.title,
+              releaseDate: null,
+              popularity: 0,
+              sourceQuery: title,
+            }
+          : null,
+      };
+    });
+    restoreMatcher = () => spy.mockRestore();
+  });
   afterEach(() => {
+    restoreMatcher();
     upsertedMovies.length = 0;
     createdShowings.length = 0;
     existingMovies = [];
     storedTmdbMetadataIds = new Set<number>();
     acceptedCandidate = null;
     fetchTmdbMovieDetailsError = null;
+    evaluationError = null;
+    acceptedCandidatesByYear.clear();
+    cachedShowings = [];
     db.movie.findMany.mockClear();
     db.movie.upsert.mockClear();
     db.tmdbMetadata.findMany.mockClear();
     db.showing.createMany.mockClear();
+    db.showing.updateMany.mockClear();
   });
 
   test("persists a newly fetched title when it was not already in the movie table", async () => {
@@ -175,6 +218,333 @@ describe("resolveAndPersistCatalog", () => {
     });
   });
 
+  test("keeps same-title provider identities separate and persists their evidence", async () => {
+    acceptedCandidatesByYear.set(2003, {
+      tmdbMovieId: 670,
+      title: "Oldboy",
+      posterPath: "/old.jpg",
+      confidence: 0.93,
+    });
+    acceptedCandidatesByYear.set(2013, {
+      tmdbMovieId: 87516,
+      title: "Oldboy",
+      posterPath: "/new.jpg",
+      confidence: 0.93,
+    });
+    storedTmdbMetadataIds = new Set([670, 87516]);
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [2003, 2013].map((productionYear, index) => ({
+          cinemaId: 10 + index,
+          provider: "ComtradaCineOrder",
+          providerFilmId: `oldboy-${productionYear}`,
+          movieName: "Oldboy",
+          evidence: { productionYear },
+          dateTime: new Date("2026-12-01T18:00:00Z"),
+        })),
+      },
+    ]);
+    expect(upsertedMovies).toHaveLength(2);
+    expect(upsertedMovies[0]).toMatchObject({ tmdbMovieId: 670 });
+    expect(upsertedMovies[1]).toMatchObject({ tmdbMovieId: 87516 });
+    expect(createdShowings[0]).toMatchObject({
+      movieId: 1,
+      sourceProvider: "ComtradaCineOrder",
+      providerFilmId: "oldboy-2003",
+      sourceEvidence: { productionYear: 2003 },
+      matcherVersion: expect.any(Number),
+      matchEvaluatedAt: expect.any(Date),
+    });
+    expect(createdShowings[1]).toMatchObject({
+      movieId: 2,
+      sourceEvidence: { productionYear: 2013 },
+    });
+  });
+
+  test("does not merge unconfirmed same-title films across cinema/provider film identities", async () => {
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [
+          { cinemaId: 10, provider: "ComtradaCineOrder", providerFilmId: "a" },
+          { cinemaId: 10, provider: "ComtradaCineOrder", providerFilmId: "b" },
+          { cinemaId: 11, provider: "ComtradaCineOrder", providerFilmId: "a" },
+        ].map((source) => ({
+          ...source,
+          movieName: "Oldboy",
+          dateTime: new Date("2026-12-01T18:00:00Z"),
+        })),
+      },
+    ]);
+    expect(upsertedMovies).toHaveLength(3);
+    expect(createdShowings).toEqual(
+      [1, 2, 3].map((movieId) => expect.objectContaining({ movieId })),
+    );
+  });
+
+  test.each([
+    {
+      name: "fresh positive",
+      matched: true,
+      ageHours: 167,
+      versionOffset: 0,
+      changedEvidence: false,
+      reuse: true,
+    },
+    {
+      name: "expired positive",
+      matched: true,
+      ageHours: 169,
+      versionOffset: 0,
+      changedEvidence: false,
+      reuse: false,
+    },
+    {
+      name: "fresh abstention",
+      matched: false,
+      ageHours: 23,
+      versionOffset: 0,
+      changedEvidence: false,
+      reuse: true,
+    },
+    {
+      name: "expired abstention",
+      matched: false,
+      ageHours: 25,
+      versionOffset: 0,
+      changedEvidence: false,
+      reuse: false,
+    },
+    {
+      name: "previous matcher version",
+      matched: true,
+      ageHours: 1,
+      versionOffset: -1,
+      changedEvidence: false,
+      reuse: false,
+    },
+    {
+      name: "changed provider evidence",
+      matched: true,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: true,
+      reuse: false,
+    },
+  ])(
+    "revalidates source decisions: $name",
+    async ({ matched, ageHours, versionOffset, changedEvidence, reuse }) => {
+      const { MOVIE_MATCHER_VERSION } =
+        await import("@waslaeuftin/helpers/tmdb/TmdbMovieMatcher");
+      const { resolveAndPersistCatalog } =
+        await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+      const evaluatedAt = new Date(Date.now() - ageHours * 60 * 60 * 1000);
+      existingMovies = [
+        {
+          id: 42,
+          canonicalKey: matched ? "tmdb:11248" : "source:unconfirmed",
+          name: "Vaterland",
+          normalizedTitle: "Vaterland",
+          tmdbMovieId: matched ? 11248 : null,
+          coverUrl: matched ? "https://example.test/old.jpg" : null,
+          coverStorageKey: null,
+          coverConfidence: null,
+          tmdbSearchFailedOn: null,
+        },
+      ];
+      const candidate = {
+        tmdbMovieId: 11248,
+        title: "Vaterland",
+        originalTitle: "Vaterland",
+        posterPath: "/old.jpg",
+        releaseDate: "1994-01-01",
+        popularity: 0,
+        confidence: 0.9,
+        sourceQuery: "Vaterland",
+      };
+      cachedShowings = [
+        {
+          cinemaId: 10,
+          movieId: 42,
+          rawMovieName: "Vaterland",
+          sourceProvider: "TestProvider",
+          providerFilmId: "film-a",
+          sourceEvidence: {},
+          matcherVersion: MOVIE_MATCHER_VERSION + versionOffset,
+          matchEvaluatedAt: evaluatedAt,
+          matchEvaluation: {
+            requestedTitle: "Vaterland",
+            normalizedTitle: "vaterland",
+            threshold: 0.68,
+            bestCandidate: matched ? candidate : null,
+            acceptedCandidate: matched ? candidate : null,
+          },
+        },
+      ];
+      storedTmdbMetadataIds = new Set([11248, 1437696]);
+      acceptedCandidate = {
+        tmdbMovieId: 1437696,
+        title: "Vaterland",
+        posterPath: "/current.jpg",
+        confidence: 0.95,
+      };
+      await resolveAndPersistCatalog([
+        {
+          provider: "TestProvider",
+          movies: [
+            {
+              cinemaId: 10,
+              providerFilmId: "film-a",
+              name: "Vaterland",
+              evidence: changedEvidence ? { productionYear: 2026 } : {},
+            },
+          ],
+          showings: [
+            {
+              cinemaId: 10,
+              movieName: "Vaterland",
+              dateTime: new Date("2026-12-01T18:00:00Z"),
+            },
+          ],
+        },
+      ]);
+      expect(upsertedMovies[0]).toMatchObject({
+        tmdbMovieId: reuse ? (matched ? 11248 : null) : 1437696,
+      });
+      expect(createdShowings[0]).toMatchObject({
+        sourceProvider: "TestProvider",
+        providerFilmId: "film-a",
+        sourceEvidence: changedEvidence ? { productionYear: 2026 } : {},
+        matcherVersion: MOVIE_MATCHER_VERSION,
+        matchEvaluatedAt: reuse ? evaluatedAt : expect.any(Date),
+      });
+    },
+  );
+
+  test("does not stamp an API failure as a fresh unmatched decision", async () => {
+    evaluationError = new Error("TMDB unavailable");
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            movieName: "Oldboy",
+            dateTime: new Date("2026-12-01T18:00:00Z"),
+          },
+        ],
+      },
+    ]);
+    expect(createdShowings[0]).toMatchObject({
+      matcherVersion: null,
+      matchEvaluatedAt: null,
+    });
+  });
+
+  test("preserves unknown Sneak identities and persists canonical Sneak/language metadata", async () => {
+    acceptedCandidate = {
+      tmdbMovieId: 1187059,
+      title: "Sneak Over",
+      posterPath: "/wrong-film.jpg",
+      confidence: 0.95,
+    };
+    existingMovies = [
+      {
+        id: 42,
+        canonicalKey: "tmdb:611912",
+        name: "The Original",
+        normalizedTitle: "The Original",
+        tmdbMovieId: 611912,
+        coverUrl: "https://example.test/wrong.jpg",
+        coverStorageKey: "wrong.jpg",
+        coverConfidence: 1,
+        tmdbSearchFailedOn: null,
+      },
+    ];
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    const titles = [
+      "The Original Sneak",
+      "CineSneak - Die Überraschungspreview",
+      "OV-Sneak",
+      "SNEAK ORIGINAL OV/OmU",
+      "Sneak_nov + Filmquiz",
+      "Sneak Preview (2024)",
+    ];
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: titles.map((movieName, index) => ({
+          cinemaId: 10,
+          movieName,
+          dateTime: new Date(`2026-10-${11 + index}T18:00:00Z`),
+          showingAdditionalData: ["Saal 1"],
+        })),
+      },
+    ]);
+    expect(upsertedMovies).toHaveLength(titles.length);
+    for (const [index, title] of titles.entries()) {
+      expect(upsertedMovies[index]).toMatchObject({
+        name: title,
+        tmdbMovieId: null,
+      });
+      expect(createdShowings[index]).toMatchObject({
+        rawMovieName: title,
+        showingAdditionalData: expect.arrayContaining(["Saal 1", "Sneak"]),
+      });
+    }
+    expect(createdShowings[0]).toMatchObject({
+      showingAdditionalData: ["Saal 1", "Sneak", "OV"],
+    });
+    expect(createdShowings[3]).toMatchObject({
+      showingAdditionalData: ["Saal 1", "Sneak", "OV", "OmU"],
+    });
+  });
+
+  test("does not collapse different event seasons into a cached old recording", async () => {
+    existingMovies = [
+      {
+        id: 42,
+        canonicalKey: "tmdb:198469",
+        name: "Otello",
+        normalizedTitle: "Otello",
+        tmdbMovieId: 198469,
+        coverUrl: "https://example.test/old.jpg",
+        coverStorageKey: "old.jpg",
+        coverConfidence: 1,
+        tmdbSearchFailedOn: null,
+      },
+    ];
+    storedTmdbMetadataIds.add(198469);
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    const titles = ["MET 2025/26: Otello", "MET 2026/27: Otello"];
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: titles.map((movieName, index) => ({
+          cinemaId: 10,
+          movieName,
+          dateTime: new Date(`2026-10-${11 + index}T18:00:00Z`),
+        })),
+      },
+    ]);
+    expect(upsertedMovies).toEqual(
+      titles.map((name) =>
+        expect.objectContaining({ name, tmdbMovieId: null }),
+      ),
+    );
+    expect(createdShowings[0]).toMatchObject({ movieId: 1 });
+    expect(createdShowings[1]).toMatchObject({ movieId: 2 });
+  });
+
   test("does not reuse a cached title-only film for an explicitly different release year", async () => {
     existingMovies = [
       {
@@ -191,12 +561,12 @@ describe("resolveAndPersistCatalog", () => {
     ];
     storedTmdbMetadataIds.add(11248);
     storedTmdbMetadataIds.add(1437696);
-    acceptedCandidate = {
+    acceptedCandidatesByYear.set(2026, {
       tmdbMovieId: 1437696,
       title: "Vaterland",
       posterPath: "/current.jpg",
       confidence: 0.95,
-    };
+    });
     const { resolveAndPersistCatalog } =
       await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
 
@@ -245,8 +615,8 @@ describe("resolveAndPersistCatalog", () => {
     ]);
 
     expect(upsertedMovies).toEqual([
-      expect.objectContaining({ canonicalKey: "title:vaterland 1994" }),
-      expect.objectContaining({ canonicalKey: "title:vaterland 2026" }),
+      expect.objectContaining({ name: "Vaterland (1994)", tmdbMovieId: null }),
+      expect.objectContaining({ name: "Vaterland (2026)", tmdbMovieId: null }),
     ]);
     expect(createdShowings[0]).toMatchObject({ movieId: 1 });
     expect(createdShowings[1]).toMatchObject({ movieId: 2 });
@@ -301,6 +671,36 @@ describe("resolveAndPersistCatalog", () => {
         coverStorageKey: "movie-covers/existing.jpg",
         coverConfidence: 0.8,
         tmdbSearchFailedOn: null,
+      },
+    ];
+    const { MOVIE_MATCHER_VERSION } =
+      await import("@waslaeuftin/helpers/tmdb/TmdbMovieMatcher");
+    cachedShowings = [
+      {
+        cinemaId: 10,
+        movieId: 42,
+        rawMovieName: "Existing Movie",
+        sourceProvider: "unknown",
+        providerFilmId: null,
+        sourceEvidence: {},
+        matcherVersion: MOVIE_MATCHER_VERSION,
+        matchEvaluatedAt: new Date(),
+        matchEvaluation: {
+          requestedTitle: "Existing Movie",
+          normalizedTitle: "existing movie",
+          threshold: 0.68,
+          bestCandidate: null,
+          acceptedCandidate: {
+            tmdbMovieId: 67890,
+            title: "Existing Movie",
+            originalTitle: "Existing Movie",
+            posterPath: "/old.jpg",
+            releaseDate: "2003-01-01",
+            popularity: 0,
+            confidence: 0.8,
+            sourceQuery: "Existing Movie",
+          },
+        },
       },
     ];
 

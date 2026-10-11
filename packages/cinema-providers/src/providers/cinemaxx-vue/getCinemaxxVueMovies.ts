@@ -169,6 +169,9 @@ export const parseCinemaxxVueFilms = (
         showings.push({
           cinemaId,
           movieName: film.filmTitle.trim(),
+          provider: "CinemaxxVue",
+          providerFilmId: bookingUrl.pathname.split("/")[4] || undefined,
+          evidence: { originalTitle: film.originalTitle?.trim() || undefined },
           dateTime,
           bookingUrl: bookingUrl.href,
           showingAdditionalData: [
@@ -187,9 +190,21 @@ export const parseCinemaxxVueFilms = (
     }
   }
   return {
-    movies: [...new Set(showings.map((showing) => showing.movieName))].map(
-      (name) => ({ cinemaId, name }),
-    ),
+    provider: "CinemaxxVue",
+    movies: [
+      ...new Map(
+        showings.map((showing) => [
+          JSON.stringify([showing.providerFilmId, showing.movieName]),
+          {
+            cinemaId,
+            name: showing.movieName,
+            provider: showing.provider,
+            providerFilmId: showing.providerFilmId,
+            evidence: showing.evidence,
+          },
+        ]),
+      ).values(),
+    ],
     showings,
   };
 };

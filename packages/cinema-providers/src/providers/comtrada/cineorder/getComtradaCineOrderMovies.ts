@@ -31,9 +31,20 @@ export const getComtradaCineOrderMovies = async (
   const movies = data.map((movie) => ({
     name: movie.title,
     cinemaId,
+    provider: "ComtradaCineOrder",
+    providerFilmId: movie.id,
+    evidence: {
+      productionYear: /^(18|19|20)\d{2}$/.test(movie.productionYear)
+        ? Number(movie.productionYear)
+        : undefined,
+      originalTitle: movie.originalTitle?.trim() || undefined,
+      director: movie.director?.trim() || undefined,
+      runtimeMinutes:
+        movie.lengthInMinutes > 0 ? movie.lengthInMinutes : undefined,
+    },
   }));
 
-  const showings = data.flatMap((movie) =>
+  const showings = data.flatMap((movie, index) =>
     movie.performances.map((performance) => {
       const showingAdditionalData = [
         performance.is3D ? "3D" : "2D",
@@ -45,6 +56,9 @@ export const getComtradaCineOrderMovies = async (
       return {
         cinemaId,
         movieName: movie.title,
+        provider: movies[index]!.provider,
+        providerFilmId: movies[index]!.providerFilmId,
+        evidence: movies[index]!.evidence,
         dateTime: moment(performance.performanceDateTime).toDate(),
         bookingUrl: getTicketUrl(metadata, movie, performance),
         showingAdditionalData,
@@ -53,6 +67,7 @@ export const getComtradaCineOrderMovies = async (
   );
 
   return {
+    provider: "ComtradaCineOrder",
     movies,
     showings,
   };

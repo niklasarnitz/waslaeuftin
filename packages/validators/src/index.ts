@@ -140,8 +140,18 @@ export const ProviderShowingSchema = z.object({
   showingAdditionalData: z.array(z.string()).optional(),
 });
 
+export const MovieIdentityEvidenceSchema = z.object({
+  productionYear: z.number().int().min(1800).max(2100).optional(),
+  originalTitle: z.string().trim().min(1).optional(),
+  director: z.string().trim().min(1).optional(),
+  runtimeMinutes: z.number().int().positive().optional(),
+});
+export type MovieIdentityEvidence = z.infer<typeof MovieIdentityEvidenceSchema>;
+
 export const ProviderMovieSchema = z.object({
   name: z.string(),
+  providerFilmId: z.string().optional(),
+  evidence: MovieIdentityEvidenceSchema.optional(),
 });
 
 export const ProviderMovieWithShowingsSchema = ProviderMovieSchema.extend({

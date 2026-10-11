@@ -1,5 +1,6 @@
 import type { NormalizedMovieTitle } from "./NormalizedMovieTitle";
 import { canonicalizeTag } from "./canonicalizeTag";
+import { classifySneakTitle } from "./classifySneakTitle";
 import { extractBracketTags } from "./extractBracketTags";
 import { extractEventAffixes } from "./extractEventAffixes";
 import { extractStandaloneTags } from "./extractStandaloneTags";
@@ -28,6 +29,13 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
   }
 
   const title = decodeHtmlAndCleanQuotes(smartReplaceUnderscores(rawTitle));
+  const sneak = classifySneakTitle(rawTitle);
+  if (sneak.isUnannounced) {
+    const result = { normalizedTitle: rawTitle.trim(), tags: sneak.tags };
+    Object.freeze(result.tags);
+    Object.freeze(result);
+    return result;
+  }
   const bracketTags = extractBracketTags(title);
 
   const withoutMetadataBrackets = title
@@ -44,10 +52,12 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
   const affixTags = affixResult.extracted;
   const baseTitleStr = affixResult.base;
 
-  const standaloneTags = extractStandaloneTags(baseTitleStr);
+  const standaloneTags = extractStandaloneTags(baseTitleStr).filter(
+    (tag) => tag.toLowerCase() !== "sneak",
+  );
 
   const baseTitle = baseTitleStr
-    .replace(TAG_PATTERN, " ")
+    .replace(TAG_PATTERN, (tag) => (tag.toLowerCase() === "sneak" ? tag : " "))
     .replace(/^:\s*/, "")
     .replace(/[–—]/g, "-")
     .replace(/[\s,-]+$/, "")

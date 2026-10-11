@@ -13,6 +13,7 @@ import {
 const fixture = (): CinemaxxVueFilm[] => [
   {
     filmTitle: "Film",
+    originalTitle: "Original Film",
     filmAttributes: [{ name: "Preview" }],
     showingGroups: [
       {
@@ -38,15 +39,44 @@ test("direct sessions use zoned time, booking URL, and distinct attributes", () 
   const films = fixture();
   films[0]!.showingGroups.push(films[0]!.showingGroups[0]!);
   const catalog = parseCinemaxxVueFilms(1490, 1931, films);
-  expect(catalog.movies).toEqual([{ cinemaId: 1490, name: "Film" }]);
+  expect(catalog.provider).toBe("CinemaxxVue");
+  expect(catalog.movies).toEqual([
+    {
+      cinemaId: 1490,
+      name: "Film",
+      provider: "CinemaxxVue",
+      providerFilmId: "HO00001610",
+      evidence: { originalTitle: "Original Film" },
+    },
+  ]);
   expect(catalog.showings).toHaveLength(1);
   expect(catalog.showings[0]).toEqual({
     cinemaId: 1490,
     movieName: "Film",
+    provider: "CinemaxxVue",
+    providerFilmId: "HO00001610",
+    evidence: { originalTitle: "Original Film" },
     dateTime: new Date("2026-12-15T23:01:00Z"),
     bookingUrl:
       "https://www.cinemaxx.de/buchtickets/zusammenfassung/1931/HO00001610/27874",
     showingAdditionalData: ["Kino 01", "OV", "3D", "Preview"],
+  });
+});
+
+test("retains distinct provider films sharing the same display title", () => {
+  const films = [...fixture(), ...fixture()];
+  films[1]!.originalTitle = "Another Film";
+  const session = films[1]!.showingGroups[0]!.sessions[0]!;
+  session.sessionId = "27875";
+  session.bookingUrl = "/buchtickets/zusammenfassung/1931/HO00001611/27875";
+  const catalog = parseCinemaxxVueFilms(1490, 1931, films);
+  expect(catalog.movies).toHaveLength(2);
+  expect(catalog.movies.map((movie) => movie.providerFilmId)).toEqual([
+    "HO00001610",
+    "HO00001611",
+  ]);
+  expect(catalog.showings[1]?.evidence).toEqual({
+    originalTitle: "Another Film",
   });
 });
 
@@ -130,6 +160,7 @@ test("recovers a missing API title from the official film page", async () => {
       return { status: 200, body: "<title>Robu 404 | CinemaxX</title>" };
     const films = fixture();
     films[0]!.filmTitle = "";
+    films[0]!.originalTitle = undefined;
     films[0]!.filmUrl = "https://www.cinemaxx.de/film/robu-404";
     return response(films);
   });

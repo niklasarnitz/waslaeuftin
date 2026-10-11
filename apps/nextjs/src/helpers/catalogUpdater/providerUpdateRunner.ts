@@ -152,6 +152,7 @@ const executeRun = async (run: ProviderUpdateRun, fetcher: ProviderFetcher) => {
       },
       { force: run.trigger === "manual" },
     );
+    catalog.provider = fetcher.name;
 
     console.info(
       `[ProviderUpdate] ${fetcher.name}: fetched ${catalog.movies.length} movies, ${catalog.showings.length} showings`,

@@ -20,17 +20,28 @@ export const getPremiumKinoMovies = async (
   const movies = data.movies.map((movie) => ({
     name: movie.name,
     cinemaId,
+    provider: "PremiumKino",
+    providerFilmId: movie.id,
+    evidence: {
+      productionYear:
+        Number.isInteger(movie.year) && movie.year >= 1800 && movie.year <= 2100
+          ? movie.year
+          : undefined,
+      runtimeMinutes:
+        Number.isInteger(movie.minutes) && movie.minutes > 0
+          ? movie.minutes
+          : undefined,
+    },
   }));
 
-  // Create a map of movieId -> movieName to properly link performances to movies
-  const movieIdToNameMap = new Map<string, string>(
-    data.movies.map((movie) => [movie.id, movie.name]),
+  const moviesById = new Map(
+    movies.map((movie) => [movie.providerFilmId, movie]),
   );
 
   const showings = data.performances
     .map((performance) => {
-      const movieName = movieIdToNameMap.get(performance.movieId);
-      if (!movieName) {
+      const movie = moviesById.get(performance.movieId);
+      if (!movie) {
         console.warn(
           `No movie found for performance with movieId: ${performance.movieId}`,
         );
@@ -39,7 +50,10 @@ export const getPremiumKinoMovies = async (
 
       return {
         cinemaId,
-        movieName,
+        movieName: movie.name,
+        provider: movie.provider,
+        providerFilmId: movie.providerFilmId,
+        evidence: movie.evidence,
         dateTime: moment(performance.begin).toDate(),
         bookingUrl: `https://${subdomain}.premiumkino.de/vorstellung/${performance.slug}/${moment(performance.begin).format("YYYYMMDD")}/${moment(performance.begin).format("HHmm")}/${performance.id}`,
         showingAdditionalData: [
@@ -52,6 +66,7 @@ export const getPremiumKinoMovies = async (
     .flat();
 
   return {
+    provider: "PremiumKino",
     movies,
     showings,
   };

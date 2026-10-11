@@ -1,8 +1,39 @@
 import { describe, expect, test } from "bun:test";
 
 import { normalizeMovieTitle } from "@waslaeuftin/core";
+import { auditedSneakTitles } from "@waslaeuftin/tests/fixtures/auditedSneakTitles";
 
 describe("normalizeMovieTitle", () => {
+  test.each(auditedSneakTitles)(
+    "preserves surprise-screening titles and extracts Sneak metadata: %s",
+    (title) => {
+      expect(normalizeMovieTitle(title).normalizedTitle).toBe(title);
+      expect(normalizeMovieTitle(title).tags).toContain("Sneak");
+    },
+  );
+
+  test("distinguishes Sneak language metadata from actual film names", () => {
+    expect(normalizeMovieTitle("OV-Sneak").tags).toEqual(["Sneak", "OV"]);
+    expect(
+      normalizeMovieTitle("CineSneak : The original surprise").tags,
+    ).toEqual(["Sneak", "OV"]);
+    expect(normalizeMovieTitle("Sneak Preview (OmU)").tags).toEqual([
+      "Sneak",
+      "OmU",
+    ]);
+    expect(normalizeMovieTitle("SNEAK ORIGINAL OV/OmU").tags).toEqual([
+      "Sneak",
+      "OV",
+      "OmU",
+    ]);
+    for (const title of ["Sneak Over", "Sneaks", "Sneakers - Die Lautlosen"]) {
+      expect(normalizeMovieTitle(title)).toEqual({
+        normalizedTitle: title,
+        tags: [],
+      });
+    }
+  });
+
   test("Basic movie titles with no tags", () => {
     expect(normalizeMovieTitle("The Matrix")).toEqual({
       normalizedTitle: "The Matrix",

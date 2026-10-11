@@ -6,7 +6,8 @@ export const normalizeForComparison = (value: string) => {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
+      .replace(/ß/g, "ss")
       .replace(/&/g, " und ")
-      .replace(/[^a-z0-9\s]/g, " "),
+      .replace(/[^\p{L}\p{N}\s]/gu, " "),
   );
 };

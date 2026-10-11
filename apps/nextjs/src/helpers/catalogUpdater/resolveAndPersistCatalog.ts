@@ -1,10 +1,17 @@
-import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/server";
-import type { Prisma } from "@waslaeuftin/db";
+import { createHash } from "node:crypto";
+
+import type {
+  ProviderCatalog,
+  RawProviderMovie,
+} from "@waslaeuftin/cinema-providers/server";
+import type { TmdbMatchEvaluation } from "@waslaeuftin/types/TmdbMatchEvaluation";
 import {
-  normalizeForComparison,
+  classifySneakTitle,
+  getScreenedPerformance,
   normalizeMovieTitle,
   normalizePrefix,
 } from "@waslaeuftin/core";
+import { Prisma } from "@waslaeuftin/db";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
 import { assertBucketAccessible } from "@waslaeuftin/helpers/fileStorage/assertBucketAccessible";
@@ -14,9 +21,26 @@ import { uploadTmdbPosterToS3 } from "@waslaeuftin/helpers/fileStorage/uploadTmd
 import { upsertTmdbMetadata } from "@waslaeuftin/helpers/fileStorage/upsertTmdbMetadata";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
 import { fetchTmdbMovieDetails } from "@waslaeuftin/helpers/tmdb/fetchTmdbMovieDetails";
-import { TmdbMovieMatcher } from "@waslaeuftin/helpers/tmdb/TmdbMovieMatcher";
+import {
+  MOVIE_MATCHER_VERSION,
+  TmdbMovieMatcher,
+} from "@waslaeuftin/helpers/tmdb/TmdbMovieMatcher";
 import { ResolvedMovie } from "@waslaeuftin/types/ResolvedMovie";
+import { TmdbMatchEvaluationSchema } from "@waslaeuftin/types/TmdbMatchEvaluation";
 import { UploadedCover } from "@waslaeuftin/types/UploadedCover";
+import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
+
+const sourceKeyFor = (source: RawProviderMovie) =>
+  JSON.stringify([
+    source.cinemaId,
+    source.provider ?? "unknown",
+    source.providerFilmId ?? null,
+    source.name,
+    source.evidence?.productionYear,
+    source.evidence?.originalTitle,
+    source.evidence?.director,
+    source.evidence?.runtimeMinutes,
+  ]);
 
 type CreateResolvedMovieParams = Pick<
   ResolvedMovie,
@@ -51,25 +75,61 @@ export const resolveAndPersistCatalog = async (
     showings: Prisma.ShowingCreateManyInput[],
   ) => Promise<number>,
 ) => {
-  const rawTitlesSet = new Set<string>();
+  const sources = new Map<string, RawProviderMovie>();
   const allShowings: ProviderCatalog["showings"] = [];
   const allMovies: ProviderCatalog["movies"] = [];
 
   for (const catalog of catalogs) {
-    for (const movie of catalog.movies) {
+    const movies = catalog.movies.map((movie) => ({
+      ...movie,
+      provider: movie.provider ?? catalog.provider ?? "unknown",
+      evidence: MovieIdentityEvidenceSchema.parse(movie.evidence ?? {}),
+    }));
+    const moviesBySourceTitle = new Map<string, typeof movies>();
+    for (const movie of movies) {
       allMovies.push(movie);
-      rawTitlesSet.add(movie.name);
+      sources.set(sourceKeyFor(movie), movie);
+      const key = JSON.stringify([movie.cinemaId, movie.provider, movie.name]);
+      const group = moviesBySourceTitle.get(key) ?? [];
+      group.push(movie);
+      moviesBySourceTitle.set(key, group);
     }
     for (const showing of catalog.showings) {
-      allShowings.push(showing);
-      rawTitlesSet.add(showing.movieName);
+      const provider = showing.provider ?? catalog.provider ?? "unknown";
+      const associated = (
+        moviesBySourceTitle.get(
+          JSON.stringify([showing.cinemaId, provider, showing.movieName]),
+        ) ?? []
+      ).filter(
+        (movie) =>
+          !showing.providerFilmId ||
+          showing.providerFilmId === movie.providerFilmId,
+      );
+      const movie = associated.length === 1 ? associated[0] : undefined;
+      const source = {
+        cinemaId: showing.cinemaId,
+        name: showing.movieName,
+        provider,
+        providerFilmId: showing.providerFilmId ?? movie?.providerFilmId,
+        evidence: MovieIdentityEvidenceSchema.parse({
+          ...movie?.evidence,
+          ...showing.evidence,
+        }),
+      };
+      allShowings.push({
+        ...showing,
+        provider,
+        providerFilmId: source.providerFilmId,
+        evidence: source.evidence,
+      });
+      sources.set(sourceKeyFor(source), source);
     }
   }
 
-  const rawTitles = Array.from(rawTitlesSet);
+  const sourceKeys = Array.from(sources.keys());
 
   console.info(
-    `[Resolver] Resolving ${rawTitles.length} unique raw titles from ${allShowings.length} showings`,
+    `[Resolver] Resolving ${sourceKeys.length} source identities from ${allShowings.length} showings`,
   );
 
   // ─── Phase 1: Load all existing movies from database ────────────────────
@@ -90,7 +150,7 @@ export const resolveAndPersistCatalog = async (
 
   // Build lookup maps for database movies
   const dbMovieByTmdbId = new Map<number, (typeof dbMovies)[number]>();
-  const dbMoviesByNormalizedTitle = new Map<string, typeof dbMovies>();
+  const dbMovieById = new Map(dbMovies.map((movie) => [movie.id, movie]));
   // ⚡ Bolt Optimization: Replaced `.filter().map()` with a single `for...of` loop.
   // This avoids intermediate array allocations and improves processing speed by ~2x
   // when mapping thousands of database movies into lookup maps.
@@ -98,11 +158,74 @@ export const resolveAndPersistCatalog = async (
     if (movie.tmdbMovieId) {
       dbMovieByTmdbId.set(movie.tmdbMovieId, movie);
     }
-    const key = normalizeForComparison(movie.normalizedTitle);
-    if (!dbMoviesByNormalizedTitle.has(key)) {
-      dbMoviesByNormalizedTitle.set(key, []);
+  }
+
+  const cacheRows = await db.showing.findMany({
+    where: {
+      cinemaId: {
+        in: [
+          ...new Set([...sources.values()].map((source) => source.cinemaId)),
+        ],
+      },
+      matcherVersion: MOVIE_MATCHER_VERSION,
+      matchEvaluatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+    },
+    orderBy: { matchEvaluatedAt: "desc" },
+    distinct: ["cinemaId", "sourceProvider", "providerFilmId", "rawMovieName"],
+    select: {
+      cinemaId: true,
+      movieId: true,
+      rawMovieName: true,
+      sourceProvider: true,
+      providerFilmId: true,
+      sourceEvidence: true,
+      matchEvaluation: true,
+      matchEvaluatedAt: true,
+      matcherVersion: true,
+    },
+  });
+  const cachedSources = new Map<
+    string,
+    {
+      movie: (typeof dbMovies)[number];
+      evaluation: TmdbMatchEvaluation;
+      evaluatedAt: Date;
     }
-    dbMoviesByNormalizedTitle.get(key)!.push(movie);
+  >();
+  for (const row of cacheRows) {
+    const evidence = MovieIdentityEvidenceSchema.safeParse(
+      row.sourceEvidence ?? {},
+    );
+    const evaluation = TmdbMatchEvaluationSchema.safeParse(row.matchEvaluation);
+    const movie = dbMovieById.get(row.movieId);
+    if (
+      !evidence.success ||
+      !evaluation.success ||
+      !movie ||
+      !row.matchEvaluatedAt ||
+      row.matcherVersion !== MOVIE_MATCHER_VERSION ||
+      evaluation.data.threshold !== env.TMDB_MIN_CONFIDENCE_SCORE ||
+      evaluation.data.requestedTitle !== row.rawMovieName ||
+      (evaluation.data.acceptedCandidate?.tmdbMovieId ?? null) !==
+        movie.tmdbMovieId
+    )
+      continue;
+    const maxAge =
+      (evaluation.data.acceptedCandidate ? 7 : 1) * 24 * 60 * 60 * 1000;
+    if (Date.now() - row.matchEvaluatedAt.getTime() > maxAge) continue;
+    const key = sourceKeyFor({
+      cinemaId: row.cinemaId,
+      name: row.rawMovieName,
+      provider: row.sourceProvider ?? "unknown",
+      providerFilmId: row.providerFilmId ?? undefined,
+      evidence: evidence.data,
+    });
+    if (!cachedSources.has(key))
+      cachedSources.set(key, {
+        movie,
+        evaluation: evaluation.data,
+        evaluatedAt: row.matchEvaluatedAt,
+      });
   }
 
   console.info(
@@ -117,40 +240,39 @@ export const resolveAndPersistCatalog = async (
 
   await assertBucketAccessible(s3Client);
 
-  // Map: raw title -> ResolvedMovie
-  const titleResolutionMap = new Map<string, ResolvedMovie>();
+  // Map: provider/cinema/film/evidence context -> ResolvedMovie
+  const resolutionBySourceKey = new Map<string, ResolvedMovie>();
   // Map: canonicalKey -> ResolvedMovie (deduplicated)
   const canonicalMovieMap = new Map<string, ResolvedMovie>();
-  // Map: comparisonKey -> ResolvedMovie
-  const resolutionByComparisonKey = new Map<string, ResolvedMovie>();
+  const decisions = new Map<
+    string,
+    { evaluation: TmdbMatchEvaluation; evaluatedAt: Date }
+  >();
 
   // Track which movies need TMDB data
-  const moviesToFetchTmdbData = new Set<string>(); // raw titles
+  const moviesToFetchTmdbData = new Set<string>(); // source keys
 
-  const resolveWithFallback = (rawTitle: string): ResolvedMovie => {
-    const releaseYear = rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0];
-    const normalizedForFallback = [
-      normalizeMovieTitle(rawTitle).normalizedTitle,
-      releaseYear,
-    ]
-      .filter(Boolean)
-      .join(" ");
-    const comparisonKey = normalizeForComparison(normalizedForFallback);
-    const canonicalKey = `title:${comparisonKey}`;
+  const resolveWithFallback = (sourceKey: string): ResolvedMovie => {
+    const source = sources.get(sourceKey)!;
+    const rawTitle = source.name;
+    const releaseYear =
+      rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0] ??
+      (source.evidence?.productionYear
+        ? `(${source.evidence.productionYear})`
+        : undefined);
+    const normalizedForFallback =
+      getScreenedPerformance(rawTitle) ||
+      classifySneakTitle(rawTitle).isUnannounced
+        ? rawTitle.trim()
+        : [normalizeMovieTitle(rawTitle).normalizedTitle, releaseYear]
+            .filter(Boolean)
+            .join(" ");
+    const canonicalKey = `source:${createHash("sha256").update(sourceKey).digest("hex")}`;
 
     const existingByCanonicalKey = canonicalMovieMap.get(canonicalKey);
     if (existingByCanonicalKey) {
-      titleResolutionMap.set(rawTitle, existingByCanonicalKey);
+      resolutionBySourceKey.set(sourceKey, existingByCanonicalKey);
       return existingByCanonicalKey;
-    }
-
-    const existingByComparisonKey =
-      comparisonKey.length > 0
-        ? resolutionByComparisonKey.get(comparisonKey)
-        : undefined;
-    if (existingByComparisonKey) {
-      titleResolutionMap.set(rawTitle, existingByComparisonKey);
-      return existingByComparisonKey;
     }
 
     const resolved = createResolvedMovie({
@@ -160,11 +282,8 @@ export const resolveAndPersistCatalog = async (
       tmdbSearchFailedOn: new Date(),
     });
 
-    titleResolutionMap.set(rawTitle, resolved);
+    resolutionBySourceKey.set(sourceKey, resolved);
     canonicalMovieMap.set(canonicalKey, resolved);
-    if (comparisonKey.length > 0) {
-      resolutionByComparisonKey.set(comparisonKey, resolved);
-    }
 
     return resolved;
   };
@@ -173,74 +292,51 @@ export const resolveAndPersistCatalog = async (
   let tmdbUnmatched = 0;
 
   console.info(`[Resolver] Phase 2: Matching raw titles to database movies...`);
-  await progress?.onPhase("matching", rawTitles.length);
+  await progress?.onPhase("matching", sourceKeys.length);
 
-  for (const [index, rawTitle] of rawTitles.entries()) {
-    const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
-    const comparisonKey = normalizeForComparison(normalizedTitle);
-    const hasReleaseYear = /\((?:19|20)\d{2}\)/.test(rawTitle);
-
-    // Check if we already resolved a title with the same comparison key
-    const existingByComparison =
-      comparisonKey.length > 0 && !hasReleaseYear
-        ? resolutionByComparisonKey.get(comparisonKey)
-        : undefined;
-
-    if (existingByComparison) {
-      titleResolutionMap.set(rawTitle, existingByComparison);
-      continue;
-    }
-
+  for (const [index, sourceKey] of sourceKeys.entries()) {
+    const source = sources.get(sourceKey)!;
     console.info(
-      `[Resolver] [${index + 1}/${rawTitles.length}] Matching: "${rawTitle}"`,
+      `[Resolver] [${index + 1}/${sourceKeys.length}] Matching: "${source.name}"`,
     );
-
-    // Try to find in database by normalized title
-    const dbCandidates = dbMoviesByNormalizedTitle.get(comparisonKey) ?? [];
-    // A title-only cached match cannot establish the requested release year.
-    let dbMatch =
-      !hasReleaseYear && dbCandidates.length > 0 ? dbCandidates[0] : null;
-
-    if (dbMatch) {
-      // Found in database
-      const resolved = createResolvedMovie(dbMatch);
-
-      titleResolutionMap.set(rawTitle, resolved);
-      canonicalMovieMap.set(dbMatch.canonicalKey, resolved);
-      if (comparisonKey.length > 0) {
-        resolutionByComparisonKey.set(comparisonKey, resolved);
-      }
-
-      // Check if we need to fetch TMDB data for this movie
-      if (!dbMatch.coverUrl || !dbMatch.tmdbMovieId) {
-        const now = new Date();
-        const failedOn = dbMatch.tmdbSearchFailedOn;
-
-        // Only retry if it hasn't failed before, or if it failed more than 4 days ago
-        if (
-          !failedOn ||
-          now.getTime() - failedOn.getTime() > 4 * 24 * 60 * 60 * 1000
-        ) {
-          moviesToFetchTmdbData.add(rawTitle);
-        } else {
-          console.info(
-            `[Resolver]   → Found in DB, missing TMDB data, but skipping search (failed on ${failedOn.toISOString()})`,
-          );
-        }
-      }
-
-      console.info(
-        `[Resolver]   → Found in DB: "${dbMatch.name}" (id=${dbMatch.id})`,
-      );
+    if (classifySneakTitle(source.name).isUnannounced) {
+      resolveWithFallback(sourceKey);
+      decisions.set(sourceKey, {
+        evaluatedAt: new Date(),
+        evaluation: {
+          requestedTitle: source.name,
+          normalizedTitle: normalizeMovieTitle(source.name).normalizedTitle,
+          threshold: env.TMDB_MIN_CONFIDENCE_SCORE,
+          bestCandidate: null,
+          acceptedCandidate: null,
+          decisionReason: "unannounced-screening",
+          candidates: [],
+        },
+      });
+      tmdbUnmatched++;
       continue;
     }
-
-    // Not found in database, mark as new and fetch TMDB data
-    moviesToFetchTmdbData.add(rawTitle);
-    console.info(`[Resolver]   → Not in DB, will fetch TMDB data`);
+    const cached = cachedSources.get(sourceKey);
+    if (
+      cached &&
+      (!cached.evaluation.acceptedCandidate || cached.movie.coverUrl)
+    ) {
+      const resolved = createResolvedMovie(cached.movie);
+      resolutionBySourceKey.set(sourceKey, resolved);
+      canonicalMovieMap.set(resolved.canonicalKey, resolved);
+      decisions.set(sourceKey, {
+        evaluation: cached.evaluation,
+        evaluatedAt: cached.evaluatedAt,
+      });
+      if (cached.evaluation.acceptedCandidate) tmdbMatched++;
+      else tmdbUnmatched++;
+      continue;
+    }
+    // Legacy title-only rows cannot establish the identity of this source.
+    moviesToFetchTmdbData.add(sourceKey);
   }
 
-  await progress?.onProgress(rawTitles.length);
+  await progress?.onProgress(sourceKeys.length);
 
   // ─── Phase 3: Fetch TMDB data only for new or incomplete movies ──────────
   console.info(
@@ -250,31 +346,36 @@ export const resolveAndPersistCatalog = async (
   let newMoviesCreated = 0;
 
   // Phase 3a: Evaluate TMDB titles in batches (respects rate limiting)
-  const rawTitlesArray = Array.from(moviesToFetchTmdbData);
+  const pendingSourceKeys = Array.from(moviesToFetchTmdbData);
   const TMDB_BATCH_SIZE = 10; // Process 10 titles at a time with the internal rate limiter
   const allEvaluationResults: PromiseSettledResult<{
-    rawTitle: string;
+    sourceKey: string;
     evaluation: Awaited<ReturnType<typeof matcher.evaluate>>;
   }>[] = [];
+  const evaluationsByEvidence = new Map<string, Promise<TmdbMatchEvaluation>>();
 
   console.info(
-    `[Resolver] Executing ${rawTitlesArray.length} TMDB evaluations in batches (max 10 per batch)...`,
+    `[Resolver] Executing ${pendingSourceKeys.length} TMDB evaluations in batches (max 10 per batch)...`,
   );
 
-  await progress?.onPhase("tmdb", rawTitlesArray.length);
+  await progress?.onPhase("tmdb", pendingSourceKeys.length);
 
-  for (let i = 0; i < rawTitlesArray.length; i += TMDB_BATCH_SIZE) {
-    const batchTitles = rawTitlesArray.slice(i, i + TMDB_BATCH_SIZE);
-    const batchProgress = `${Math.min(i + TMDB_BATCH_SIZE, rawTitlesArray.length)}/${rawTitlesArray.length}`;
+  for (let i = 0; i < pendingSourceKeys.length; i += TMDB_BATCH_SIZE) {
+    const batchSourceKeys = pendingSourceKeys.slice(i, i + TMDB_BATCH_SIZE);
+    const batchProgress = `${Math.min(i + TMDB_BATCH_SIZE, pendingSourceKeys.length)}/${pendingSourceKeys.length}`;
 
     console.info(`[Resolver] Batch progress: ${batchProgress}`);
 
-    const batchPromises = batchTitles.map((rawTitle) =>
-      matcher.evaluate(rawTitle).then((evaluation) => ({
-        rawTitle,
-        evaluation,
-      })),
-    );
+    const batchPromises = batchSourceKeys.map((sourceKey) => {
+      const source = sources.get(sourceKey)!;
+      const key = JSON.stringify([source.name, source.evidence]);
+      let evaluation = evaluationsByEvidence.get(key);
+      if (!evaluation) {
+        evaluation = matcher.evaluate(source.name, source.evidence);
+        evaluationsByEvidence.set(key, evaluation);
+      }
+      return evaluation.then((evaluation) => ({ sourceKey, evaluation }));
+    });
 
     const batchResults = await Promise.allSettled(batchPromises);
     allEvaluationResults.push(...batchResults);
@@ -322,21 +423,28 @@ export const resolveAndPersistCatalog = async (
 
   // Phase 3c: Process evaluation results sequentially
   for (const [index, evaluationResult] of allEvaluationResults.entries()) {
-    const rawTitle = rawTitlesArray[index]!;
+    const sourceKey = pendingSourceKeys[index]!;
+    const source = sources.get(sourceKey)!;
+    const rawTitle = source.name;
 
     if (evaluationResult.status === "rejected") {
       console.warn(
         `[Resolver] [${index + 1}/${allEvaluationResults.length}] TMDB evaluation failed for "${rawTitle}":`,
         evaluationResult.reason,
       );
-      resolveWithFallback(rawTitle);
+      resolveWithFallback(sourceKey);
       tmdbUnmatched++;
       continue;
     }
 
     const { evaluation } = evaluationResult.value;
+    decisions.set(sourceKey, { evaluation, evaluatedAt: new Date() });
     const normalizedTitle = normalizeMovieTitle(rawTitle).normalizedTitle;
-    const releaseYear = rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0];
+    const releaseYear =
+      rawTitle.match(/\((?:19|20)\d{2}\)/)?.[0] ??
+      (source.evidence?.productionYear
+        ? `(${source.evidence.productionYear})`
+        : undefined);
 
     console.info(
       `[Resolver] [${index + 1}/${allEvaluationResults.length}] Processing TMDB result for: "${rawTitle}"`,
@@ -355,14 +463,8 @@ export const resolveAndPersistCatalog = async (
           tmdbSearchFailedOn: null,
         });
 
-        titleResolutionMap.set(rawTitle, resolved);
+        resolutionBySourceKey.set(sourceKey, resolved);
         canonicalMovieMap.set(dbMatchByTmbd.canonicalKey, resolved);
-        const tmdbComparisonKey = normalizeForComparison(
-          resolved.normalizedTitle,
-        );
-        if (tmdbComparisonKey.length > 0 && !releaseYear) {
-          resolutionByComparisonKey.set(tmdbComparisonKey, resolved);
-        }
 
         console.info(
           `[Resolver]   → TMDB ID found in DB (better match): "${dbMatchByTmbd.name}"`,
@@ -377,7 +479,7 @@ export const resolveAndPersistCatalog = async (
       // Check if we already processed this TMDB ID in this run
       const existing = canonicalMovieMap.get(canonicalKey);
       if (existing) {
-        titleResolutionMap.set(rawTitle, existing);
+        resolutionBySourceKey.set(sourceKey, existing);
         tmdbMatched++;
         console.info(
           `[Resolver]   → TMDB hit (cached): ${match.title} (${match.tmdbMovieId}) conf=${match.confidence.toFixed(3)}`,
@@ -419,12 +521,8 @@ export const resolveAndPersistCatalog = async (
         coverConfidence: match.confidence,
       });
 
-      titleResolutionMap.set(rawTitle, resolved);
+      resolutionBySourceKey.set(sourceKey, resolved);
       canonicalMovieMap.set(canonicalKey, resolved);
-      const newComparisonKey = normalizeForComparison(resolved.normalizedTitle);
-      if (newComparisonKey.length > 0 && !releaseYear) {
-        resolutionByComparisonKey.set(newComparisonKey, resolved);
-      }
 
       tmdbMatched++;
       newMoviesCreated++;
@@ -433,7 +531,7 @@ export const resolveAndPersistCatalog = async (
       );
     } else {
       // No TMDB match found
-      const existingResolution = titleResolutionMap.get(rawTitle);
+      const existingResolution = resolutionBySourceKey.get(sourceKey);
 
       if (existingResolution && existingResolution.tmdbMovieId === null) {
         // Already resolved with fallback
@@ -441,10 +539,10 @@ export const resolveAndPersistCatalog = async (
           `[Resolver]   → No TMDB match, using fallback: "${existingResolution.name}"`,
         );
       } else {
-        resolveWithFallback(rawTitle);
+        resolveWithFallback(sourceKey);
 
         console.info(
-          `[Resolver]   → No TMDB match, using fallback: "${titleResolutionMap.get(rawTitle)?.name}"`,
+          `[Resolver]   → No TMDB match, using fallback: "${resolutionBySourceKey.get(sourceKey)?.name}"`,
         );
       }
 
@@ -545,17 +643,11 @@ export const resolveAndPersistCatalog = async (
   // ⚡ Bolt Optimization: Combined `.map().filter()` into a single `for...of` loop.
   // This eliminates intermediate array allocations, reducing garbage collection
   // overhead and improving performance by ~35% when processing thousands of showings.
-  const showingData: {
-    cinemaId: number;
-    movieId: number;
-    rawMovieName: string;
-    dateTime: Date;
-    bookingUrl: string | null;
-    showingAdditionalData: string[];
-  }[] = [];
+  const showingData: Prisma.ShowingCreateManyInput[] = [];
 
   for (const showing of allShowings) {
-    const resolved = titleResolutionMap.get(showing.movieName);
+    const sourceKey = sourceKeyFor({ ...showing, name: showing.movieName });
+    const resolved = resolutionBySourceKey.get(sourceKey);
     if (!resolved) {
       console.warn(
         `[Resolver] No resolution for showing movie name: "${showing.movieName}"`,
@@ -597,6 +689,7 @@ export const resolveAndPersistCatalog = async (
       combinedAdditionalData = showing.showingAdditionalData ?? [];
     }
 
+    const decision = decisions.get(sourceKey);
     showingData.push({
       cinemaId: showing.cinemaId,
       movieId,
@@ -604,6 +697,12 @@ export const resolveAndPersistCatalog = async (
       dateTime: showing.dateTime,
       bookingUrl: showing.bookingUrl ?? null,
       showingAdditionalData: combinedAdditionalData,
+      sourceProvider: showing.provider,
+      providerFilmId: showing.providerFilmId ?? null,
+      sourceEvidence: showing.evidence ?? {},
+      matcherVersion: decision ? MOVIE_MATCHER_VERSION : null,
+      matchEvaluatedAt: decision?.evaluatedAt ?? null,
+      matchEvaluation: decision?.evaluation,
     });
   }
 
@@ -624,6 +723,54 @@ export const resolveAndPersistCatalog = async (
         skipDuplicates: true,
       });
       createdCount += result.count;
+    }
+    // Stamp repeated source contexts without moving or deleting existing showings.
+    // Failed HTTP evaluations have no fresh decision and must remain retryable.
+    const groups = new Map<string, typeof showingData>();
+    for (const showing of showingData) {
+      const key = JSON.stringify([
+        showing.cinemaId,
+        showing.movieId,
+        showing.rawMovieName,
+        showing.sourceProvider,
+        showing.providerFilmId,
+        showing.sourceEvidence,
+      ]);
+      if (!showing.matchEvaluatedAt) continue;
+      const group = groups.get(key) ?? [];
+      group.push(showing);
+      groups.set(key, group);
+    }
+    for (const group of groups.values()) {
+      const showing = group[0]!;
+      await db.showing.updateMany({
+        where: {
+          cinemaId: showing.cinemaId,
+          movieId: showing.movieId,
+          rawMovieName: showing.rawMovieName,
+          dateTime: { in: group.map((row) => new Date(row.dateTime)) },
+          OR: [
+            {
+              sourceProvider: showing.sourceProvider,
+              providerFilmId: showing.providerFilmId,
+            },
+            {
+              sourceProvider: null,
+              providerFilmId: null,
+              sourceEvidence: { equals: Prisma.DbNull },
+              matcherVersion: null,
+            },
+          ],
+        },
+        data: {
+          sourceProvider: showing.sourceProvider,
+          providerFilmId: showing.providerFilmId,
+          sourceEvidence: showing.sourceEvidence,
+          matcherVersion: showing.matcherVersion,
+          matchEvaluatedAt: showing.matchEvaluatedAt,
+          matchEvaluation: showing.matchEvaluation,
+        },
+      });
     }
   }
 

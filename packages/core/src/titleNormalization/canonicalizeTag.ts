@@ -90,6 +90,7 @@ export const canonicalizeTag = (tag: string): string => {
     "mehrspr.": "Mehrsprachig",
     "live action": "Live Action",
     "extended version": "Extended Version",
+    "extented version": "Extended Version",
     "extended edition": "Extended Edition",
     extended: "Extended Version",
     "ext. version": "Extended Version",

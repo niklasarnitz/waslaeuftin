@@ -56,12 +56,16 @@ export const getCineStarMovies = async (
   const movies = data.map((movie) => ({
     name: movie.title,
     cinemaId,
+    provider: "CineStar",
+    providerFilmId: movie.movie > 0 ? String(movie.movie) : undefined,
   }));
 
-  const showings = data.map((movie) =>
+  const showings = data.map((movie, index) =>
     movie.showtimes.map((showtime) => ({
       cinemaId,
       movieName: movie.title,
+      provider: movies[index]!.provider,
+      providerFilmId: movies[index]!.providerFilmId,
       dateTime: parseCineStarDateTime(showtime.datetime),
       bookingUrl: `https://webticketing3.cinestar.de/?cinemaId=${cinestarCinemaId}&movieSessionId=120216`,
       showingAdditionalData: ArrayHelper.noUndefined(
@@ -75,6 +79,7 @@ export const getCineStarMovies = async (
   );
 
   return {
+    provider: "CineStar",
     movies,
     showings,
   };

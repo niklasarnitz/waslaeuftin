@@ -6,6 +6,7 @@
     "types": ["bun"],
     "paths": {
       "@waslaeuftin/scripts/*": ["./scripts/*"],
+      "@waslaeuftin/tests/*": ["./tests/*"],
       "@waslaeuftin/*": ["./src/*"]
     },
     "plugins": [{ "name": "next" }]

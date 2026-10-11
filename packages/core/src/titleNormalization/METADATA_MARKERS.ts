@@ -68,6 +68,8 @@ export const METADATA_MARKERS = [
   "malteser film cafe",
   "live action",
   "extended version",
+  "extented version",
+  "anniversary",
   "extended edition",
   "extended",
   "ext version",
