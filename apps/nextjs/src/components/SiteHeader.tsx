@@ -65,12 +65,12 @@ const CinemaHeader = async ({
   );
 };
 
-const HomeHeader = () => {
+const HomeHeader = ({ date }: { date: string | null | undefined }) => {
   return (
     <div className="flex w-full flex-row items-center gap-x-2">
       <h1 className="text-base font-bold tracking-tight sm:text-xl">
         {Constants["whats-showing-in-date"].home(
-          getDateString(new Date().toISOString()),
+          getDateString(date ?? new Date().toISOString()),
         )}
       </h1>
     </div>
@@ -93,7 +93,7 @@ export const SiteHeader = async ({
   if (pathname.includes("cinema"))
     return <CinemaHeader pathname={pathname} date={date} />;
 
-  if (pathname === "/") return <HomeHeader />;
+  if (pathname === "/") return <HomeHeader date={date} />;
 
   return <></>;
 };

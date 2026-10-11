@@ -50,7 +50,7 @@ export default async function Home({
       <JsonLd data={jsonLd} />
       <main className="mx-auto w-full max-w-[1200px]">
         <section className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
-          <NearbyCinemasSection />
+          <NearbyCinemasSection date={decodedParams.date} />
         </section>
       </main>
     </SiteWrapper>

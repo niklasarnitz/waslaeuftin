@@ -16,10 +16,12 @@ import type { ListingCinema } from "@waslaeuftin/core";
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
 import {
+  createScheduleDate,
   formatDistance,
   formatShowingTime,
   groupMoviesByTitle,
 } from "@waslaeuftin/core";
+import { getDateString } from "@waslaeuftin/helpers/similarity/getDateString";
 import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
 import { api } from "@waslaeuftin/trpc/react";
 
@@ -44,7 +46,8 @@ const getInitialRadius = () => {
     : DEFAULT_RADIUS_KM;
 };
 
-export const NearbyCinemasSection = () => {
+export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
+  const dateQuery = date ? `?date=${encodeURIComponent(date)}` : "";
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -66,6 +69,7 @@ export const NearbyCinemasSection = () => {
       latitude: coordinates?.latitude ?? 0,
       longitude: coordinates?.longitude ?? 0,
       maxDistanceKm: appliedRadiusKm,
+      date: date ? createScheduleDate(0, new Date(date)) : undefined,
     },
     {
       enabled: Boolean(coordinates),
@@ -87,10 +91,10 @@ export const NearbyCinemasSection = () => {
       name: cinema.name,
       city: { slug: cinema.city.slug, name: cinema.city.name },
       distanceKm: cinema.distanceKm,
-      href: `/cinema/${cinema.slug}`,
+      href: `/cinema/${cinema.slug}${dateQuery}`,
       movies: cinema.movies,
     }));
-  }, [nearbyCinemas]);
+  }, [nearbyCinemas, dateQuery]);
 
   const effectiveSelectedCinemaSlugs = useMemo(() => {
     if (selectedCinemaSlugs.length === 0) {
@@ -225,7 +229,8 @@ export const NearbyCinemasSection = () => {
             </button>
           </div>
           <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:mt-2 md:text-base">
-            Diese Filme laufen heute in deiner Nähe.
+            Diese Filme laufen {getDateString(date ?? new Date().toISOString())}{" "}
+            in deiner Nähe.
           </p>
         </div>
       </div>
@@ -386,7 +391,7 @@ export const NearbyCinemasSection = () => {
                     <div className="flex items-center justify-between gap-4">
                       <div className="min-w-0">
                         <Link
-                          href={`/cinema/${cinema.slug}`}
+                          href={cinema.href!}
                           className="text-sm font-semibold tracking-tight hover:underline sm:text-base"
                         >
                           {cinema.name}
@@ -395,7 +400,7 @@ export const NearbyCinemasSection = () => {
                           <p className="text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs sm:mt-1.5 sm:text-sm">
                             <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             <Link
-                              href={`/city/${cinema.city.slug}`}
+                              href={`/city/${cinema.city.slug}${dateQuery}`}
                               className="hover:underline"
                             >
                               {cinema.city.name}

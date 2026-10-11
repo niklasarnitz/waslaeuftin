@@ -1,7 +1,22 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import {
+  scheduleCalendarDate,
+  serializeCalendarDate,
+} from "@waslaeuftin/helpers/calendarDate";
+
 export function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/tomorrow") {
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/";
+    destination.searchParams.set(
+      "date",
+      serializeCalendarDate(scheduleCalendarDate(1)),
+    );
+    return NextResponse.redirect(destination);
+  }
+
   const headers = new Headers(request.headers);
 
   headers.set("x-current-path", request.nextUrl.pathname);
