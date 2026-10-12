@@ -444,15 +444,17 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
     },
   );
 
-  test.each(["Sneak Over (OV)", "Sneak Over OV", "Sneak Over (2024)"])(
-    "still matches a real film with Sneak in its name: %s",
-    async (title) => {
-      expect(
-        (await evaluate(title, [movie(1187059, "Sneak Over", 2024)]))
-          .acceptedCandidate?.tmdbMovieId,
-      ).toBe(1187059);
-    },
-  );
+  test.each([
+    "Sneak Over (OV)",
+    "Sneak Over OV",
+    "Sneak Over (2024)",
+    "  **Sneak   Over (OV) | CinemaxX**  ",
+  ])("still matches a real film with Sneak in its name: %s", async (title) => {
+    expect(
+      (await evaluate(title, [movie(1187059, "Sneak Over", 2024)]))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(1187059);
+  });
 
   test.each([
     [
@@ -708,6 +710,8 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
   test.each([
     "The Royal Opera House: La Bohème",
     "Verdi: Otello",
+    "  *Verdi: Otello* | CinemaxX  ",
+    "  *Der Herr der Ringe Triple* | CinemaxX  ",
     "MET OPERA: Verdi OTELLO",
     "Massenet: Manon (MET live im Kino)",
     "Live aus der MET: Verdi: Otello",

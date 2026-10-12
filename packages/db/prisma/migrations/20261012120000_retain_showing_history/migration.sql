@@ -1,0 +1,5 @@
+ALTER TABLE "Showing" ADD COLUMN "isListed" BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE "Showing" DROP CONSTRAINT "Showing_movieId_fkey";
+ALTER TABLE "Showing" ADD CONSTRAINT "Showing_movieId_fkey"
+FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

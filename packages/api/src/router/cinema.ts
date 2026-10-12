@@ -308,6 +308,7 @@ const getNearbyMovieByTmdbId = async (
       city: { select: { name: true, slug: true } },
       showings: {
         where: {
+          isListed: true,
           dateTime: { gte: nowDate },
           movie: { tmdbMovieId: input.tmdbMovieId },
         },
@@ -405,7 +406,7 @@ export const cinemaRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const showingDateFilter = input.date
         ? getScheduleDayShowingFilter(input.date)
-        : undefined;
+        : { isListed: true, dateTime: { gte: new Date() } };
 
       const rawCinema = await ctx.db.cinema.findFirst({
         where: {

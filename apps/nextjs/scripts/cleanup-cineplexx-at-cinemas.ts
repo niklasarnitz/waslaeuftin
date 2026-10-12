@@ -1,6 +1,6 @@
 import { db } from "@waslaeuftin/db/client";
 
-// 1. Delete all showings for CineplexxAT cinemas
+// Preserve cinemas that own screening history; only remove empty ones.
 const cineplexxAtCinemas = await db.cinema.findMany({
   where: { cineplexxAtCinemaId: { not: null } },
   select: { id: true, name: true, cityId: true },
@@ -10,20 +10,14 @@ console.log(
   `Found ${cineplexxAtCinemas.length} CineplexxAT cinemas to clean up`,
 );
 
-const cinemaIds = cineplexxAtCinemas.map((c) => c.id);
-
-const deletedShowings = await db.showing.deleteMany({
-  where: { cinemaId: { in: cinemaIds } },
-});
-console.log(`Deleted ${deletedShowings.count} showings`);
-
-// 2. Delete the cinemas themselves
 const deletedCinemas = await db.cinema.deleteMany({
-  where: { cineplexxAtCinemaId: { not: null } },
+  where: { cineplexxAtCinemaId: { not: null }, showings: { none: {} } },
 });
-console.log(`Deleted ${deletedCinemas.count} cinemas`);
+console.log(
+  `Deleted ${deletedCinemas.count} empty cinemas; retained ${cineplexxAtCinemas.length - deletedCinemas.count} cinemas with screening history`,
+);
 
-// 3. Clean up orphaned Austrian cities (no cinemas left)
+// Clean up orphaned Austrian cities (no cinemas left).
 const orphanedCities = await db.city.findMany({
   where: {
     country: "AUSTRIA",

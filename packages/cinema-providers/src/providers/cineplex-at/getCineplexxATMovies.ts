@@ -30,12 +30,14 @@ export const getCineplexxATMovies = async (
   }
 
   const movies = data.map((movie) => ({
-    name: movie.titleCalculated ?? movie.title.replaceAll("*", ""),
+    name: movie.title ?? movie.titleCalculated,
     cinemaId,
     provider: "CineplexxAT",
     providerFilmId: movie.id,
     evidence: {
-      originalTitle: movie.titleOriginalCalculated?.trim() || undefined,
+      originalTitle: movie.titleOriginalCalculated?.trim()
+        ? movie.titleOriginalCalculated
+        : undefined,
       director:
         movie.directors
           ?.map((name) => name.trim())
@@ -67,7 +69,7 @@ export const getCineplexxATMovies = async (
             ),
           ),
           cinemaId,
-          movieName: movie.titleCalculated ?? movie.title.replaceAll("*", ""),
+          movieName: movies[index]!.name,
           provider: movies[index]!.provider,
           providerFilmId: movies[index]!.providerFilmId,
           evidence: movies[index]!.evidence,

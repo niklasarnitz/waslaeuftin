@@ -190,9 +190,7 @@ export const getKinoTicketsExpressMovies = async (
       // Extract movie title from the new structure
       const movieTitle = container$(
         ".text-xl.sm\\:text-3xl.font-bold.text-primary",
-      )
-        .text()
-        .trim();
+      ).text();
 
       // Extract movie metadata from the paragraph
       const metadataParagraph = container$("p").text();
@@ -235,7 +233,7 @@ export const getKinoTicketsExpressMovies = async (
   ).filter(
     (movie): movie is ProviderMovieWithShowings =>
       ProviderMovieWithShowingsSchema.safeParse(movie).success &&
-      movie.name.length > 0,
+      movie.name.trim().length > 0,
   );
 
   const movies = rawData.map((movie) => ({

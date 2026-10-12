@@ -1,5 +1,6 @@
 export * from "./showingTags/categorizeShowingTags";
 export * from "./titleNormalization/normalizeMovieTitle";
+export * from "./titleNormalization/prepareMovieTitle";
 export * from "./titleNormalization/NormalizedMovieTitle";
 export * from "./titleNormalization/classifySneakTitle";
 export * from "./titleNormalization/getMovieTitleCandidates";

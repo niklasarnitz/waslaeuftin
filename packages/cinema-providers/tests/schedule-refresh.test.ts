@@ -1,5 +1,86 @@
 import { expect, spyOn, test } from "bun:test";
 
+test("provider HTTP catalogs retain raw titles while rejecting blank records", async () => {
+  const rawTitle = "  A *Source* Title \t ";
+  const originalTitle = "  Original *Title*  ";
+  const request = spyOn(globalThis, "fetch").mockImplementation((input) => {
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url;
+    if (url.includes("filters/dates"))
+      return Promise.resolve(Response.json(["2026-12-01"]));
+    if (url.includes("cineplexx"))
+      return Promise.resolve(
+        Response.json(
+          [rawTitle, undefined].map((title, index) => ({
+            id: `film-${index}`,
+            title,
+            titleCalculated: "Calculated Title",
+            titleOriginalCalculated: originalTitle,
+            sessions: [
+              {
+                id: `session-${index}`,
+                showtime: "2026-12-01T18:00:00Z",
+                technologies: [],
+              },
+            ],
+          })),
+        ),
+      );
+    if (url.includes("kinotickets.express"))
+      return Promise.resolve(
+        new Response(
+          `<main><ul>${[rawTitle, " \t "].map((title) => `<li class="bg-white"><h2 class="text-xl sm:text-3xl font-bold text-primary">${title}</h2><a href="/fixture/booking/1">So 22.06.[15:00]</a></li>`).join("")}</ul></main>`,
+        ),
+      );
+    return Promise.resolve(
+      Response.json({
+        data: {
+          screenings: [rawTitle, " \t ", null].map((title) => ({
+            datetime: "2026-12-01T18:00:00Z",
+            movie: { title },
+            cinema: { id: "fixture" },
+            attributes: [],
+          })),
+        },
+      }),
+    );
+  });
+  try {
+    const {
+      getCineplexxATMovies,
+      getCinfinityMovies,
+      getKinoTicketsExpressMovies,
+    } = await import("@waslaeuftin/cinema-providers/server");
+    const at = await getCineplexxATMovies(11, "fixture");
+    expect(at.movies.map((movie) => movie.name)).toEqual([
+      rawTitle,
+      "Calculated Title",
+    ]);
+    expect(at.showings.flat().map((showing) => showing.movieName)).toEqual([
+      rawTitle,
+      "Calculated Title",
+    ]);
+    expect(at.movies[0]?.evidence.originalTitle).toBe(originalTitle);
+    expect(at.showings.flat()[0]?.evidence.originalTitle).toBe(originalTitle);
+    const cinfinity = await getCinfinityMovies([
+      { cinemaId: 11, cinfinityCinemaId: "fixture" },
+    ]);
+    const express = await getKinoTicketsExpressMovies(11, "fixture");
+    for (const catalog of [cinfinity, express]) {
+      expect(catalog.movies.map((movie) => movie.name)).toEqual([rawTitle]);
+      expect(catalog.showings.map((showing) => showing.movieName)).toEqual([
+        rawTitle,
+      ]);
+    }
+  } finally {
+    request.mockRestore();
+  }
+});
+
 test("repeated Kinoheld and Cineplex fetches request fresh schedules", async () => {
   let kinoheldRequests = 0;
   let cineplexRequests = 0;

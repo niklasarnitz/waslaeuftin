@@ -5,7 +5,7 @@ import { db } from "@waslaeuftin/db/client";
 // Share the lookup between metadata and server-rendered page content.
 export const nextCinemaShowing = cache(async (cinemaId: number) =>
   db.showing.findFirst({
-    where: { cinemaId, dateTime: { gte: new Date() } },
+    where: { isListed: true, cinemaId, dateTime: { gte: new Date() } },
     orderBy: { dateTime: "asc" },
     select: {
       dateTime: true,
@@ -17,7 +17,11 @@ export const nextCinemaShowing = cache(async (cinemaId: number) =>
 
 export const nextCityShowing = cache(async (cityId: number) =>
   db.showing.findFirst({
-    where: { cinema: { cityId }, dateTime: { gte: new Date() } },
+    where: {
+      isListed: true,
+      cinema: { cityId },
+      dateTime: { gte: new Date() },
+    },
     orderBy: { dateTime: "asc" },
     select: {
       dateTime: true,

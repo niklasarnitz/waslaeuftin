@@ -27,6 +27,7 @@ export const cityHighlights = cache(async (cityId: number) => {
   const now = new Date();
   const showings = await db.showing.findMany({
     where: {
+      isListed: true,
       cinema: { cityId },
       dateTime: {
         gte: now,

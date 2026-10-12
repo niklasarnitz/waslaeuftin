@@ -89,11 +89,11 @@ export const getCinfinityMovies = async (
       const cinema = screening.cinema
         ? cinemasByCinfinityCinemaId[screening.cinema.id]
         : undefined;
-      const movieName = screening.movie?.title?.trim();
+      const movieName = screening.movie?.title;
 
       if (
         !cinema ||
-        !movieName ||
+        !movieName?.trim() ||
         !screening.datetime ||
         screening.isInfoOnly === true
       ) {

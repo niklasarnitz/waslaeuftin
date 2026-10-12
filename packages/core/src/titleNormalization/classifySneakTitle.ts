@@ -1,8 +1,8 @@
-import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
+import { prepareMovieTitle } from "./prepareMovieTitle";
 
 /** A surprise screening has metadata, but no announced movie identity. */
 export const classifySneakTitle = (rawTitle: string) => {
-  const title = smartReplaceUnderscores(rawTitle).trim();
+  const title = prepareMovieTitle(rawTitle);
   const withoutBrackets = title.replace(/\([^)]*\)/g, " ").trim();
   // These are actual film titles, not surprise-screening labels.
   if (

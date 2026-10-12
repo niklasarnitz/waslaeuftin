@@ -10,6 +10,7 @@ import {
   getScreenedPerformance,
   normalizeMovieTitle,
   normalizePrefix,
+  prepareMovieTitle,
 } from "@waslaeuftin/core";
 import { Prisma } from "@waslaeuftin/db";
 import { db } from "@waslaeuftin/db/client";
@@ -262,7 +263,7 @@ export const resolveAndPersistCatalog = async (
     const normalizedForFallback =
       getScreenedPerformance(rawTitle) ||
       classifySneakTitle(rawTitle).isUnannounced
-        ? rawTitle.trim()
+        ? prepareMovieTitle(rawTitle)
         : [normalizeMovieTitle(rawTitle).normalizedTitle, releaseYear]
             .filter(Boolean)
             .join(" ");
@@ -693,6 +694,7 @@ export const resolveAndPersistCatalog = async (
       cinemaId: showing.cinemaId,
       movieId,
       rawMovieName: showing.movieName,
+      isListed: true,
       dateTime: showing.dateTime,
       bookingUrl: showing.bookingUrl ?? null,
       showingAdditionalData: combinedAdditionalData,
@@ -738,6 +740,7 @@ export const resolveAndPersistCatalog = async (
           select: {
             cinemaId: true,
             movieId: true,
+            isListed: true,
             dateTime: true,
             rawMovieName: true,
             sourceProvider: true,
@@ -755,6 +758,7 @@ export const resolveAndPersistCatalog = async (
           const key = `${row.cinemaId}:${new Date(row.dateTime).toISOString()}`;
           const group = slots.get(key) ?? [];
           const conflict = group.find((existing) => {
+            if (existing.isListed === false) return false;
             if (existing.movieId === row.movieId) return false;
             const sameProvider = existing.sourceProvider === row.sourceProvider;
             if (
@@ -792,6 +796,21 @@ export const resolveAndPersistCatalog = async (
           data: admitted,
           skipDuplicates: true,
         });
+        // An exact slot can reappear without a new matcher decision (e.g. HTTP failure).
+        // Reactivation must not depend on decision stamping or change its identity.
+        if (admitted.length > 0) {
+          await tx.showing.updateMany({
+            where: {
+              isListed: false,
+              OR: admitted.map((row) => ({
+                cinemaId: row.cinemaId,
+                movieId: row.movieId,
+                dateTime: row.dateTime,
+              })),
+            },
+            data: { isListed: true },
+          });
+        }
         return { count: inserted.count, admitted };
       });
       createdCount += result.count;
@@ -850,20 +869,6 @@ export const resolveAndPersistCatalog = async (
   console.info(
     `[Resolver] Created ${createdCount} new showings (${showingData.length - createdCount - heldShowings} duplicates skipped, ${heldShowings} identity changes held for review)`,
   );
-
-  // Phase 5: Prune past showings older than 3 days to avoid indefinite table bloat
-  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-  const deletedOldShowings = await db.showing?.deleteMany?.({
-    where: {
-      dateTime: { lt: threeDaysAgo },
-    },
-  });
-
-  if (deletedOldShowings && deletedOldShowings.count > 0) {
-    console.info(
-      `[Resolver] Pruned ${deletedOldShowings.count} past showings older than 3 days`,
-    );
-  }
 
   return {
     canonicalMovies: canonicalMovieMap.size,

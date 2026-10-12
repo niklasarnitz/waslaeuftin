@@ -78,6 +78,7 @@ export const runReminderMatching = async (
   // Fetch all matching future showings in a single query
   const matchingShowings = await db.showing.findMany({
     where: {
+      isListed: true,
       dateTime: { gte: now, lte: fourDaysFromNow },
       cinemaId: { in: allCinemaIds },
       movie: { tmdbMovieId: { in: allTmdbMovieIds } },

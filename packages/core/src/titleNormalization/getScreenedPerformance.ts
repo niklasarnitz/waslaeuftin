@@ -1,5 +1,8 @@
+import { prepareMovieTitle } from "./prepareMovieTitle";
+
 /** Production brands/seasons must not collapse into the underlying work name. */
-export const getScreenedPerformance = (title: string) => {
+export const getScreenedPerformance = (rawTitle: string) => {
+  const title = prepareMovieTitle(rawTitle);
   const brand =
     /\bMET\b(?=\s*(?::|Opera\b|live\b|(?:19|20)\d{2}\b))|\bMetropolitan Opera\b/i.test(
       title,

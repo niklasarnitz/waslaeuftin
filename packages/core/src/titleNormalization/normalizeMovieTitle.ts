@@ -6,21 +6,11 @@ import { extractEventAffixes } from "./extractEventAffixes";
 import { extractStandaloneTags } from "./extractStandaloneTags";
 import { METADATA_REGEX } from "./METADATA_MARKERS";
 import { normalizeForTagCheck } from "./normalizeForTagCheck";
-import { smartReplaceUnderscores } from "./smartReplaceUnderscores";
+import { prepareMovieTitle } from "./prepareMovieTitle";
 import { TAG_PATTERN } from "./TAG_PATTERN";
 
 const cache = new Map<string, NormalizedMovieTitle>();
 const MAX_CACHE_SIZE = 10000; // Reasonable limit for movie titles
-
-const decodeHtmlAndCleanQuotes = (input: string): string => {
-  return input
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/[’‘`´]/g, "'");
-};
 
 export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
   const cached = cache.get(rawTitle);
@@ -28,10 +18,10 @@ export const normalizeMovieTitle = (rawTitle: string): NormalizedMovieTitle => {
     return cached;
   }
 
-  const title = decodeHtmlAndCleanQuotes(smartReplaceUnderscores(rawTitle));
+  const title = prepareMovieTitle(rawTitle);
   const sneak = classifySneakTitle(rawTitle);
   if (sneak.isUnannounced) {
-    const result = { normalizedTitle: rawTitle.trim(), tags: sneak.tags };
+    const result = { normalizedTitle: title, tags: sneak.tags };
     Object.freeze(result.tags);
     Object.freeze(result);
     return result;

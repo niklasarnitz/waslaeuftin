@@ -50,7 +50,7 @@ export const createCinemaxxVueClient = (
   const recoverTitle = async (film: CinemaxxVueFilm) => {
     if (film.filmTitle.trim()) return;
     if (film.originalTitle?.trim()) {
-      film.filmTitle = film.originalTitle.trim();
+      film.filmTitle = film.originalTitle;
       return;
     }
     const url = new URL(film.filmUrl ?? "", ORIGIN);
@@ -61,11 +61,9 @@ export const createCinemaxxVueClient = (
       title = request(url.href, { Accept: "text/html" }).then((response) => {
         if (response.status !== 200)
           throw new Error(describeFailedResponse(response));
-        const value = load(response.body)("title")
-          .text()
-          .replace(/\s*\|\s*CinemaxX\s*$/i, "")
-          .trim();
-        if (!value || value === "CinemaxX")
+        const value = load(response.body)("title").text();
+        const semanticTitle = value.replace(/\s*\|\s*CinemaxX\s*$/i, "").trim();
+        if (!semanticTitle || semanticTitle === "CinemaxX")
           throw new Error(`CinemaxX/Vue: missing title for ${url.pathname}`);
         return value;
       });
@@ -168,10 +166,14 @@ export const parseCinemaxxVueFilms = (
         sessions.add(session.sessionId);
         showings.push({
           cinemaId,
-          movieName: film.filmTitle.trim(),
+          movieName: film.filmTitle,
           provider: "CinemaxxVue",
           providerFilmId: bookingUrl.pathname.split("/")[4] || undefined,
-          evidence: { originalTitle: film.originalTitle?.trim() || undefined },
+          evidence: {
+            originalTitle: film.originalTitle?.trim()
+              ? film.originalTitle
+              : undefined,
+          },
           dateTime,
           bookingUrl: bookingUrl.href,
           showingAdditionalData: [

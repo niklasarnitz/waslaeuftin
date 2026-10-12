@@ -47,6 +47,7 @@ export const getScheduleDayRange = (
 export const getScheduleDayShowingFilter = (
   date: Date | undefined,
 ): Prisma.ShowingWhereInput => ({
+  isListed: true,
   OR: [
     {
       cinema: { country: { notIn: OTHER_TIME_ZONE_COUNTRIES } },

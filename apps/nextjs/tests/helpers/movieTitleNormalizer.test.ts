@@ -4,10 +4,24 @@ import { normalizeMovieTitle } from "@waslaeuftin/core";
 import { auditedSneakTitles } from "@waslaeuftin/tests/fixtures/auditedSneakTitles";
 
 describe("normalizeMovieTitle", () => {
+  test.each([
+    ["  *The   Matrix (OV)* | CinemaxX  ", "The Matrix", ["OV"]],
+    ["  **Sneak   Over | CinemaxX** ", "Sneak Over", []],
+    [" *OV-Sneak* | CinemaxX ", "OV-Sneak", ["Sneak", "OV"]],
+    ["  M*A*S*H | CinemaxX  ", "M*A*S*H", []],
+  ])("cleans provider presentation centrally: %s", (raw, title, tags) => {
+    expect(normalizeMovieTitle(raw)).toEqual({
+      normalizedTitle: title,
+      tags,
+    });
+  });
+
   test.each(auditedSneakTitles)(
     "preserves surprise-screening titles and extracts Sneak metadata: %s",
     (title) => {
-      expect(normalizeMovieTitle(title).normalizedTitle).toBe(title);
+      expect(normalizeMovieTitle(title).normalizedTitle).toBe(
+        title === "Sneak  Preview" ? "Sneak Preview" : title,
+      );
       expect(normalizeMovieTitle(title).tags).toContain("Sneak");
     },
   );

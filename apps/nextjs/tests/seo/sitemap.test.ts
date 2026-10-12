@@ -1,7 +1,53 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
-const cities = mock(async () => [{ slug: "güglingen" }]);
-const cinemas = mock(async () => [{ slug: "kino_&_café_am_ufer" }]);
+interface UpcomingFilter {
+  isListed?: boolean;
+  dateTime: { gte: Date };
+}
+
+// Model retained rows as well as a live programme; selection happens at the
+// database boundary, before sitemap entries are built.
+const schedules = [
+  {
+    city: "güglingen",
+    cinema: "kino_&_café_am_ufer",
+    isListed: true,
+    dateTime: new Date("2099-01-01"),
+  },
+  {
+    city: "withdrawn-city",
+    cinema: "withdrawn-cinema",
+    isListed: false,
+    dateTime: new Date("2099-01-01"),
+  },
+  {
+    city: "past-city",
+    cinema: "past-cinema",
+    isListed: true,
+    dateTime: new Date("2000-01-01"),
+  },
+];
+const selectSchedules = (filter: UpcomingFilter) =>
+  schedules.filter(
+    (schedule) =>
+      (filter.isListed === undefined ||
+        schedule.isListed === filter.isListed) &&
+      schedule.dateTime >= filter.dateTime.gte,
+  );
+const cities = mock(
+  async (args: {
+    where: { cinemas: { some: { showings: { some: UpcomingFilter } } } };
+  }) =>
+    selectSchedules(args.where.cinemas.some.showings.some).map((schedule) => ({
+      slug: schedule.city,
+    })),
+);
+const cinemas = mock(
+  async (args: { where: { showings: { some: UpcomingFilter } } }) =>
+    selectSchedules(args.where.showings.some).map((schedule) => ({
+      slug: schedule.cinema,
+    })),
+);
 mock.module("@waslaeuftin/db/client", () => ({
   db: { city: { findMany: cities }, cinema: { findMany: cinemas } },
 }));
@@ -23,18 +69,18 @@ describe("sitemap and crawler access", () => {
     expect(entries.map((entry) => entry.url)).toContain(
       "https://waslaeuft.in/city/g%C3%BCglingen",
     );
-    expect(cities).toHaveBeenCalledWith({
-      where: {
-        cinemas: {
-          some: { showings: { some: { dateTime: { gte: expect.any(Date) } } } },
-        },
-      },
-      select: { slug: true },
-    });
-    expect(cinemas).toHaveBeenCalledWith({
-      where: { showings: { some: { dateTime: { gte: expect.any(Date) } } } },
-      select: { slug: true },
-    });
+    expect(entries.map((entry) => entry.url)).not.toContain(
+      "https://waslaeuft.in/cinema/withdrawn-cinema",
+    );
+    expect(entries.map((entry) => entry.url)).not.toContain(
+      "https://waslaeuft.in/city/withdrawn-city",
+    );
+    expect(entries.map((entry) => entry.url)).not.toContain(
+      "https://waslaeuft.in/cinema/past-cinema",
+    );
+    expect(entries.map((entry) => entry.url)).not.toContain(
+      "https://waslaeuft.in/city/past-city",
+    );
     expect(entries.every((entry) => entry.lastModified === undefined)).toBe(
       true,
     );

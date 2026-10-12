@@ -36,23 +36,100 @@ let fetchTmdbMovieDetailsError: Error | null = null;
 let evaluationError: Error | null = null;
 const acceptedCandidatesByYear = new Map<number, AcceptedCandidate>();
 let cachedShowings: object[] = [];
+const storedMappings = new Map<number, number>();
+
+type ShowingWhere = {
+  cinemaId?: number | { in: number[] };
+  movieId?: number;
+  rawMovieName?: string;
+  isListed?: boolean;
+  dateTime?: Date | string | { gte?: Date; lt?: Date; in?: Date[] };
+  sourceProvider?: string | null;
+  providerFilmId?: string | null;
+  sourceEvidence?: { equals: unknown };
+  matcherVersion?: number | null;
+  OR?: ShowingWhere[];
+};
+const matchesShowing = (
+  row: Prisma.ShowingCreateManyInput,
+  where: ShowingWhere,
+): boolean => {
+  for (const field of [
+    "movieId",
+    "rawMovieName",
+    "sourceProvider",
+    "providerFilmId",
+    "matcherVersion",
+  ] as const) {
+    if (where[field] !== undefined && (row[field] ?? null) !== where[field])
+      return false;
+  }
+  if (where.isListed !== undefined && (row.isListed ?? true) !== where.isListed)
+    return false;
+  if (
+    where.cinemaId !== undefined &&
+    (typeof where.cinemaId === "number"
+      ? row.cinemaId !== where.cinemaId
+      : !where.cinemaId.in.includes(row.cinemaId))
+  )
+    return false;
+  if (where.sourceEvidence && row.sourceEvidence != null) return false;
+  const date = new Date(row.dateTime).getTime();
+  const filter = where.dateTime;
+  if (filter instanceof Date || typeof filter === "string") {
+    if (date !== new Date(filter).getTime()) return false;
+  } else if (filter) {
+    if (filter.gte && date < filter.gte.getTime()) return false;
+    if (filter.lt && date >= filter.lt.getTime()) return false;
+    if (filter.in && !filter.in.some((value) => value.getTime() === date))
+      return false;
+  }
+  return !where.OR || where.OR.some((clause) => matchesShowing(row, clause));
+};
+const updateShowings = async (params: {
+  where?: ShowingWhere;
+  data: Partial<Prisma.ShowingCreateManyInput>;
+}) => {
+  const rows = storedShowings.filter((row) =>
+    matchesShowing(row, params.where ?? {}),
+  );
+  for (const row of rows) Object.assign(row, params.data);
+  return { count: rows.length };
+};
+const deleteShowings = async (params?: { where?: ShowingWhere }) => {
+  const before = storedShowings.length;
+  storedShowings = storedShowings.filter(
+    (row) => !matchesShowing(row, params?.where ?? {}),
+  );
+  return { count: before - storedShowings.length };
+};
 
 const createShowings = async (params: {
   data: Prisma.ShowingCreateManyInput[];
 }) => {
-  const inserted = params.data.filter(
-    (row) =>
-      !storedShowings.some(
+  let count = 0;
+  for (const row of params.data) {
+    if (
+      storedShowings.some(
         (existing) =>
           existing.cinemaId === row.cinemaId &&
           existing.movieId === row.movieId &&
           new Date(existing.dateTime).getTime() ===
             new Date(row.dateTime).getTime(),
-      ),
-  );
-  storedShowings.push(...inserted);
-  createdShowings.push(...inserted);
-  return { count: inserted.length };
+      )
+    )
+      continue;
+    const stored = {
+      ...row,
+      id:
+        Math.max(0, ...storedShowings.map((existing) => existing.id ?? 0)) + 1,
+      isListed: row.isListed ?? true,
+    };
+    storedShowings.push(stored);
+    createdShowings.push(stored);
+    count++;
+  }
+  return { count };
 };
 const findShowings = async (params: {
   where: {
@@ -86,18 +163,76 @@ const findShowings = async (params: {
 
 const replacementTransaction = {
   $queryRaw: mock(async () => []),
+  $executeRaw: mock(
+    async (_query: TemplateStringsArray, serialized: string) => {
+      const incoming = JSON.parse(
+        serialized,
+      ) as Prisma.ShowingCreateManyInput[];
+      for (const row of incoming) {
+        await updateShowings({
+          where: {
+            cinemaId: row.cinemaId,
+            movieId: row.movieId,
+            dateTime: row.dateTime,
+          },
+          data: {
+            ...row,
+            dateTime: new Date(row.dateTime),
+            matchEvaluatedAt: row.matchEvaluatedAt
+              ? new Date(row.matchEvaluatedAt)
+              : null,
+            isListed: true,
+          },
+        });
+      }
+      return incoming.length;
+    },
+  ),
   showing: {
     findMany: mock(findShowings),
-    deleteMany: mock(async (_params: unknown) => ({ count: 1 })),
+    deleteMany: mock(deleteShowings),
+    updateMany: mock(updateShowings),
     createMany: mock(createShowings),
   },
-  cinema: { update: mock(async (_params: unknown) => ({})) },
+  cinema: {
+    update: mock(
+      async (params: {
+        where: { id: number };
+        data: {
+          cinemaxxVueCinemasMetadata: {
+            upsert: { update: { cinemaId: number } };
+          };
+        };
+      }) => {
+        storedMappings.set(
+          params.where.id,
+          params.data.cinemaxxVueCinemasMetadata.upsert.update.cinemaId,
+        );
+        return {};
+      },
+    ),
+  },
 };
 
 const db = {
   $transaction: mock(
-    (callback: (tx: typeof replacementTransaction) => Promise<number>) =>
-      callback(replacementTransaction),
+    async (
+      callback: (tx: typeof replacementTransaction) => Promise<unknown>,
+    ) => {
+      const originalRows = structuredClone(storedShowings);
+      const originalMappings = new Map(storedMappings);
+      const originalCreatedCount = createdShowings.length;
+      try {
+        return await callback(replacementTransaction);
+      } catch (error) {
+        storedShowings = originalRows;
+        storedMappings.clear();
+        for (const [id, mapping] of originalMappings)
+          storedMappings.set(id, mapping);
+        createdShowings.splice(originalCreatedCount);
+        throw error;
+      }
+    },
   ),
   movie: {
     findMany: mock(async () => existingMovies),
@@ -128,9 +263,9 @@ const db = {
   },
   showing: {
     findMany: mock(findShowings),
-    updateMany: mock(async (_params: unknown) => ({ count: 1 })),
+    updateMany: mock(updateShowings),
     createMany: mock(createShowings),
-    deleteMany: mock(async () => ({ count: 0 })),
+    deleteMany: mock(deleteShowings),
   },
 };
 
@@ -237,6 +372,7 @@ describe("resolveAndPersistCatalog", () => {
     evaluationError = null;
     acceptedCandidatesByYear.clear();
     cachedShowings = [];
+    storedMappings.clear();
     db.movie.findMany.mockClear();
     db.movie.upsert.mockClear();
     db.tmdbMetadata.findMany.mockClear();
@@ -244,6 +380,99 @@ describe("resolveAndPersistCatalog", () => {
     db.showing.updateMany.mockClear();
     db.$transaction.mockClear();
   });
+
+  test("retains past screenings and stores source text separately from the shared normalized title", async () => {
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            movieName: "Historic *Movie*",
+            dateTime: new Date("2000-01-01T18:00:00Z"),
+          },
+        ],
+      },
+    ]);
+    const historic = structuredClone(storedShowings[0]);
+    const raw = "  *The   Matrix (OV)* | CinemaxX  ";
+    await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            movieName: raw,
+            dateTime: new Date("2099-12-01T18:00:00Z"),
+          },
+        ],
+      },
+    ]);
+    expect(storedShowings).toHaveLength(2);
+    expect(storedShowings[0]).toEqual(historic);
+    expect(storedShowings[1]).toMatchObject({
+      rawMovieName: raw,
+      showingAdditionalData: ["OV"],
+      isListed: true,
+    });
+    expect(existingMovies[1]).toMatchObject({ normalizedTitle: "The Matrix" });
+  });
+
+  test.each(["HTTP failure", "new accepted identity"])(
+    "preserves withdrawn slots when they reappear: %s",
+    async (scenario) => {
+      const { resolveAndPersistCatalog } =
+        await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+      const catalog = {
+        provider: "TestProvider",
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            providerFilmId: "film-a",
+            movieName: "Vaterland",
+            dateTime: new Date("2099-12-01T18:00:00Z"),
+          },
+        ],
+      };
+      await resolveAndPersistCatalog([catalog]);
+      const originalId = storedShowings[0]!.id;
+      storedShowings[0]!.isListed = false;
+      storedShowings[0]!.matcherVersion = null;
+      storedShowings[0]!.matchEvaluatedAt = null;
+      if (scenario === "HTTP failure") {
+        evaluationError = new Error("TMDB temporarily unavailable");
+      } else {
+        acceptedCandidate = {
+          tmdbMovieId: 902,
+          title: "Vaterland",
+          posterPath: null,
+          confidence: 0.95,
+        };
+        storedTmdbMetadataIds.add(902);
+      }
+      const result = await resolveAndPersistCatalog([catalog]);
+      expect(result.heldShowings).toBe(0);
+      if (scenario === "HTTP failure") {
+        expect(storedShowings).toHaveLength(1);
+        expect(storedShowings[0]).toMatchObject({
+          id: originalId,
+          isListed: true,
+          matcherVersion: null,
+          matchEvaluatedAt: null,
+        });
+      } else {
+        expect(storedShowings).toHaveLength(2);
+        expect(storedShowings[0]).toMatchObject({
+          id: originalId,
+          isListed: false,
+        });
+        expect(storedShowings[1]).toMatchObject({ isListed: true, movieId: 2 });
+      }
+    },
+  );
 
   test.each([
     "unmatched retry",
@@ -931,47 +1160,81 @@ describe("resolveAndPersistCatalog", () => {
       tmdbMovieId: null,
     });
   });
-  test("replaces only migrated cinemas and switches mappings in the same transaction", async () => {
+  test("refreshes Cinemaxx listings without losing historical, withdrawn or other-cinema screenings", async () => {
     const { persistCinemaxxVueCatalog } =
       await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
+    const mappings = [{ id: 1490, providerCinemaId: 1931 }];
+    const current = {
+      cinemaId: 1490,
+      movieName: "  *Direct   Movie (OV)* | CinemaxX  ",
+      dateTime: new Date("2099-12-01T18:00:00Z"),
+      bookingUrl: "https://www.cinemaxx.de/new-booking",
+    };
+    const duplicateSlot = {
+      ...current,
+      bookingUrl: "https://www.cinemaxx.de/second-room",
+      showingAdditionalData: ["Saal 2"],
+    };
+    const withdrawn = {
+      cinemaId: 1490,
+      movieName: "Withdrawn Movie",
+      dateTime: new Date("2099-12-02T18:00:00Z"),
+    };
     const result = await persistCinemaxxVueCatalog(
-      [
-        {
-          movies: [{ cinemaId: 1490, name: "Direct Movie" }],
-          showings: [
-            {
-              cinemaId: 1490,
-              movieName: "Direct Movie",
-              dateTime: new Date("2026-10-06T18:00:00Z"),
-              bookingUrl:
-                "https://www.cinemaxx.de/buchtickets/zusammenfassung/1931/film/1",
-            },
-          ],
-        },
-      ],
-      [{ id: 1490, providerCinemaId: 1931 }],
+      [{ movies: [], showings: [current, duplicateSlot, withdrawn] }],
+      mappings,
     );
-    expect(result.totalShowings).toBe(1);
-    expect(db.$transaction).toHaveBeenCalledTimes(1);
-    expect(db.showing.createMany).not.toHaveBeenCalled();
-    expect(replacementTransaction.showing.deleteMany).toHaveBeenCalledWith({
-      where: { cinemaId: { in: [1490] } },
+    expect(result.totalShowings).toBe(2);
+    const currentId = storedShowings[0]!.id;
+    const withdrawnId = storedShowings[1]!.id;
+    storedShowings[0]!.bookingUrl = "https://www.cinemaxx.de/old-booking";
+    const historic = {
+      ...storedShowings[0]!,
+      id: 101,
+      dateTime: new Date("2000-01-01T18:00:00Z"),
+    };
+    const otherCinema = { ...storedShowings[0]!, id: 102, cinemaId: 1491 };
+    storedShowings.push(historic, otherCinema);
+    const untouched = structuredClone([historic, otherCinema]);
+
+    const refreshed = await persistCinemaxxVueCatalog(
+      [{ movies: [], showings: [current, duplicateSlot] }],
+      mappings,
+    );
+    expect(refreshed.totalShowings).toBe(0);
+    expect(storedShowings).toHaveLength(4);
+    expect(storedShowings[0]).toMatchObject({
+      id: currentId,
+      isListed: true,
+      rawMovieName: current.movieName,
+      bookingUrl: current.bookingUrl,
+      showingAdditionalData: ["OV"],
     });
-    expect(replacementTransaction.cinema.update).toHaveBeenCalledWith({
-      where: { id: 1490 },
-      data: {
-        kinoHeldCinemasMetadata: { disconnect: true },
-        cinemaxxVueCinemasMetadata: {
-          upsert: { create: { cinemaId: 1931 }, update: { cinemaId: 1931 } },
-        },
-        lastFetchedAt: expect.any(Date),
-      },
+    expect(storedShowings[1]).toMatchObject({
+      id: withdrawnId,
+      isListed: false,
+      rawMovieName: withdrawn.movieName,
     });
+    expect(storedShowings.slice(2)).toEqual(untouched);
+    expect(storedMappings.get(1490)).toBe(1931);
+
+    await persistCinemaxxVueCatalog(
+      [{ movies: [], showings: [current, withdrawn] }],
+      mappings,
+    );
+    expect(storedShowings).toHaveLength(4);
+    expect(storedShowings[1]).toMatchObject({
+      id: withdrawnId,
+      isListed: true,
+    });
+    expect(storedShowings.slice(2)).toEqual(untouched);
   });
 
   test("refuses empty direct catalogs before touching stored sources or showings", async () => {
     const { persistCinemaxxVueCatalog } =
       await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
+    const noCinemas = await persistCinemaxxVueCatalog([], []);
+    expect(noCinemas.totalShowings).toBe(0);
     const calls = db.$transaction.mock.calls.length;
     await expect(
       persistCinemaxxVueCatalog(
@@ -982,10 +1245,21 @@ describe("resolveAndPersistCatalog", () => {
     expect(db.$transaction.mock.calls.length).toBe(calls);
   });
 
-  test("does not switch sources if inserting the replacement schedule fails", async () => {
+  test("rolls back withdrawals and source mappings if refreshing the schedule fails", async () => {
     const { persistCinemaxxVueCatalog } =
       await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");
-    const updates = replacementTransaction.cinema.update.mock.calls.length;
+    storedShowings = [
+      {
+        id: 42,
+        cinemaId: 1490,
+        movieId: 99,
+        rawMovieName: "Previous source title",
+        dateTime: new Date("2099-12-01T18:00:00Z"),
+        isListed: true,
+      },
+    ];
+    storedMappings.set(1490, 1234);
+    const previous = structuredClone(storedShowings);
     replacementTransaction.showing.createMany.mockImplementationOnce(() =>
       Promise.reject(new Error("insert failed")),
     );
@@ -1006,8 +1280,7 @@ describe("resolveAndPersistCatalog", () => {
         [{ id: 1490, providerCinemaId: 1931 }],
       ),
     ).rejects.toThrow("insert failed");
-    expect(replacementTransaction.cinema.update.mock.calls.length).toBe(
-      updates,
-    );
+    expect(storedShowings).toEqual(previous);
+    expect(storedMappings.get(1490)).toBe(1234);
   });
 });

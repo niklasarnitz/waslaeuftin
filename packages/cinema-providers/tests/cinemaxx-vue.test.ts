@@ -157,12 +157,57 @@ test("recovers a missing API title from the official film page", async () => {
     if (url.endsWith("/auth/token"))
       return { ...response({}), cookies: ["guest=test"] };
     if (url.endsWith("/film/robu-404"))
-      return { status: 200, body: "<title>Robu 404 | CinemaxX</title>" };
+      return { status: 200, body: "<title>  Robu *404* | CinemaxX  </title>" };
     const films = fixture();
     films[0]!.filmTitle = "";
     films[0]!.originalTitle = undefined;
     films[0]!.filmUrl = "https://www.cinemaxx.de/film/robu-404";
     return response(films);
   });
-  expect((await client.getMovies(1490, 1931)).movies[0]!.name).toBe("Robu 404");
+  const catalog = await client.getMovies(1490, 1931);
+  expect(catalog.movies[0]!.name).toBe("  Robu *404* | CinemaxX  ");
+  expect(catalog.showings[0]!.movieName).toBe("  Robu *404* | CinemaxX  ");
+});
+
+test("preserves API and fallback original titles with source whitespace", async () => {
+  for (const filmTitle of ["  *Film*  ", " \t "]) {
+    const client = createCinemaxxVueClient(async (url) => {
+      if (url.endsWith("/auth/token"))
+        return { ...response({}), cookies: ["guest=test"] };
+      const films = fixture();
+      films[0]!.filmTitle = filmTitle;
+      films[0]!.originalTitle = "  Original *Film*  ";
+      return response(films);
+    });
+    const catalog = await client.getMovies(1490, 1931);
+    const expected = filmTitle.trim() ? filmTitle : "  Original *Film*  ";
+    expect(catalog.movies[0]!.name).toBe(expected);
+    expect(catalog.showings[0]!.movieName).toBe(expected);
+    expect(catalog.movies[0]!.evidence?.originalTitle).toBe(
+      "  Original *Film*  ",
+    );
+    expect(catalog.showings[0]!.evidence?.originalTitle).toBe(
+      "  Original *Film*  ",
+    );
+  }
+});
+
+test("rejects blank API titles and film pages without a semantic title", async () => {
+  const films = fixture();
+  films[0]!.filmTitle = " \t ";
+  expect(() => parseCinemaxxVueFilms(1490, 1931, films)).toThrow(
+    "empty film title",
+  );
+  for (const title of [" \t ", " CinemaxX ", " | CinemaxX "]) {
+    const client = createCinemaxxVueClient(async (url) => {
+      if (url.endsWith("/auth/token"))
+        return { ...response({}), cookies: ["guest=test"] };
+      if (url.endsWith("/film/empty"))
+        return { status: 200, body: `<title>${title}</title>` };
+      films[0]!.originalTitle = " ";
+      films[0]!.filmUrl = "/film/empty";
+      return response(films);
+    });
+    await expect(client.getMovies(1490, 1931)).rejects.toThrow("missing title");
+  }
 });

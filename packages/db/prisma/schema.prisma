@@ -12,6 +12,7 @@ model Showing {
   bookingUrl            String?
   showingAdditionalData String[]
   rawMovieName          String
+  isListed              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @default(now()) @updatedAt
   sourceProvider        String?
@@ -25,7 +26,7 @@ model Showing {
   movieId  Int
 
   cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
-  movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Restrict)
 
   @@unique([cinemaId, movieId, dateTime])
   @@index([cinemaId, dateTime])

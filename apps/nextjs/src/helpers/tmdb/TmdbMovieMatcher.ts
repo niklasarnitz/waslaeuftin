@@ -8,6 +8,7 @@ import {
   normalizeForComparison,
   normalizeMovieTitle,
   normalizeTitleOrdinals,
+  prepareMovieTitle,
 } from "@waslaeuftin/core";
 import { env } from "@waslaeuftin/env";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
@@ -22,7 +23,7 @@ import { TmdbMovieSearchResult } from "@waslaeuftin/types/TmdbMovieSearchResult"
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
 
-export const MOVIE_MATCHER_VERSION = 3;
+export const MOVIE_MATCHER_VERSION = 4;
 
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
 export class TmdbMovieMatcher {
@@ -39,8 +40,9 @@ export class TmdbMovieMatcher {
     suppliedEvidence: MovieIdentityEvidence = {},
   ): Promise<TmdbMatchEvaluation> {
     const evidence = MovieIdentityEvidenceSchema.parse(suppliedEvidence);
+    const preparedTitle = prepareMovieTitle(title);
     const normalizedMovieTitleForSearch =
-      normalizeMovieTitle(title).normalizedTitle;
+      normalizeMovieTitle(preparedTitle).normalizedTitle;
     const normalizedTitle = normalizeForComparison(
       normalizedMovieTitleForSearch,
     );
@@ -54,7 +56,7 @@ export class TmdbMovieMatcher {
     const performance = getScreenedPerformance(title);
     const isProgramme =
       /\b(?:trilogie|trilogy|double feature)\b|\b(?:triple|marathon)\s*(?:\([^)]*\))?\s*$|\b\d{1,2}\s*[+-]\s*\d{1,2}\b/i.test(
-        title,
+        preparedTitle,
       );
     if (
       classifySneakTitle(title).isUnannounced ||
@@ -94,7 +96,7 @@ export class TmdbMovieMatcher {
     }
 
     const queries = buildTmdbSearchQueries(
-      title,
+      preparedTitle,
       normalizedMovieTitleForSearch,
     );
     if (evidence.originalTitle && !queries.includes(evidence.originalTitle))

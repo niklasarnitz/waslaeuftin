@@ -1,5 +1,5 @@
 import { db } from "@waslaeuftin/db/client";
 
-await db.showing.deleteMany();
+await db.showing.updateMany({ data: { isListed: false } });
 
-console.log("deleted all showings");
+console.log("unlisted all showings; screening history retained");

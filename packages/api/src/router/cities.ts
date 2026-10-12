@@ -224,6 +224,7 @@ export const citiesRouter = createTRPCRouter({
             name: { contains: query, mode: "insensitive" as const },
             showings: {
               some: {
+                isListed: true,
                 dateTime: { gte: new Date() },
               },
             },

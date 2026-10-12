@@ -166,7 +166,7 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
       const showingsToMove = await db.showing.findMany({
         where: { movieId: movie.id },
-        select: { id: true, cinemaId: true, dateTime: true },
+        select: { id: true, cinemaId: true, dateTime: true, isListed: true },
       });
 
       for (const showing of showingsToMove) {
@@ -182,7 +182,16 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
         });
 
         if (existingTargetShowing) {
-          await db.showing.delete({ where: { id: showing.id } });
+          if (showing.isListed) {
+            await db.showing.update({
+              where: { id: existingTargetShowing.id },
+              data: { isListed: true },
+            });
+          }
+          await db.showing.update({
+            where: { id: showing.id },
+            data: { isListed: false },
+          });
         } else {
           await db.showing.update({
             where: { id: showing.id },
@@ -191,18 +200,15 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
         }
       }
 
-      try {
-        await db.movie.delete({ where: { id: movie.id } });
-      } catch {
-        await db.movie.update({
-          where: { id: movie.id },
-          data: {
-            coverUrl: uploadedCover.publicUrl,
-            coverStorageKey: uploadedCover.objectKey,
-            coverConfidence: evaluation.acceptedCandidate.confidence,
-          },
-        });
-      }
+      // Keep the source movie for retained duplicate screenings and their evidence.
+      await db.movie.update({
+        where: { id: movie.id },
+        data: {
+          coverUrl: uploadedCover.publicUrl,
+          coverStorageKey: uploadedCover.objectKey,
+          coverConfidence: evaluation.acceptedCandidate.confidence,
+        },
+      });
     } else {
       await db.movie.update({
         where: { id: movie.id },

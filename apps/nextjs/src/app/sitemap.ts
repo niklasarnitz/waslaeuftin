@@ -7,7 +7,9 @@ import { listingPath, SITE_URL } from "@waslaeuftin/helpers/seo";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const upcomingShowings = { some: { dateTime: { gte: new Date() } } };
+  const upcomingShowings = {
+    some: { isListed: true, dateTime: { gte: new Date() } },
+  };
   const [cities, cinemas] = await Promise.all([
     db.city.findMany({
       where: { cinemas: { some: { showings: upcomingShowings } } },
