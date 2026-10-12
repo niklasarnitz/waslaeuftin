@@ -35,6 +35,10 @@ const MIN_RADIUS_KM = 5;
 const MAX_RADIUS_KM = 100;
 const RADIUS_COOKIE_NAME = "nearby-radius";
 const RADIUS_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+// Firefox never calls either callback when the permission prompt is dismissed
+// or the OS denies location access, and the API timeout only starts after
+// permission is granted, so we need our own watchdog.
+const LOCATION_WATCHDOG_MS = 15000;
 
 const getInitialRadius = () => {
   if (typeof document === "undefined") return DEFAULT_RADIUS_KM;
@@ -56,6 +60,8 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
   const [radiusKm, setRadiusKm] = useState(getInitialRadius);
   const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
   const hasRequestedLocation = useRef(false);
+  const locationRequestId = useRef(0);
+  const locationWatchdog = useRef<number | undefined>(undefined);
 
   const handleRadiusRelease = () => {
     setTimeout(() => {
@@ -155,18 +161,35 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
       return;
     }
 
+    const requestId = ++locationRequestId.current;
     setLocationError(null);
     setIsLocating(true);
 
+    window.clearTimeout(locationWatchdog.current);
+    locationWatchdog.current = window.setTimeout(() => {
+      if (requestId !== locationRequestId.current) return;
+      setLocationError(
+        "Standort konnte nicht ermittelt werden. Bitte erlaube den Zugriff im Browser und versuche es erneut.",
+      );
+      setIsLocating(false);
+    }, LOCATION_WATCHDOG_MS);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        // A late success (e.g. permission granted after the watchdog fired)
+        // is still useful, so accept it as long as no newer request started.
+        if (requestId !== locationRequestId.current) return;
+        window.clearTimeout(locationWatchdog.current);
         setCoordinates({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
+        setLocationError(null);
         setIsLocating(false);
       },
       (error) => {
+        if (requestId !== locationRequestId.current) return;
+        window.clearTimeout(locationWatchdog.current);
         if (error.code === 1) {
           setLocationError(
             "Standortzugriff wurde blockiert. Bitte erlaube den Zugriff im Browser.",
@@ -181,6 +204,7 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
       {
         enableHighAccuracy: false,
         timeout: 12000,
+        maximumAge: 5 * 60 * 1000,
       },
     );
   };
@@ -449,7 +473,7 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
         </>
       )}
 
-      {nearbyCinemas.length === 0 && (
+      {coordinates && nearbyQuery.isSuccess && nearbyCinemas.length === 0 && (
         <p className="border-border text-muted-foreground mt-5 rounded-xl border border-dashed px-4 py-3 text-sm">
           In einem Radius von {appliedRadiusKm} km wurden keine Kinos mit
           Vorstellungen gefunden.
