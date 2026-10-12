@@ -11,7 +11,10 @@ import {
 } from "@waslaeuftin/core";
 import { env } from "@waslaeuftin/env";
 import { RateLimitedQueue } from "@waslaeuftin/helpers/RateLimitedQueue";
-import { scoreTmdbCandidate } from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
+import {
+  hasTmdbTitleConflict,
+  scoreTmdbCandidate,
+} from "@waslaeuftin/helpers/similarity/scoreTmdbCandidate";
 import { buildTmdbSearchQueries } from "@waslaeuftin/helpers/tmdb/buildTmdbSearchQueries";
 import { TmdbMatchEvaluation } from "@waslaeuftin/types/TmdbMatchEvaluation";
 import { TmdbMovieSearchResponse } from "@waslaeuftin/types/TmdbMovieSearchResponse";
@@ -19,7 +22,7 @@ import { TmdbMovieSearchResult } from "@waslaeuftin/types/TmdbMovieSearchResult"
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
 
-export const MOVIE_MATCHER_VERSION = 2;
+export const MOVIE_MATCHER_VERSION = 3;
 
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
 export class TmdbMovieMatcher {
@@ -100,6 +103,8 @@ export class TmdbMovieMatcher {
       movie: TmdbMovieSearchResult,
       aliases: string[] = [],
     ) => {
+      if (hasTmdbTitleConflict(normalizedMovieTitleForSearch, movie, aliases))
+        return 0;
       if (
         evidence.originalTitle &&
         ![movie.title, movie.original_title, ...aliases].some(
@@ -251,6 +256,7 @@ export class TmdbMovieMatcher {
     if (
       !performance &&
       (((evidence.originalTitle ||
+        getMovieTitleCandidates(normalizedMovieTitleForSearch).length > 1 ||
         /\b\d+\b/.test(
           normalizeTitleOrdinals(normalizedMovieTitleForSearch),
         )) &&
@@ -328,6 +334,25 @@ export class TmdbMovieMatcher {
     const rejectedCandidates: NonNullable<
       TmdbMatchEvaluation["rejectedCandidates"]
     > = [];
+    for (const candidate of byTmdbId.values()) {
+      if (
+        hasTmdbTitleConflict(
+          normalizedMovieTitleForSearch,
+          searchCandidates.get(candidate.tmdbMovieId)!,
+          officialAliases.get(candidate.tmdbMovieId),
+        )
+      ) {
+        rejectedCandidates.push({
+          tmdbMovieId: candidate.tmdbMovieId,
+          titleConflict: true,
+          directorConflict: false,
+          runtimeConflict: false,
+          observedDirectors: [],
+          observedRuntime: null,
+        });
+        byTmdbId.delete(candidate.tmdbMovieId);
+      }
+    }
     if (evidence.director || evidence.runtimeMinutes) {
       // Check after alias retrieval, so aliases cannot bypass constraints.
       for (const candidate of [...byTmdbId.values()].filter(

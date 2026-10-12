@@ -70,6 +70,13 @@ or source-evidence changes trigger reevaluation. API failures remain retryable.
 Runtime evidence allows a five-minute difference; different cuts can therefore
 abstain rather than receive an unsafe identity.
 
+Explicit installments and named subtitles constrain every scoring path,
+including structured original-title evidence. Shortened titles help retrieval,
+but accepting an omitted subtitle requires an authoritative complete alias.
+Default imports check source slots under a cinema-row transaction lock. Identity
+changes are held and logged, not inserted as duplicate screenings or silently
+remapped; distinct established provider film IDs can still share a title/time.
+
 **Apply the nullable showing-provenance migration before deploying this resolver.**
 The Docker entrypoint does not run migrations. Existing ambiguous rows require
 separate review; importing a new decision is not a blanket historical repair.

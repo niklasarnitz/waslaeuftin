@@ -56,6 +56,51 @@ const evaluate = async (title: string, candidates: TmdbMovieSearchResult[]) => {
 afterEach(() => restoreFetch?.());
 
 describe("TmdbMovieMatcher audited cinema titles", () => {
+  test.each([
+    ["Alien: Covenant", movie(348, "Alien", 1979)],
+    ["Halloween: Resurrection", movie(948, "Halloween", 1978)],
+  ] as const)(
+    "does not accept an unsubtitled original for a named installment: %s",
+    async (title, wrong) => {
+      expect((await evaluate(title, [wrong])).acceptedCandidate).toBeNull();
+    },
+  );
+
+  test("original-title evidence cannot erase a raw-title installment", async () => {
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? { titles: [] }
+          : { results: [movie(438631, "Dune", 2021)] },
+      ),
+    );
+    const result = await new TmdbMovieMatcher().evaluate("Dune: Part Two", {
+      originalTitle: "Dune",
+    });
+    expect(result.acceptedCandidate).toBeNull();
+    expect(result.rejectedCandidates).toEqual([
+      expect.objectContaining({ tmdbMovieId: 438631, titleConflict: true }),
+    ]);
+  });
+
+  test("matches an original-language title without requiring a lexical translation", async () => {
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? { titles: [] }
+          : { results: [movie(670, "Oldboy", 2003, "올드보이")] },
+      ),
+    );
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate("Unlisted German translation", {
+          originalTitle: "올드보이",
+          productionYear: 2003,
+        })
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(670);
+  });
+
   test("uses provider evidence and does not reuse another version's cached decision", async () => {
     mockTmdb((url) => {
       if (url.pathname.endsWith("/alternative_titles"))
@@ -233,6 +278,23 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
         await evaluate("Moscas - Fliegen und andere Gäste", [
           movie(1437703, "Moscas", 2026),
           movie(1177908, "Moscas", 2023),
+        ])
+      ).acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (
+        await evaluate("Moscas - Fliegen und andere Gäste", [
+          movie(1437703, "Moscas", 2026),
+        ])
+      ).acceptedCandidate,
+    ).toBeNull();
+  });
+
+  test("does not infer a bilingual identity when official aliases are absent", async () => {
+    expect(
+      (
+        await evaluate("Into the Wild - In die Wildnis", [
+          movie(5915, "Into the Wild", 2007),
         ])
       ).acceptedCandidate,
     ).toBeNull();
@@ -435,8 +497,6 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
       "Festtagsspaß mit Peppa - Das Kinoerlebnis",
       movie(1650896, "Festtagsspaß mit Peppa", 2026),
     ],
-    ["Moscas - Fliegen und andere Gäste", movie(1437703, "Moscas", 2026)],
-    ["Into the Wild - In die Wildnis", movie(5915, "Into the Wild", 2007)],
     [
       "CineSpecial: Der Herr der Ringe - Die zwei Türme (Extended)",
       movie(121, "Der Herr der Ringe - Die zwei Türme", 2002),

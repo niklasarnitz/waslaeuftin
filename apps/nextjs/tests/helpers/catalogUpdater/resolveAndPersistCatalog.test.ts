@@ -8,8 +8,11 @@ import {
   test,
 } from "bun:test";
 
+import type { Prisma } from "@waslaeuftin/db";
+
 const upsertedMovies: unknown[] = [];
 const createdShowings: unknown[] = [];
+let storedShowings: Prisma.ShowingCreateManyInput[] = [];
 let existingMovies: Array<{
   id: number;
   canonicalKey: string;
@@ -34,12 +37,59 @@ let evaluationError: Error | null = null;
 const acceptedCandidatesByYear = new Map<number, AcceptedCandidate>();
 let cachedShowings: object[] = [];
 
+const createShowings = async (params: {
+  data: Prisma.ShowingCreateManyInput[];
+}) => {
+  const inserted = params.data.filter(
+    (row) =>
+      !storedShowings.some(
+        (existing) =>
+          existing.cinemaId === row.cinemaId &&
+          existing.movieId === row.movieId &&
+          new Date(existing.dateTime).getTime() ===
+            new Date(row.dateTime).getTime(),
+      ),
+  );
+  storedShowings.push(...inserted);
+  createdShowings.push(...inserted);
+  return { count: inserted.length };
+};
+const findShowings = async (params: {
+  where: {
+    OR?: { cinemaId: number; dateTime: Date | string }[];
+  };
+  distinct?: string[];
+}) => {
+  if (params.where.OR) {
+    const slots = params.where.OR;
+    return storedShowings.filter((row) =>
+      slots.some(
+        (slot) =>
+          slot.cinemaId === row.cinemaId &&
+          new Date(slot.dateTime).getTime() ===
+            new Date(row.dateTime).getTime(),
+      ),
+    );
+  }
+  const rows = [...cachedShowings, ...storedShowings];
+  if (!params.distinct) return rows;
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const key = JSON.stringify(
+      params.distinct!.map((field) => Reflect.get(row, field)),
+    );
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const replacementTransaction = {
+  $queryRaw: mock(async () => []),
   showing: {
+    findMany: mock(findShowings),
     deleteMany: mock(async (_params: unknown) => ({ count: 1 })),
-    createMany: mock(async (params: { data: unknown[] }) => ({
-      count: params.data.length,
-    })),
+    createMany: mock(createShowings),
   },
   cinema: { update: mock(async (_params: unknown) => ({})) },
 };
@@ -51,13 +101,23 @@ const db = {
   ),
   movie: {
     findMany: mock(async () => existingMovies),
-    upsert: mock(async (params: { create: { canonicalKey: string } }) => {
-      upsertedMovies.push(params.create);
-      return {
-        id: upsertedMovies.length,
-        canonicalKey: params.create.canonicalKey,
-      };
-    }),
+    upsert: mock(
+      async (params: {
+        create: Omit<(typeof existingMovies)[number], "id">;
+      }) => {
+        upsertedMovies.push(params.create);
+        let movie = existingMovies.find(
+          (row) => row.canonicalKey === params.create.canonicalKey,
+        );
+        if (!movie) {
+          let id = 1;
+          while (existingMovies.some((row) => row.id === id)) id++;
+          movie = { ...params.create, id };
+          existingMovies.push(movie);
+        }
+        return { id: movie.id, canonicalKey: movie.canonicalKey };
+      },
+    ),
   },
   tmdbMetadata: {
     findMany: mock(async (params: { where: { tmdbId: { in: number[] } } }) =>
@@ -67,12 +127,9 @@ const db = {
     ),
   },
   showing: {
-    findMany: mock(async () => cachedShowings),
+    findMany: mock(findShowings),
     updateMany: mock(async (_params: unknown) => ({ count: 1 })),
-    createMany: mock(async (params: { data: unknown[] }) => {
-      createdShowings.push(...params.data);
-      return { count: params.data.length };
-    }),
+    createMany: mock(createShowings),
     deleteMany: mock(async () => ({ count: 0 })),
   },
 };
@@ -172,6 +229,7 @@ describe("resolveAndPersistCatalog", () => {
     restoreMatcher();
     upsertedMovies.length = 0;
     createdShowings.length = 0;
+    storedShowings = [];
     existingMovies = [];
     storedTmdbMetadataIds = new Set<number>();
     acceptedCandidate = null;
@@ -184,6 +242,147 @@ describe("resolveAndPersistCatalog", () => {
     db.tmdbMetadata.findMany.mockClear();
     db.showing.createMany.mockClear();
     db.showing.updateMany.mockClear();
+    db.$transaction.mockClear();
+  });
+
+  test.each([
+    "unmatched retry",
+    "legacy fallback",
+    "expired positive",
+    "expired positive abstention",
+    "renamed provider film",
+  ])(
+    "holds identity changes without duplicating a screening: %s",
+    async (scenario) => {
+      const { resolveAndPersistCatalog } =
+        await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+      const catalog = {
+        provider: "TestProvider",
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            providerFilmId: "film-a",
+            movieName: "Vaterland",
+            dateTime: new Date("2099-12-01T18:00:00Z"),
+          },
+        ],
+      };
+      if (scenario === "legacy fallback") {
+        existingMovies = [
+          {
+            id: 42,
+            canonicalKey: "title:vaterland",
+            name: "Vaterland",
+            normalizedTitle: "Vaterland",
+            tmdbMovieId: null,
+            coverUrl: null,
+            coverStorageKey: null,
+            coverConfidence: null,
+            tmdbSearchFailedOn: null,
+          },
+        ];
+        storedShowings = [
+          {
+            cinemaId: 10,
+            movieId: 42,
+            rawMovieName: "Vaterland",
+            dateTime: catalog.showings[0]!.dateTime,
+            showingAdditionalData: [],
+          },
+        ];
+      } else {
+        if (scenario === "unmatched retry") {
+          evaluationError = new Error("TMDB unavailable");
+        } else {
+          acceptedCandidate = {
+            tmdbMovieId: 11248,
+            title: "Vaterland",
+            posterPath: "/old.jpg",
+            confidence: 0.95,
+          };
+          storedTmdbMetadataIds.add(11248);
+        }
+        await resolveAndPersistCatalog([catalog]);
+        storedShowings[0]!.matchEvaluatedAt = new Date(
+          Date.now() - 8 * 24 * 60 * 60 * 1000,
+        );
+      }
+      const originalMovieId = storedShowings[0]!.movieId;
+      evaluationError = null;
+      acceptedCandidate = {
+        tmdbMovieId: 1437696,
+        title: "Vaterland",
+        posterPath: "/new.jpg",
+        confidence: 0.95,
+      };
+      storedTmdbMetadataIds.add(1437696);
+      if (scenario === "expired positive abstention") acceptedCandidate = null;
+      if (scenario === "renamed provider film")
+        catalog.showings[0]!.movieName = "Vaterland (2026)";
+      const result = await resolveAndPersistCatalog([catalog]);
+      expect(storedShowings).toHaveLength(1);
+      expect(storedShowings[0]!.movieId).toBe(originalMovieId);
+      expect(result.totalShowings).toBe(0);
+      expect(result.heldShowings).toBe(1);
+    },
+  );
+
+  test("holds competing identities for the same source slot within one batch", async () => {
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    const result = await resolveAndPersistCatalog([
+      {
+        movies: [],
+        showings: [2003, 2013].map((productionYear) => ({
+          cinemaId: 10,
+          provider: "TestProvider",
+          providerFilmId: "same-film",
+          movieName: "Oldboy",
+          evidence: { productionYear },
+          dateTime: new Date("2099-12-01T18:00:00Z"),
+        })),
+      },
+    ]);
+    expect(storedShowings).toHaveLength(1);
+    expect(storedShowings[0]!.sourceEvidence).toEqual({ productionYear: 2003 });
+    expect(result.heldShowings).toBe(1);
+  });
+
+  test("reuses both cached decisions when only provider evidence differs", async () => {
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    acceptedCandidatesByYear.set(2003, {
+      tmdbMovieId: 670,
+      title: "Oldboy",
+      posterPath: "/old.jpg",
+      confidence: 0.95,
+    });
+    acceptedCandidatesByYear.set(2013, {
+      tmdbMovieId: 87516,
+      title: "Oldboy",
+      posterPath: "/new.jpg",
+      confidence: 0.95,
+    });
+    storedTmdbMetadataIds = new Set([670, 87516]);
+    const catalog = {
+      provider: "TestProvider",
+      movies: [],
+      showings: [2003, 2013].map((productionYear, index) => ({
+        cinemaId: 10,
+        movieName: "Oldboy",
+        evidence: { productionYear },
+        dateTime: new Date(`2099-12-0${index + 1}T18:00:00Z`),
+      })),
+    };
+    await resolveAndPersistCatalog([catalog]);
+    evaluationError = new Error("cached decisions must not need TMDB");
+    await resolveAndPersistCatalog([catalog]);
+    expect(storedShowings).toHaveLength(2);
+    expect(upsertedMovies.slice(-2)).toEqual([
+      expect.objectContaining({ tmdbMovieId: 670 }),
+      expect.objectContaining({ tmdbMovieId: 87516 }),
+    ]);
   });
 
   test("persists a newly fetched title when it was not already in the movie table", async () => {

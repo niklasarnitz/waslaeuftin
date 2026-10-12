@@ -171,7 +171,6 @@ export const resolveAndPersistCatalog = async (
       matchEvaluatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
     },
     orderBy: { matchEvaluatedAt: "desc" },
-    distinct: ["cinemaId", "sourceProvider", "providerFilmId", "rawMovieName"],
     select: {
       cinemaId: true,
       movieId: true,
@@ -709,6 +708,7 @@ export const resolveAndPersistCatalog = async (
   // createMany in batches of 1000, skipping duplicates
   const BATCH_SIZE = 1000;
   let createdCount = 0;
+  let heldShowings = 0;
   if (persistShowings) {
     if (showingData.length !== allShowings.length) {
       throw new Error(
@@ -717,17 +717,90 @@ export const resolveAndPersistCatalog = async (
     }
     createdCount = await persistShowings(showingData);
   } else {
+    const admittedShowings: typeof showingData = [];
     for (let i = 0; i < showingData.length; i += BATCH_SIZE) {
-      const result = await db.showing.createMany({
-        data: showingData.slice(i, i + BATCH_SIZE),
-        skipDuplicates: true,
+      const batch = showingData.slice(i, i + BATCH_SIZE);
+      const result = await db.$transaction(async (tx) => {
+        // Serialize the source-slot check and insert across importer processes.
+        // movieId-dependent uniqueness alone cannot guard identity changes.
+        const cinemaIds = [...new Set(batch.map((row) => row.cinemaId))];
+        await tx.$queryRaw`
+          SELECT "id" FROM "Cinema"
+          WHERE "id" IN (${Prisma.join(cinemaIds)}) ORDER BY "id" FOR UPDATE
+        `;
+        const occupied = await tx.showing.findMany({
+          where: {
+            OR: batch.map((row) => ({
+              cinemaId: row.cinemaId,
+              dateTime: row.dateTime,
+            })),
+          },
+          select: {
+            cinemaId: true,
+            movieId: true,
+            dateTime: true,
+            rawMovieName: true,
+            sourceProvider: true,
+            providerFilmId: true,
+          },
+        });
+        const slots = new Map<string, typeof batch>();
+        for (const row of occupied) {
+          const key = `${row.cinemaId}:${row.dateTime.toISOString()}`;
+          const group = slots.get(key) ?? [];
+          group.push(row);
+          slots.set(key, group);
+        }
+        const admitted = batch.filter((row) => {
+          const key = `${row.cinemaId}:${new Date(row.dateTime).toISOString()}`;
+          const group = slots.get(key) ?? [];
+          const conflict = group.find((existing) => {
+            if (existing.movieId === row.movieId) return false;
+            const sameProvider = existing.sourceProvider === row.sourceProvider;
+            if (
+              sameProvider &&
+              existing.providerFilmId &&
+              row.providerFilmId &&
+              existing.providerFilmId !== row.providerFilmId
+            )
+              return false; // Two established provider films may share a title.
+            return (
+              existing.rawMovieName === row.rawMovieName ||
+              (sameProvider &&
+                Boolean(row.providerFilmId) &&
+                existing.providerFilmId === row.providerFilmId)
+            );
+          });
+          if (conflict) {
+            heldShowings++;
+            console.warn("[Resolver] Holding source-slot identity change", {
+              cinemaId: row.cinemaId,
+              dateTime: row.dateTime,
+              rawMovieName: row.rawMovieName,
+              sourceProvider: row.sourceProvider,
+              providerFilmId: row.providerFilmId,
+              storedMovieId: conflict.movieId,
+              proposedMovieId: row.movieId,
+            });
+            return false;
+          }
+          group.push(row);
+          slots.set(key, group);
+          return true;
+        });
+        const inserted = await tx.showing.createMany({
+          data: admitted,
+          skipDuplicates: true,
+        });
+        return { count: inserted.count, admitted };
       });
       createdCount += result.count;
+      admittedShowings.push(...result.admitted);
     }
     // Stamp repeated source contexts without moving or deleting existing showings.
     // Failed HTTP evaluations have no fresh decision and must remain retryable.
     const groups = new Map<string, typeof showingData>();
-    for (const showing of showingData) {
+    for (const showing of admittedShowings) {
       const key = JSON.stringify([
         showing.cinemaId,
         showing.movieId,
@@ -775,7 +848,7 @@ export const resolveAndPersistCatalog = async (
   }
 
   console.info(
-    `[Resolver] Created ${createdCount} new showings (${showingData.length - createdCount} duplicates skipped)`,
+    `[Resolver] Created ${createdCount} new showings (${showingData.length - createdCount - heldShowings} duplicates skipped, ${heldShowings} identity changes held for review)`,
   );
 
   // Phase 5: Prune past showings older than 3 days to avoid indefinite table bloat
@@ -795,6 +868,7 @@ export const resolveAndPersistCatalog = async (
   return {
     canonicalMovies: canonicalMovieMap.size,
     totalShowings: createdCount,
+    heldShowings,
     tmdbMatched,
     tmdbUnmatched,
     staleMoviesDeleted: 0,

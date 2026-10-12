@@ -1,6 +1,7 @@
 import {
   extractYear,
   getMovieTitleCandidates,
+  normalizeMovieTitle,
   normalizeTitleOrdinals,
   sanitizeWhitespace,
 } from "@waslaeuftin/core";
@@ -8,6 +9,50 @@ import { clampScore } from "@waslaeuftin/helpers/similarity/clampScore";
 import { getDiceSimilarity } from "@waslaeuftin/helpers/similarity/getDiceSimilarity";
 import { getTokenOverlapScore } from "@waslaeuftin/helpers/similarity/getTokenOverlapScore";
 import { TmdbMovieSearchResult } from "@waslaeuftin/types/TmdbMovieSearchResult";
+
+export const hasTmdbTitleConflict = (
+  requestedTitle: string,
+  result: TmdbMovieSearchResult,
+  alternativeTitles: string[] = [],
+) => {
+  const requestedTitles = getMovieTitleCandidates(requestedTitle).map(
+    normalizeTitleOrdinals,
+  );
+  const requested = requestedTitles[0] ?? "";
+  const candidateTitles = [
+    result.title,
+    result.original_title,
+    ...alternativeTitles,
+  ].map((title) =>
+    normalizeTitleOrdinals(normalizeMovieTitle(title).normalizedTitle),
+  );
+  const requestedNumbers = requested.match(/\b\d+\b/g) ?? [];
+  const withoutFranchiseOrdinal = sanitizeWhitespace(
+    requested.replace(/(?<=\S\s)\b([1-9]|10)\b(?=\s+\S)/, ""),
+  );
+  if (
+    requestedNumbers.length &&
+    !candidateTitles.some(
+      (candidate) =>
+        (candidate.match(/\b\d+\b/g) ?? []).join(" ") ===
+          requestedNumbers.join(" ") || candidate === withoutFranchiseOrdinal,
+    )
+  )
+    return true;
+
+  // A full official alias can corroborate a subtitle. A bare franchise title
+  // cannot establish which named installment the listing refers to.
+  return (
+    requestedTitles.length > 1 &&
+    [result.title, result.original_title, ...alternativeTitles].some((title) =>
+      getMovieTitleCandidates(title)
+        .map(normalizeTitleOrdinals)
+        .includes(requestedTitles[1]!),
+    ) &&
+    !candidateTitles.includes(requested) &&
+    !candidateTitles.includes(withoutFranchiseOrdinal)
+  );
+};
 
 export const scoreTmdbCandidate = (
   requestedNormalizedTitle: string,
@@ -19,14 +64,13 @@ export const scoreTmdbCandidate = (
   if (requestedYear && requestedYear !== releaseYear) {
     return 0;
   }
+  if (hasTmdbTitleConflict(requestedNormalizedTitle, result, alternativeTitles))
+    return 0;
 
   // A cinema may omit a subtitle, but not a sequel number. Compare each
   // localized/original title independently so unrelated variants cannot
   // contribute different parts of the same score.
   const requestedTitles = getMovieTitleCandidates(requestedNormalizedTitle);
-  const hasRequestedOrdinal = /\b\d+\b/.test(
-    normalizeTitleOrdinals(requestedTitles[0] ?? ""),
-  );
   const candidateTitles = [
     result.title,
     result.original_title,
@@ -54,14 +98,8 @@ export const scoreTmdbCandidate = (
     ).entries()) {
       const candidate = normalizeTitleOrdinals(variant);
       const candidateNumbers = candidate.match(/\b\d+\b/g) ?? [];
-      for (const [
-        requestedIndex,
-        requestedVariant,
-      ] of requestedTitles.entries()) {
-        // Dropping both subtitles would make different films in one series
-        // look identical. At least one side must retain its complete title.
-        if (requestedIndex > 0 && candidateIndex > 0) continue;
-        if (requestedIndex > 0 && hasRequestedOrdinal) continue;
+      // Shortened requests are search queries, not identity evidence.
+      for (const requestedVariant of requestedTitles.slice(0, 1)) {
         let requested = normalizeTitleOrdinals(requestedVariant);
         const requestedNumbers = requested.match(/\b\d+\b/g) ?? [];
         if (requestedNumbers.join(" ") !== candidateNumbers.join(" ")) {
@@ -71,11 +109,7 @@ export const scoreTmdbCandidate = (
           const withoutFranchiseOrdinal = sanitizeWhitespace(
             requested.replace(/(?<=\S\s)\b([1-9]|10)\b(?=\s+\S)/, ""),
           );
-          if (
-            requestedIndex !== 0 ||
-            candidateIndex !== 0 ||
-            withoutFranchiseOrdinal !== candidate
-          )
+          if (candidateIndex !== 0 || withoutFranchiseOrdinal !== candidate)
             continue;
           requested = withoutFranchiseOrdinal;
         }
@@ -93,7 +127,6 @@ export const scoreTmdbCandidate = (
             0.28 * getTokenOverlapScore(requested, candidate) +
             inclusionBoost +
             exactMatchBoost -
-            (requestedIndex > 0 ? 0.06 : 0) -
             (candidateIndex > 0 ? 0.02 : 0) -
             (aliasIndex === 1 ? 0.04 : 0),
         );

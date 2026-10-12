@@ -34,6 +34,7 @@ export const TmdbMatchEvaluationSchema = z.object({
     .array(
       z.object({
         tmdbMovieId: z.number().int().positive(),
+        titleConflict: z.boolean().optional(),
         directorConflict: z.boolean(),
         runtimeConflict: z.boolean(),
         observedDirectors: z.array(z.string()),
