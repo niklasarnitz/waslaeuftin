@@ -12,6 +12,7 @@ import {
   noNativeCinemaProvider,
 } from "@waslaeuftin/helpers/catalogUpdater/nativeCinemaProviders";
 import { persistCinemaxxVueCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog";
+import { persistComtradaCineOrderCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistComtradaCineOrderCatalog";
 import { persistNativeCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistNativeCatalog";
 import { fetchCinemaxxVueCatalog } from "@waslaeuftin/scripts/update-movies/fetchCinemaxxVueCatalog";
 import { fetchCineplexCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexCatalog";
@@ -84,7 +85,10 @@ export const providerFetchers: ProviderFetcher[] = [
   {
     name: "Cinfinity",
     fetch: fetchCinfinityCatalog,
-    cinemaWhere: { cinfinityCinemaId: { not: null } },
+    cinemaWhere: {
+      cinfinityCinemaId: { not: null },
+      comtradaCineOrderMetadataId: null,
+    },
   },
   {
     name: "Cineplex",
@@ -95,6 +99,7 @@ export const providerFetchers: ProviderFetcher[] = [
     name: "ComtradaCineOrder",
     fetch: fetchComtradaCineOrderCatalog,
     cinemaWhere: { comtradaCineOrderMetadataId: { not: null } },
+    persist: persistComtradaCineOrderCatalog,
   },
   {
     name: "KinoHeld",
@@ -102,6 +107,7 @@ export const providerFetchers: ProviderFetcher[] = [
     cinemaWhere: {
       kinoHeldCinemasMetadataId: { not: null },
       cinemaxxVueCinemasMetadataId: null,
+      comtradaCineOrderMetadataId: null,
       ...noNativeCinemaProvider,
     },
   },

@@ -1,74 +1,99 @@
-import moment from "moment-timezone";
-
+import type { ProviderCatalog } from "@waslaeuftin/cinema-providers/internal/ProviderCatalog";
 import type { ComtradaCineOrderMetadata } from "@waslaeuftin/db";
-import { getComtradaJson } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getComtradaJson";
-import {
-  type ComtradaCineOrderMovie,
-  type ComtradaCineOrderMoviePerformance,
-} from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/types/ComtradaCineOrderMovie";
-
-const getTicketUrl = (
-  metadata: ComtradaCineOrderMetadata,
-  movie: ComtradaCineOrderMovie,
-  performance: ComtradaCineOrderMoviePerformance,
-) => {
-  return `${metadata.backendUrl}/${metadata.centerShorty}/movie/${encodeURI(movie.title)}/${movie.id}/performance/${performance.id}`;
-};
+import { additionalCineOrderSources } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/additionalSources";
+import { getCineprogCatalog } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getCineprogCatalog";
+import { getKinopolisCatalog } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getKinopolisCatalog";
+import { getPmkinoCatalog } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getPmkinoCatalog";
+import { getTicketsCatalog } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/getTicketsCatalog";
 
 export const getComtradaCineOrderMovies = async (
   cinemaId: number,
   metadata: ComtradaCineOrderMetadata,
-) => {
-  const data = await getComtradaJson<ComtradaCineOrderMovie[]>(
-    `${metadata.backendUrl}/api/films`,
-    { "Center-Oid": metadata.centerId },
+): Promise<ProviderCatalog> => {
+  const host = new URL(metadata.backendUrl).hostname.replace(/^iframe\./, "");
+  const source = additionalCineOrderSources.find(
+    (entry) =>
+      new URL(entry.backendUrl).hostname === host &&
+      entry.centerShorty === metadata.centerShorty,
   );
-
-  if (!data) {
-    throw new Error("Could not load Comtrada movies");
+  let catalog: ProviderCatalog;
+  if (source) {
+    if (metadata.centerId !== source.centerId)
+      throw new Error(`Unexpected CineOrder center for ${source.name}`);
+    switch (source.format) {
+      case "pmkino":
+        catalog = await getPmkinoCatalog(
+          cinemaId,
+          source.baseUrl,
+          source.centerId,
+        );
+        break;
+      case "cineprog":
+        catalog = await getCineprogCatalog(
+          cinemaId,
+          source.baseUrl,
+          source.centerId,
+        );
+        break;
+      case "tickets":
+        catalog = await getTicketsCatalog(
+          cinemaId,
+          source.baseUrl,
+          source.centerId,
+        );
+        break;
+      case "kinopolis":
+        catalog = await getKinopolisCatalog(
+          cinemaId,
+          source.baseUrl,
+          source.centerId,
+        );
+        break;
+    }
+  } else if (host === "ts.kinopolis.de") {
+    const codes: Record<string, string> = {
+      kbh: "bh",
+      hhc: "hh",
+      mtz: "su",
+      rnz: "vi",
+    };
+    const code = codes[metadata.centerShorty] ?? metadata.centerShorty;
+    const domain =
+      code === "mm"
+        ? "www.mathaeser.de"
+        : code === "gp"
+          ? "www.gloria-palast.de"
+          : "www.kinopolis.de";
+    catalog = await getKinopolisCatalog(
+      cinemaId,
+      `https://${domain}/${code}`,
+      metadata.centerId,
+    );
+  } else if (
+    host === "cineorder.forumcinemas.de" ||
+    host === "cineorder.filmpalast.net"
+  ) {
+    const forumSites: Record<string, string> = {
+      fra: "rastatt",
+      fof: "offenburg",
+      flr: "lahr",
+    };
+    const site = forumSites[metadata.centerShorty];
+    if (host === "cineorder.forumcinemas.de" && !site)
+      throw new Error(`Unknown Forum cinema: ${metadata.centerShorty}`);
+    const baseUrl =
+      host === "cineorder.filmpalast.net"
+        ? "https://filmpalast.net"
+        : `https://${site}.forumcinemas.de`;
+    catalog = await getPmkinoCatalog(cinemaId, baseUrl, metadata.centerId);
+  } else if (host === "cineorder.kinocentergernsbach.de") {
+    catalog = await getCineprogCatalog(
+      cinemaId,
+      "https://www.kinocentergernsbach.de",
+      metadata.centerId,
+    );
+  } else {
+    throw new Error(`Unknown public programme source: ${metadata.backendUrl}`);
   }
-
-  const movies = data.map((movie) => ({
-    name: movie.title,
-    cinemaId,
-    provider: "ComtradaCineOrder",
-    providerFilmId: movie.id,
-    evidence: {
-      productionYear: /^(18|19|20)\d{2}$/.test(movie.productionYear)
-        ? Number(movie.productionYear)
-        : undefined,
-      originalTitle: movie.originalTitle?.trim() || undefined,
-      director: movie.director?.trim() || undefined,
-      runtimeMinutes:
-        movie.lengthInMinutes > 0 ? movie.lengthInMinutes : undefined,
-    },
-  }));
-
-  const showings = data.flatMap((movie, index) =>
-    movie.performances.map((performance) => {
-      const showingAdditionalData = [
-        performance.is3D ? "3D" : "2D",
-        performance.auditoriumName,
-        performance.releaseTypeName,
-        performance.soundSystem,
-      ].filter((v): v is string => typeof v === "string" && v.length > 0);
-
-      return {
-        cinemaId,
-        movieName: movie.title,
-        provider: movies[index]!.provider,
-        providerFilmId: movies[index]!.providerFilmId,
-        evidence: movies[index]!.evidence,
-        dateTime: moment(performance.performanceDateTime).toDate(),
-        bookingUrl: getTicketUrl(metadata, movie, performance),
-        showingAdditionalData,
-      };
-    }),
-  );
-
-  return {
-    provider: "ComtradaCineOrder",
-    movies,
-    showings,
-  };
+  return { ...catalog, provider: "ComtradaCineOrder" };
 };

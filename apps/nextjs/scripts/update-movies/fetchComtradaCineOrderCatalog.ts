@@ -82,6 +82,7 @@ export const fetchComtradaCineOrderCatalog = async (
   }
 
   return {
+    provider: "ComtradaCineOrder",
     movies: allMovies,
     showings: allShowings,
     fetchedCinemaIds: comtradaCinemas.map((cinema) => cinema.id),

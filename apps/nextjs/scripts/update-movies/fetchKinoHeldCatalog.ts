@@ -26,6 +26,7 @@ export const fetchKinoHeldCatalog = async (
     where: {
       kinoHeldCinemasMetadata: { isNot: null },
       cinemaxxVueCinemasMetadataId: null,
+      comtradaCineOrderMetadataId: null,
       ...noNativeCinemaProvider,
     },
     include: { kinoHeldCinemasMetadata: true },

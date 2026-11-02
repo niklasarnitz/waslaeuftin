@@ -757,6 +757,7 @@ export const resolveAndPersistCatalog = async (
           (await tx.cinema.count({
             where: {
               id: { in: kinoheldIds },
+              comtradaCineOrderMetadataId: null,
               ...noNativeCinemaProvider,
             },
           })) !== kinoheldIds.length

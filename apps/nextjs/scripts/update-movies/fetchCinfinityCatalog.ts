@@ -21,7 +21,10 @@ export const fetchCinfinityCatalog = async (
   const allShowings: ProviderCatalog["showings"] = [];
 
   const allCinfinityCinemas = await db.cinema.findMany({
-    where: { cinfinityCinemaId: { not: null } },
+    where: {
+      cinfinityCinemaId: { not: null },
+      comtradaCineOrderMetadataId: null,
+    },
   });
   const cinfinityCinemas = allCinfinityCinemas.filter((cinema) =>
     shouldFetchCinema(cinema.lastFetchedAt, options),

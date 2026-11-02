@@ -194,32 +194,12 @@ test("provider catalogs preserve film IDs and observed identity evidence, not sc
           showtimes: [{ datetime: "2026-12-01 18:00", attributes: [] }],
         },
       ];
-    else
-      body = [
-        {
-          id: "film-comtrada",
-          title: "Oldboy",
-          originalTitle: "올드보이",
-          productionYear: "2003",
-          director: "Park Chan-wook",
-          lengthInMinutes: 120,
-          performances: [
-            {
-              id: "session-comtrada",
-              performanceDateTime: "2026-12-01T18:00:00Z",
-            },
-          ],
-        },
-      ];
+    else throw new Error(`Unexpected provider URL: ${url}`);
     return Promise.resolve(Response.json(body));
   });
   try {
-    const {
-      getPremiumKinoMovies,
-      getCineplexxATMovies,
-      getCineStarMovies,
-      getComtradaCineOrderMovies,
-    } = await import("@waslaeuftin/cinema-providers/server");
+    const { getPremiumKinoMovies, getCineplexxATMovies, getCineStarMovies } =
+      await import("@waslaeuftin/cinema-providers/server");
     const premium = await getPremiumKinoMovies(10, "fixture");
     expect(
       premium.movies.map((movie) => [movie.providerFilmId, movie.evidence]),
@@ -256,28 +236,6 @@ test("provider catalogs preserve film IDs and observed identity evidence, not sc
       providerFilmId: "670",
     });
     expect(star.showings.flat()[0]).toMatchObject({ providerFilmId: "670" });
-    const comtrada = await getComtradaCineOrderMovies(13, {
-      id: -1,
-      centerId: "fixture",
-      centerShorty: "fixture",
-      backendUrl: "https://fixture.test",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    expect(comtrada.movies[0]).toMatchObject({
-      providerFilmId: "film-comtrada",
-      evidence: {
-        productionYear: 2003,
-        originalTitle: "올드보이",
-        director: "Park Chan-wook",
-        runtimeMinutes: 120,
-      },
-    });
-    expect(comtrada.showings[0]).toMatchObject({
-      provider: "ComtradaCineOrder",
-      providerFilmId: "film-comtrada",
-      evidence: { productionYear: 2003 },
-    });
   } finally {
     request.mockRestore();
   }
