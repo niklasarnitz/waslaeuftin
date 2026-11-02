@@ -1,0 +1,48 @@
+[
+  {
+    "id": 3661117488,
+    "movieId": 3633765975,
+    "xrefReleaseNo": "2155353",
+    "title": "DER PERFEKTE URLAUB OmU, ab 12",
+    "movieName": "DER PERFEKTE URLAUB",
+    "duration": 125,
+    "director": "Bora Dagtekin",
+    "language": "OmU, Englisch",
+    "versionType": "OmU",
+    "audioType": "TBA",
+    "is3D": true,
+    "premiereDate": "2026-11-03T17:45:00",
+    "actors": "Actor One, Actor Two",
+    "country": "DE",
+    "distributor": "Example Distribution",
+    "shows": [
+      {
+        "id": 3695012261,
+        "eventId": 3661117488,
+        "cinemaId": 301802645,
+        "displayDateTime": "2026-11-03T20:15:00",
+        "auditoriumId": 301805136,
+        "auditoriumName": "Kino 2",
+        "language": "OmU, Englisch",
+        "booking": true,
+        "canSale": true,
+        "canReservation": true,
+        "flagNotForSale": false,
+        "endCancelation": "2026-11-03T16:15:00",
+        "endSale": "2026-11-03T20:15:00",
+        "endReservation": "2026-11-03T19:15:00",
+        "notForSaleInformation": "Kein Online-Kauf möglich.",
+        "_UrlBooking": "https://booking.cinetixx.de/frontend/index.html?cinemaId=301802645&showId=3695012261&bgswitch=false&resize=false"
+      },
+      {
+        "id": 3695012299,
+        "eventId": 3661117488,
+        "cinemaId": 210767353,
+        "displayDateTime": "2026-11-03T21:15:00",
+        "auditoriumId": 210767549,
+        "auditoriumName": "Saal 2",
+        "_UrlBooking": "https://booking.cinetixx.de/frontend/index.html?cinemaId=210767353&showId=3695012299"
+      }
+    ]
+  }
+]

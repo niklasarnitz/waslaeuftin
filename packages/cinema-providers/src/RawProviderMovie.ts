@@ -6,4 +6,5 @@ export interface RawProviderMovie {
   provider?: string;
   providerFilmId?: string;
   evidence?: MovieIdentityEvidence;
+  sourceMetadata?: Record<string, unknown>;
 }

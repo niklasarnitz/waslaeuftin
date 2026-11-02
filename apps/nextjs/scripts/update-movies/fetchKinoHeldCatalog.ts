@@ -4,6 +4,7 @@ import {
   ProviderCatalog,
 } from "@waslaeuftin/cinema-providers/server";
 import { db } from "@waslaeuftin/db/client";
+import { noNativeCinemaProvider } from "@waslaeuftin/helpers/catalogUpdater/nativeCinemaProviders";
 import {
   BATCH_DELAY_MS,
   chunkArray,
@@ -25,6 +26,7 @@ export const fetchKinoHeldCatalog = async (
     where: {
       kinoHeldCinemasMetadata: { isNot: null },
       cinemaxxVueCinemasMetadataId: null,
+      ...noNativeCinemaProvider,
     },
     include: { kinoHeldCinemasMetadata: true },
   });

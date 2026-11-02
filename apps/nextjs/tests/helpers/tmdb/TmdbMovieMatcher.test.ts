@@ -56,6 +56,54 @@ const evaluate = async (title: string, candidates: TmdbMovieSearchResult[]) => {
 afterEach(() => restoreFetch?.());
 
 describe("TmdbMovieMatcher audited cinema titles", () => {
+  test("native TMDB IDs select a candidate without bypassing identity evidence or reusing another ID's cache", async () => {
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      const id = Number(url.pathname.split("/").at(-1));
+      return Response.json({
+        ...movie(id, "Signal", id === 95 ? 2007 : 2014),
+        runtime: id === 97 ? 130 : 100,
+        genres: [],
+        credits: {
+          crew: [{ name: "The Director", job: "Director" }],
+          cast: [],
+        },
+      });
+    });
+    const matcher = new TmdbMovieMatcher();
+    const evidence = {
+      productionYear: 2007,
+      director: "The Director",
+      runtimeMinutes: 100,
+    };
+    expect(
+      (await matcher.evaluate("Signal", { ...evidence, tmdbId: 95 }))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(95);
+    expect(
+      (await matcher.evaluate("Signal", { ...evidence, tmdbId: 96 }))
+        .acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (await matcher.evaluate("Signal", { tmdbId: 97, runtimeMinutes: 100 }))
+        .acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (
+        await matcher.evaluate("Signal", {
+          tmdbId: 95,
+          director: "Another Director",
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+    // Explicit IDs do not reveal unnamed Sneaks or turn programmes into one film.
+    expect(
+      (await matcher.evaluate("Sneak Preview", { tmdbId: 95 }))
+        .acceptedCandidate,
+    ).toBeNull();
+  });
+
   test.each([
     ["Alien: Covenant", movie(348, "Alien", 1979)],
     ["Halloween: Resurrection", movie(948, "Halloween", 1978)],

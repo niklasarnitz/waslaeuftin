@@ -17,6 +17,8 @@ model Showing {
   updatedAt             DateTime @default(now()) @updatedAt
   sourceProvider        String?
   providerFilmId        String?
+  providerSessionId     String   @default("")
+  sourceMetadata        Json?
   sourceEvidence        Json?
   matcherVersion        Int?
   matchEvaluatedAt      DateTime?
@@ -28,11 +30,12 @@ model Showing {
   cinema Cinema @relation(fields: [cinemaId], references: [id], onDelete: Restrict)
   movie  Movie  @relation(fields: [movieId], references: [id], onDelete: Restrict)
 
-  @@unique([cinemaId, movieId, dateTime])
+  @@unique([cinemaId, movieId, dateTime, providerSessionId])
   @@index([cinemaId, dateTime])
   @@index([movieId, dateTime])
   @@index([movieId, cinemaId])
   @@index([cinemaId, sourceProvider, providerFilmId])
+  @@index([cinemaId, sourceProvider, providerSessionId])
 }
 
 model Movie {
@@ -144,6 +147,12 @@ model Cinema {
   cineplexCinemaId             String?
   cineplexxAtCinemaId          String?
   cinfinityCinemaId            String?
+  yorckCinemaId                String?
+  yorckCinemaSlug              String?
+  cinetixxCinemaId             String?
+  cineprogBaseUrl              String?
+  uciCinemaId                  String?
+  uciCinemaSlug                String?
   myVueCinemaId                String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)

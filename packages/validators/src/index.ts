@@ -141,6 +141,7 @@ export const ProviderShowingSchema = z.object({
 });
 
 export const MovieIdentityEvidenceSchema = z.object({
+  tmdbId: z.number().int().positive().optional(),
   productionYear: z.number().int().min(1800).max(2100).optional(),
   originalTitle: z.string().trim().min(1).optional(),
   director: z.string().trim().min(1).optional(),

@@ -6,7 +6,13 @@ import type {
   ProviderFetchOptions,
 } from "@waslaeuftin/scripts/update-movies/helpers";
 import { db } from "@waslaeuftin/db/client";
+import {
+  nativeProviderNames,
+  nativeProviderWhere,
+  noNativeCinemaProvider,
+} from "@waslaeuftin/helpers/catalogUpdater/nativeCinemaProviders";
 import { persistCinemaxxVueCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog";
+import { persistNativeCatalog } from "@waslaeuftin/helpers/catalogUpdater/persistNativeCatalog";
 import { fetchCinemaxxVueCatalog } from "@waslaeuftin/scripts/update-movies/fetchCinemaxxVueCatalog";
 import { fetchCineplexCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexCatalog";
 import { fetchCineplexxATCatalog } from "@waslaeuftin/scripts/update-movies/fetchCineplexxATMovies";
@@ -15,6 +21,7 @@ import { fetchCinfinityCatalog } from "@waslaeuftin/scripts/update-movies/fetchC
 import { fetchComtradaCineOrderCatalog } from "@waslaeuftin/scripts/update-movies/fetchComtradaCineOrderCatalog";
 import { fetchKinoHeldCatalog } from "@waslaeuftin/scripts/update-movies/fetchKinoHeldCatalog";
 import { fetchKinoTicketsExpressCatalog } from "@waslaeuftin/scripts/update-movies/fetchKinoTicketsExpressCatalog";
+import { fetchNativeCatalog } from "@waslaeuftin/scripts/update-movies/fetchNativeCatalog";
 import { fetchPremiumKinoCatalog } from "@waslaeuftin/scripts/update-movies/fetchPremiumKinoCatalog";
 
 export type ProviderFetcher = {
@@ -25,10 +32,20 @@ export type ProviderFetcher = {
   ) => Promise<ProviderCatalog>;
   /** Selects the cinemas this provider fetches showings for. */
   cinemaWhere: Prisma.CinemaWhereInput;
-  persist?: typeof resolveAndPersistCatalog;
+  persist?: (
+    catalogs: ProviderCatalog[],
+    progress?: Parameters<typeof resolveAndPersistCatalog>[1],
+  ) => ReturnType<typeof resolveAndPersistCatalog>;
 };
 
 export const providerFetchers: ProviderFetcher[] = [
+  ...nativeProviderNames.map((name) => ({
+    name,
+    fetch: (progress?: FetchProgressReporter, options?: ProviderFetchOptions) =>
+      fetchNativeCatalog(name, progress, options),
+    cinemaWhere: nativeProviderWhere[name],
+    persist: persistNativeCatalog,
+  })),
   {
     name: "CinemaxxVue",
     fetch: fetchCinemaxxVueCatalog,
@@ -85,6 +102,7 @@ export const providerFetchers: ProviderFetcher[] = [
     cinemaWhere: {
       kinoHeldCinemasMetadataId: { not: null },
       cinemaxxVueCinemasMetadataId: null,
+      ...noNativeCinemaProvider,
     },
   },
   {

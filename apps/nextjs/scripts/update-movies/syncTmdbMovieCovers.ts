@@ -166,16 +166,23 @@ export const syncTmdbMovieCoversForAllMovies = async (options?: {
 
       const showingsToMove = await db.showing.findMany({
         where: { movieId: movie.id },
-        select: { id: true, cinemaId: true, dateTime: true, isListed: true },
+        select: {
+          id: true,
+          cinemaId: true,
+          dateTime: true,
+          isListed: true,
+          providerSessionId: true,
+        },
       });
 
       for (const showing of showingsToMove) {
         const existingTargetShowing = await db.showing.findUnique({
           where: {
-            cinemaId_movieId_dateTime: {
+            cinemaId_movieId_dateTime_providerSessionId: {
               cinemaId: showing.cinemaId,
               movieId: existingMovieWithTmdbId.id,
               dateTime: showing.dateTime,
+              providerSessionId: showing.providerSessionId,
             },
           },
           select: { id: true },

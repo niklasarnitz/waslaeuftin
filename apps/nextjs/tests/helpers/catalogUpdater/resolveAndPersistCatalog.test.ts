@@ -46,6 +46,7 @@ type ShowingWhere = {
   dateTime?: Date | string | { gte?: Date; lt?: Date; in?: Date[] };
   sourceProvider?: string | null;
   providerFilmId?: string | null;
+  providerSessionId?: string;
   sourceEvidence?: { equals: unknown };
   matcherVersion?: number | null;
   OR?: ShowingWhere[];
@@ -59,6 +60,7 @@ const matchesShowing = (
     "rawMovieName",
     "sourceProvider",
     "providerFilmId",
+    "providerSessionId",
     "matcherVersion",
   ] as const) {
     if (where[field] !== undefined && (row[field] ?? null) !== where[field])
@@ -114,6 +116,8 @@ const createShowings = async (params: {
         (existing) =>
           existing.cinemaId === row.cinemaId &&
           existing.movieId === row.movieId &&
+          (existing.providerSessionId ?? "") ===
+            (row.providerSessionId ?? "") &&
           new Date(existing.dateTime).getTime() ===
             new Date(row.dateTime).getTime(),
       )
@@ -174,6 +178,7 @@ const replacementTransaction = {
             cinemaId: row.cinemaId,
             movieId: row.movieId,
             dateTime: row.dateTime,
+            providerSessionId: row.providerSessionId,
           },
           data: {
             ...row,
@@ -195,6 +200,22 @@ const replacementTransaction = {
     createMany: mock(createShowings),
   },
   cinema: {
+    count: mock(
+      async (params: { where: { id: { in: number[] } } }) =>
+        params.where.id.in.length,
+    ),
+    findMany: mock(async () => [
+      {
+        id: 42,
+        yorckCinemaId: "1001",
+        yorckCinemaSlug: "delphi-lux",
+        cinetixxCinemaId: null,
+        cineprogBaseUrl: null,
+        uciCinemaId: null,
+        uciCinemaSlug: null,
+      },
+    ]),
+    updateMany: mock(async () => ({ count: 1 })),
     update: mock(
       async (params: {
         where: { id: number };
@@ -1160,6 +1181,147 @@ describe("resolveAndPersistCatalog", () => {
       tmdbMovieId: null,
     });
   });
+  test("native refresh preserves simultaneous sessions, rich provenance and removed-session history", async () => {
+    const { persistNativeCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/persistNativeCatalog");
+    const movie = {
+      cinemaId: 42,
+      name: "Native Film",
+      provider: "Yorck",
+      providerFilmId: "HO123",
+      evidence: { tmdbId: 123, originalTitle: "Original Film" },
+      sourceMetadata: { tmdbId: 123, synopsis: "Native synopsis" },
+    };
+    const first = {
+      cinemaId: 42,
+      movieName: movie.name,
+      provider: "Yorck",
+      providerFilmId: movie.providerFilmId,
+      providerSessionId: "1001-81",
+      dateTime: new Date("2099-12-01T18:00:00Z"),
+      showingAdditionalData: ["Room B", "OmeU"],
+      sourceMetadata: { screen: "B", seatsAvailable: 51 },
+    };
+    const second = {
+      ...first,
+      providerSessionId: "1001-82",
+      showingAdditionalData: ["Room C"],
+      sourceMetadata: { screen: "C", seatsAvailable: 12 },
+    };
+    const catalog = {
+      provider: "Yorck",
+      fetchedCinemaIds: [42],
+      cinemaSourceKeys: {
+        42: JSON.stringify(["1001", "delphi-lux", null, null, null, null]),
+      },
+      movies: [movie],
+      showings: [first, second],
+    };
+    const result = await persistNativeCatalog([catalog]);
+    expect(result.totalShowings).toBe(2);
+    expect(storedShowings).toHaveLength(2);
+    expect(storedShowings[0]).toMatchObject({
+      providerSessionId: "1001-81",
+      sourceEvidence: movie.evidence,
+      sourceMetadata: {
+        movie: movie.sourceMetadata,
+        showing: first.sourceMetadata,
+      },
+    });
+    const ids = storedShowings.map((row) => row.id);
+    await persistNativeCatalog([
+      {
+        ...catalog,
+        showings: [
+          { ...first, sourceMetadata: { screen: "B", seatsAvailable: 49 } },
+        ],
+      },
+    ]);
+    expect(storedShowings.map((row) => row.id)).toEqual(ids);
+    expect(storedShowings[0]).toMatchObject({
+      isListed: true,
+      sourceMetadata: { showing: { screen: "B", seatsAvailable: 49 } },
+    });
+    expect(storedShowings[1]).toMatchObject({
+      isListed: false,
+      showingAdditionalData: ["Room C"],
+      sourceMetadata: { showing: { screen: "C", seatsAvailable: 12 } },
+    });
+    await persistNativeCatalog([catalog]);
+    expect(storedShowings.map((row) => row.id)).toEqual(ids);
+    expect(storedShowings.every((row) => row.isListed)).toBe(true);
+
+    const previous = structuredClone(storedShowings);
+    replacementTransaction.showing.createMany.mockImplementationOnce(() =>
+      Promise.reject(new Error("native insert failed")),
+    );
+    await expect(
+      persistNativeCatalog([{ ...catalog, showings: [first] }]),
+    ).rejects.toThrow("native insert failed");
+    expect(storedShowings).toEqual(previous);
+    await expect(
+      persistNativeCatalog([{ ...catalog, showings: [] }]),
+    ).rejects.toThrow("empty");
+    expect(storedShowings).toEqual(previous);
+  });
+
+  test("native refresh rejects duplicate session identities and changed provider ownership", async () => {
+    const { persistNativeCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/persistNativeCatalog");
+    const showing = {
+      cinemaId: 42,
+      movieName: "Film",
+      provider: "Cinetixx",
+      providerFilmId: "movie:123",
+      providerSessionId: "9001",
+      dateTime: new Date("2099-12-01T18:00:00Z"),
+    };
+    const catalog = {
+      provider: "Cinetixx",
+      fetchedCinemaIds: [42],
+      movies: [],
+      showings: [showing],
+    };
+    await expect(
+      persistNativeCatalog([{ ...catalog, showings: [showing, showing] }]),
+    ).rejects.toThrow("Duplicate native session");
+    replacementTransaction.cinema.findMany.mockImplementationOnce(
+      async () => [],
+    );
+    await expect(persistNativeCatalog([catalog])).rejects.toThrow(
+      "mapping changed",
+    );
+    expect(storedShowings).toEqual([]);
+    // Remaining with the same provider is not enough: venue A must not replace venue B.
+    await expect(
+      persistNativeCatalog([
+        {
+          ...catalog,
+          provider: "Yorck",
+          cinemaSourceKeys: {
+            42: JSON.stringify(["1002", "babylon", null, null, null, null]),
+          },
+          showings: [{ ...showing, provider: "Yorck" }],
+        },
+      ]),
+    ).rejects.toThrow("mapping changed");
+    expect(storedShowings).toEqual([]);
+    const { resolveAndPersistCatalog } =
+      await import("@waslaeuftin/helpers/catalogUpdater/resolveAndPersistCatalog");
+    replacementTransaction.cinema.count.mockImplementationOnce(async () => 0);
+    await expect(
+      resolveAndPersistCatalog([
+        {
+          movies: [],
+          showings: [
+            { ...showing, provider: "KinoHeld", providerSessionId: undefined },
+          ],
+        },
+      ]),
+    ).rejects.toThrow("switched to a native provider");
+    expect(storedShowings).toEqual([]);
+  });
+
   test("refreshes Cinemaxx listings without losing historical, withdrawn or other-cinema screenings", async () => {
     const { persistCinemaxxVueCatalog } =
       await import("@waslaeuftin/helpers/catalogUpdater/persistCinemaxxVueCatalog");

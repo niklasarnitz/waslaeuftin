@@ -54,6 +54,53 @@ and provider mappings. Cinemas absent from the database are reported, not create
 Deploy the provider code along with the migration so subsequent nightly updates
 continue using the direct source.
 
+## Yorck, Cinetixx, Cineprog and UCI
+
+All four sources participate in scheduled and manual provider updates. Configured
+cinemas prefer their native programme over Kinoheld. Native film/session IDs,
+observed movie evidence, rooms, version labels and raw source metadata are kept
+with retrieval timestamps. Yorck's explicit TMDB IDs still pass the normal movie
+identity checks; they are not unconditional matches. Unknown language,
+availability and cancellation states are not inferred from sales flags.
+
+Yorck uses its public Sessions API and film pages; Cinetixx uses its anonymous
+programme JSON. Cineprog reads the embedded programme/detail data used by WOKI
+and Park-Kino. UCI uses programme HTML: a Chromium network investigation found
+HTML slider snippets, but no usable JSON schedule feed. Other Cineprog website
+templates are not assumed compatible.
+
+**Apply `20261102220000_add_native_cinema_providers` before deploying this code.**
+The Docker entrypoint does not apply migrations. Then deploy the new importer
+before activating any native mappings. The migration retains legacy slot keys
+and adds native session identity so simultaneous rooms are not collapsed.
+
+Use `apps/nextjs/scripts/configure-native-cinema.ts` with an existing local cinema
+ID and a verified native venue mapping. Run from the repository root with the
+database environment loaded. These examples are dry runs; replace the local ID
+placeholder after checking the physical venue:
+
+```text
+bun apps/nextjs/scripts/configure-native-cinema.ts Yorck <local-id> 1001 delphi-lux
+bun apps/nextjs/scripts/configure-native-cinema.ts Cinetixx <local-id> 301802645
+bun apps/nextjs/scripts/configure-native-cinema.ts Cineprog <local-id> https://www.park-kino.de
+bun apps/nextjs/scripts/configure-native-cinema.ts UCI <local-id> 82 berlin-east-side-gallery
+```
+
+Only add `--apply` after reviewing the venue and fetched programme. Applying
+requires the database, TMDB and S3 environment used by the movie importer. It
+saves a rollback snapshot under `.cache` and atomically activates the mapping,
+refreshes listings and records freshness. Existing cinema IDs and Kinoheld
+metadata remain intact; another direct-provider mapping must be retired
+explicitly before switching. No cinema records are created by this script.
+
+Failed, malformed, ambiguous-time or empty feeds leave the previous listings
+and freshness intact. Successful refreshes withdraw missing future sessions,
+retain historical/withdrawn rows, and update reappearing exact slots in place.
+Mapping checks under the cinema lock prevent stale native/Kinoheld refreshes
+from writing after a source switch. Native raw evidence remains separate from
+canonical movie metadata; a native runtime disagreement does not establish
+which source is correct.
+
 ## Movie matching
 
 Matching uses the raw listing title plus observed provider evidence, not just a

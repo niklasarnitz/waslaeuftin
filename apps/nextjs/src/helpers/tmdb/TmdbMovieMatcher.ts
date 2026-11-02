@@ -84,6 +84,7 @@ export class TmdbMovieMatcher {
     // Bare numbers can be part of the title (e.g. 2001: A Space Odyssey).
     const cacheKey = JSON.stringify([
       title.trim(),
+      evidence.tmdbId,
       evidence.productionYear,
       evidence.originalTitle,
       evidence.director,
@@ -137,7 +138,7 @@ export class TmdbMovieMatcher {
     const scoredCandidates: TmdbScoredMatch[] = [];
     const searchCandidates = new Map<number, TmdbMovieSearchResult>();
 
-    const searchPromises = queries.map((query) =>
+    const searchPromises = (evidence.tmdbId ? [] : queries).map((query) =>
       this.rateLimitQueue.run(async () => {
         const searchUrl = new URL("https://api.themoviedb.org/3/search/movie");
         searchUrl.searchParams.set("api_key", env.TMDB_API_KEY);
@@ -168,6 +169,44 @@ export class TmdbMovieMatcher {
     );
 
     const results = await Promise.all(searchPromises);
+    if (evidence.tmdbId) {
+      // An explicit native ID selects a candidate, not an unconditional match.
+      // It still goes through the same title, year, director and runtime checks.
+      const details = await this.rateLimitQueue.run(async () => {
+        const url = new URL(
+          `https://api.themoviedb.org/3/movie/${evidence.tmdbId}`,
+        );
+        url.searchParams.set("api_key", env.TMDB_API_KEY);
+        url.searchParams.set("language", "de-DE");
+        url.searchParams.set("append_to_response", "credits");
+        const response = await fetch(url, {
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok)
+          throw new Error(
+            `TMDB native identity failed (${response.status}) for ${evidence.tmdbId}`,
+          );
+        const value = (await response.json()) as TmdbMovieDetailsResponse;
+        if (
+          value.id !== evidence.tmdbId ||
+          !value.title ||
+          !value.original_title
+        )
+          throw new Error(
+            "TMDB native identity response does not match requested movie",
+          );
+        return value;
+      });
+      this.detailsCache.set(details.id, details);
+      results.push({
+        query: `tmdb:${details.id}`,
+        result: {
+          results: [
+            { ...details, genre_ids: details.genres.map((genre) => genre.id) },
+          ],
+        },
+      });
+    }
 
     for (const { query, result } of results) {
       const topResults = result.results.slice(0, 7);

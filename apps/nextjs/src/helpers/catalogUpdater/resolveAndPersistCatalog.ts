@@ -15,6 +15,7 @@ import {
 import { Prisma } from "@waslaeuftin/db";
 import { db } from "@waslaeuftin/db/client";
 import { env } from "@waslaeuftin/env";
+import { noNativeCinemaProvider } from "@waslaeuftin/helpers/catalogUpdater/nativeCinemaProviders";
 import { assertBucketAccessible } from "@waslaeuftin/helpers/fileStorage/assertBucketAccessible";
 import { createS3Client } from "@waslaeuftin/helpers/fileStorage/createS3Client";
 import { POSTER_UPLOAD_CONCURRENCY } from "@waslaeuftin/helpers/fileStorage/posterUploadConcurrency";
@@ -41,6 +42,7 @@ const sourceKeyFor = (source: RawProviderMovie) =>
     source.evidence?.originalTitle,
     source.evidence?.director,
     source.evidence?.runtimeMinutes,
+    ...(source.evidence?.tmdbId ? [source.evidence.tmdbId] : []),
   ]);
 
 type CreateResolvedMovieParams = Pick<
@@ -122,6 +124,13 @@ export const resolveAndPersistCatalog = async (
         provider,
         providerFilmId: source.providerFilmId,
         evidence: source.evidence,
+        sourceMetadata:
+          movie?.sourceMetadata || showing.sourceMetadata
+            ? {
+                movie: movie?.sourceMetadata ?? {},
+                showing: showing.sourceMetadata ?? {},
+              }
+            : undefined,
       });
       sources.set(sourceKeyFor(source), source);
     }
@@ -700,6 +709,12 @@ export const resolveAndPersistCatalog = async (
       showingAdditionalData: combinedAdditionalData,
       sourceProvider: showing.provider,
       providerFilmId: showing.providerFilmId ?? null,
+      providerSessionId: showing.providerSessionId,
+      sourceMetadata: showing.sourceMetadata
+        ? (JSON.parse(
+            JSON.stringify(showing.sourceMetadata),
+          ) as Prisma.InputJsonObject)
+        : undefined,
       sourceEvidence: showing.evidence ?? {},
       matcherVersion: decision ? MOVIE_MATCHER_VERSION : null,
       matchEvaluatedAt: decision?.evaluatedAt ?? null,
@@ -730,6 +745,25 @@ export const resolveAndPersistCatalog = async (
           SELECT "id" FROM "Cinema"
           WHERE "id" IN (${Prisma.join(cinemaIds)}) ORDER BY "id" FOR UPDATE
         `;
+        const kinoheldIds = [
+          ...new Set(
+            batch
+              .filter((row) => row.sourceProvider === "KinoHeld")
+              .map((row) => row.cinemaId),
+          ),
+        ];
+        if (
+          kinoheldIds.length &&
+          (await tx.cinema.count({
+            where: {
+              id: { in: kinoheldIds },
+              ...noNativeCinemaProvider,
+            },
+          })) !== kinoheldIds.length
+        )
+          throw new Error(
+            "Kinoheld cinema switched to a native provider during refresh",
+          );
         const occupied = await tx.showing.findMany({
           where: {
             OR: batch.map((row) => ({

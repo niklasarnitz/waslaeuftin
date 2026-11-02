@@ -5,6 +5,8 @@ export interface ProviderCatalog {
   provider?: string;
   /** Successfully fetched cinemas; stamp freshness only after persistence succeeds. */
   fetchedCinemaIds?: number[];
+  /** Source configuration observed at fetch time, checked before a native refresh. */
+  cinemaSourceKeys?: Record<number, string>;
   movies: RawProviderMovie[];
   showings: RawProviderShowing[];
 }

@@ -2,6 +2,11 @@ export type { ProviderCatalog } from "@waslaeuftin/cinema-providers/internal/Pro
 export type { RawProviderMovie } from "@waslaeuftin/cinema-providers/internal/RawProviderMovie";
 export type { RawProviderShowing } from "@waslaeuftin/cinema-providers/internal/RawProviderShowing";
 
+export { getYorckMovies } from "@waslaeuftin/cinema-providers/internal/providers/yorck/getYorckMovies";
+export { getCinetixxMovies } from "@waslaeuftin/cinema-providers/internal/providers/cinetixx/getCinetixxMovies";
+export { getCineprogMovies } from "@waslaeuftin/cinema-providers/internal/providers/cineprog/getCineprogMovies";
+export { getUciMovies } from "@waslaeuftin/cinema-providers/internal/providers/uci/getUciMovies";
+
 export { getCineplexxATMovies } from "@waslaeuftin/cinema-providers/internal/providers/cineplex-at/getCineplexxATMovies";
 export type { CineplexxATCinema } from "@waslaeuftin/cinema-providers/internal/providers/cineplex-at/types/CineplexxATCinema";
 export { getCineplexMovies } from "@waslaeuftin/cinema-providers/internal/providers/cineplex/getCinePlexMovies";

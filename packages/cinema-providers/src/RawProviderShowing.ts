@@ -10,5 +10,7 @@ export interface RawProviderShowing {
   showingAdditionalData?: string[] | null;
   provider?: string;
   providerFilmId?: string;
+  providerSessionId?: string;
   evidence?: MovieIdentityEvidence;
+  sourceMetadata?: Record<string, unknown>;
 }
