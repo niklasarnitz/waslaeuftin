@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from "bun:test";
+import { expect, setSystemTime, spyOn, test } from "bun:test";
 
 import { getComtradaCineOrderMovies } from "@waslaeuftin/cinema-providers/server";
 
@@ -292,6 +292,81 @@ test("Gernsbach normalizes singleton and array screenings, preserves individual 
       ]);
     },
   );
+});
+
+test("Scala and Weil follow rolling seven-day windows on Mondays, other weekdays and across Berlin DST", async () => {
+  const cases = [
+    {
+      now: "2026-11-02T12:00:00Z",
+      nextDay: "09.11.2026",
+      nextStart: "2026-11-08T23:00:00Z",
+      screening: "2026-11-09T18:45:00.000Z",
+    },
+    {
+      // Still Monday in UTC, but Tuesday on the cinema's website.
+      now: "2026-11-02T23:30:00Z",
+      nextDay: "10.11.2026",
+      nextStart: "2026-11-09T23:00:00Z",
+      screening: "2026-11-10T18:45:00.000Z",
+    },
+    {
+      // Seven local days span only 167 hours when the clocks go forward.
+      now: "2027-03-28T00:30:00Z",
+      nextDay: "04.04.2027",
+      nextStart: "2027-04-03T22:00:00Z",
+      screening: "2027-04-04T17:45:00.000Z",
+    },
+  ];
+  const cinemas = [
+    {
+      host: "www.scala-tuttlingen.de",
+      shorty: "scala",
+      centerId: "32000000014XOOPIXC",
+    },
+    {
+      host: "www.kino-weil.de",
+      shorty: "weil",
+      centerId: "FB000000014DJZGDJE",
+    },
+  ];
+  try {
+    for (const cinema of cinemas) {
+      const host = cinema.host.replace(/^www\./, "");
+      const base = `https://${cinema.host}/tickets/`;
+      const page = (date: string, session: string, nextUrl?: string) => `
+        <div class="program-table-wrapper"><table>
+          <tr class="header-row"><th><div class="program-table-row"><div>${date}</div></div></th></tr>
+          <tr><td><h4><a href="/film/film/11111111-1111-4111-8111-111111111111/">Film</a></h4></td>
+            <td><div class="program-table-row"><div><a class="schedule-link"
+              href="https://iframe.cineorder.${host}/landingpage?center=${cinema.centerId}&performance=${session}">19:45</a></div></div></td></tr>
+        </table></div>
+        <div class="program-table-navbar"><a href="/tickets/">Heute</a>${nextUrl ? `<a href="${nextUrl}">Nächste Woche</a>` : ""}</div>`;
+      for (const scenario of cases) {
+        setSystemTime(new Date(scenario.now));
+        const nextUrl = `${base}?filterStart=${Date.parse(scenario.nextStart) / 1000}`;
+        await withPages(
+          {
+            [base]: page("Heute", "current", nextUrl),
+            [nextUrl]: page(scenario.nextDay, "next"),
+          },
+          async () => {
+            const result = await getComtradaCineOrderMovies(2951, {
+              ...metadata(`https://cineorder.${host}`, cinema.shorty),
+              centerId: cinema.centerId,
+            });
+            expect(
+              result.showings.map((showing) => showing.providerSessionId),
+            ).toEqual(["current", "next"]);
+            expect(result.showings[1]?.dateTime.toISOString()).toBe(
+              scenario.screening,
+            );
+          },
+        );
+      }
+    }
+  } finally {
+    setSystemTime();
+  }
 });
 
 test("blocked, malformed, empty and wrong-cinema programmes fail instead of returning a successful empty catalog", async () => {

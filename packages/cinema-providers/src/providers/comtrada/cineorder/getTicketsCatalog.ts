@@ -205,7 +205,7 @@ export const getTicketsCatalog = async (
     if (parsedLinks !== $("a.schedule-link").length)
       throw new Error(`Unassociated tickets screening: ${url.href}`);
     if (parsedLinks === 0 && !pageStart.isBefore(lastAdvertisedDay)) break;
-    const nextStart = pageStart.clone().startOf("isoWeek").add(1, "week");
+    const nextStart = pageStart.clone().add(1, "week");
     let nextUrl: URL | undefined;
     for (const link of $(".program-table-navbar a[href]").toArray()) {
       const candidate = new URL($(link).attr("href") ?? "", source);
