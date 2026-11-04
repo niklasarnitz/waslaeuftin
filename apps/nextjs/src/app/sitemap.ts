@@ -25,7 +25,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // No fabricated lastModified: a request is not a content update.
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/download`, changeFrequency: "monthly", priority: 0.5 },
     ...cities.map((city) => ({
       url: `${SITE_URL}${listingPath("city", city.slug)}`,
       changeFrequency: "daily" as const,
