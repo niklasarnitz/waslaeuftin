@@ -56,6 +56,79 @@ const evaluate = async (title: string, candidates: TmdbMovieSearchResult[]) => {
 afterEach(() => restoreFetch?.());
 
 describe("TmdbMovieMatcher audited cinema titles", () => {
+  test.each([0, null])(
+    "does not reject a corroborated film when TMDB runtime is unknown (%s)",
+    async (runtime) => {
+      mockTmdb((url) =>
+        Response.json(
+          url.pathname === "/3/movie/1525072"
+            ? {
+                runtime,
+                credits: {
+                  crew: [{ job: "Director", name: "Bora Dağtekin" }],
+                },
+              }
+            : { results: [movie(1525072, "Der perfekte Urlaub", 2026)] },
+        ),
+      );
+      const matcher = new TmdbMovieMatcher();
+      expect(
+        (
+          await matcher.evaluate("Der perfekte Urlaub", {
+            productionYear: 2026,
+            runtimeMinutes: 125,
+            director: "Bora Dagtekin",
+          })
+        ).acceptedCandidate?.tmdbMovieId,
+      ).toBe(1525072);
+      expect(
+        (
+          await matcher.evaluate("Der perfekte Urlaub", {
+            productionYear: 2026,
+            runtimeMinutes: 125,
+            director: "Another Director",
+          })
+        ).acceptedCandidate,
+      ).toBeNull();
+    },
+  );
+
+  test("director evidence disambiguates Emil without an unreliable provider year", async () => {
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      if (url.pathname.startsWith("/3/movie/")) {
+        const current = url.pathname === "/3/movie/1426805";
+        return Response.json({
+          runtime: current ? 101 : 111,
+          credits: {
+            crew: [
+              {
+                job: "Director",
+                name: current ? "David Dietl" : "Franziska Buch",
+              },
+            ],
+          },
+        });
+      }
+      return Response.json({
+        results: [
+          movie(10556, "Emil und die Detektive", 2001, undefined, 150),
+          movie(1426805, "Emil und die Detektive", 2026),
+        ],
+      });
+    });
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate("Emil und die Detektive", {
+          originalTitle: "Emil und die Detektive",
+          runtimeMinutes: 96,
+          director: "David Dietl",
+        })
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(1426805);
+  });
+
   test("native TMDB IDs select a candidate without bypassing identity evidence or reusing another ID's cache", async () => {
     mockTmdb((url) => {
       if (url.pathname.endsWith("/alternative_titles"))

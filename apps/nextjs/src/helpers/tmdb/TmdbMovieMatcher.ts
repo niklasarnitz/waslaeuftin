@@ -23,7 +23,7 @@ import { TmdbMovieSearchResult } from "@waslaeuftin/types/TmdbMovieSearchResult"
 import { TmdbScoredMatch } from "@waslaeuftin/types/TmdbScoredMatch";
 import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
 
-export const MOVIE_MATCHER_VERSION = 4;
+export const MOVIE_MATCHER_VERSION = 5;
 
 // ─── TMDB matcher ───────────────────────────────────────────────────────────
 export class TmdbMovieMatcher {
@@ -442,8 +442,8 @@ export class TmdbMovieMatcher {
         );
         const runtimeConflict = Boolean(
           evidence.runtimeMinutes &&
-          (!details.runtime ||
-            Math.abs(details.runtime - evidence.runtimeMinutes) > 5),
+          details.runtime &&
+          Math.abs(details.runtime - evidence.runtimeMinutes) > 5,
         );
         if (directorConflict || runtimeConflict) {
           rejectedCandidates.push({

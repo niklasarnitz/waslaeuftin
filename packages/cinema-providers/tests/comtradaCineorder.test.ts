@@ -225,6 +225,49 @@ test("Forum joins presentation variants and extra films by source ID without imp
   );
 });
 
+test("Filmpalast omits unreliable production years and restores catalog-sorted original titles", async () => {
+  const data = pmkino();
+  data.apiData.movies.items["pk-a"] = {
+    id: "film-a",
+    title: "Die Odyssee",
+    origTitle: "Odyssey, The",
+    productionYear: 2026,
+    length: 172,
+    directors: [{ name: "Christopher Nolan" }],
+  };
+  data.apiData.extraMovies.items["pk-b"] = {
+    id: "film-b",
+    title: "Emil und die Detektive",
+    productionYear: 1999,
+  };
+  await withPages(
+    {
+      "https://filmpalast.net/programmuebersicht/": embedded(
+        "pmkinoFrontVars",
+        data,
+      ),
+    },
+    async () => {
+      const result = await getComtradaCineOrderMovies(
+        8,
+        metadata("https://cineorder.filmpalast.net", "zkm"),
+      );
+      expect(result.movies[0]?.evidence).toEqual({
+        originalTitle: "The Odyssey",
+        director: "Christopher Nolan",
+        runtimeMinutes: 172,
+        productionYear: undefined,
+      });
+      expect(result.movies[1]?.evidence?.productionYear).toBeUndefined();
+      expect(result.showings.map((showing) => showing.evidence)).toEqual([
+        result.movies[0]?.evidence,
+        result.movies[0]?.evidence,
+        result.movies[1]?.evidence,
+      ]);
+    },
+  );
+});
+
 test("Gernsbach normalizes singleton and array screenings, preserves individual booking links and omits unknown evidence", async () => {
   const booking = (id: string) =>
     `https://iframe.cineorder.kinocentergernsbach.de/landingpage?center=center&FilmID=film-source&performance=${id}`;

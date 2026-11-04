@@ -90,8 +90,16 @@ export const getPmkinoCatalog = async (
         provider: "ComtradaCineOrder",
         providerFilmId: record.id,
         evidence: {
-          originalTitle: record.origTitle?.trim() || undefined,
+          originalTitle:
+            record.origTitle
+              ?.trim()
+              .replace(/^(.*),\s*(The|A|An|Der|Die|Das)$/i, "$2 $1") ||
+            undefined,
+          // Filmpalast publishes placeholder years (1999 for new releases)
+          // and incorrect years for older films. Do not turn that field into
+          // an identity constraint; titles, directors and runtimes still apply.
           productionYear:
+            new URL(baseUrl).hostname !== "filmpalast.net" &&
             record.productionYear &&
             record.productionYear >= 1800 &&
             record.productionYear <= 2100
