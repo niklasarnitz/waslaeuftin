@@ -40,7 +40,7 @@ export default function RequestCinemaPage() {
         <form onSubmit={form.handleSubmit(onValidData)}>
           <div className="flex flex-col space-y-4 py-4">
             <h1 className="text-3xl font-bold">Kino wünschen</h1>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               Hier kannst du dir Kinos, die noch nicht bei waslaeuft.in
               verfügbar sind, wünschen.
             </p>

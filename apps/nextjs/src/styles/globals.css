@@ -16,6 +16,7 @@ h6 {
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 210 24% 97%;
     --foreground: 222 35% 12%;
     --card: 0 0% 100%;
@@ -52,6 +53,7 @@ h6 {
   }
 
   .dark {
+    color-scheme: dark;
     --background: 222 28% 8%;
     --foreground: 210 22% 92%;
     --card: 222 24% 11%;
@@ -69,7 +71,7 @@ h6 {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 219 14% 26%;
-    --input: 219 14% 26%;
+    --input: 219 14% 45%;
     --ring: 206 90% 62%;
     --chart-1: 220 70% 50%;
     --chart-2: 190 62% 42%;
@@ -85,6 +87,18 @@ h6 {
     --sidebar-border: 219 14% 26%;
     --sidebar-ring: 206 90% 62%;
   }
+}
+
+.theme-icon-light,
+.theme-icon-dark,
+[data-theme-mode="light"] .theme-icon-system,
+[data-theme-mode="dark"] .theme-icon-system {
+  display: none;
+}
+
+[data-theme-mode="light"] .theme-icon-light,
+[data-theme-mode="dark"] .theme-icon-dark {
+  display: block;
 }
 
 @layer base {

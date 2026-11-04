@@ -126,6 +126,71 @@ describe("groupMoviesByTitle", () => {
     expect(result).toHaveLength(0);
   });
 
+  it("filters individual showings from 18:00 inclusive in the cinema timezone, combined with format", () => {
+    const cinemas = [
+      {
+        ...mockCinema1,
+        movies: [
+          {
+            name: "Evening Film",
+            coverUrl: null,
+            showings: [
+              {
+                id: 1,
+                dateTime: "2099-07-07T15:59:00Z",
+                timeZone: "Europe/Berlin",
+                rawMovieName: "Evening Film (OV)",
+              },
+              {
+                id: 2,
+                dateTime: "2099-07-07T16:00:00Z",
+                timeZone: "Europe/Berlin",
+                rawMovieName: "Evening Film (OV)",
+              },
+              {
+                id: 3,
+                dateTime: "2099-07-07T16:01:00Z",
+                timeZone: "Europe/Berlin",
+                rawMovieName: "Evening Film",
+              },
+            ],
+          },
+          {
+            name: "Early Film",
+            coverUrl: null,
+            showings: [
+              {
+                id: 4,
+                dateTime: "2099-07-07T15:30:00Z",
+                timeZone: "Europe/Berlin",
+                rawMovieName: "Early Film (OV)",
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const evening = groupMoviesByTitle(cinemas, {
+      filters: { timeWindow: "18", selectedTags: [] },
+    });
+    expect(evening.map((movie) => movie.name)).toEqual(["Evening Film"]);
+    expect(
+      evening[0]?.cinemas[0]?.showings.map((showing) => showing.id),
+    ).toEqual([2, 3]);
+    const originalVersion = groupMoviesByTitle(cinemas, {
+      filters: { timeWindow: "18", selectedTags: ["OV"] },
+    });
+    expect(
+      originalVersion[0]?.cinemas[0]?.showings.map((showing) => showing.id),
+    ).toEqual([2]);
+    expect(originalVersion[0]?.showingsCount).toBe(1);
+    expect(
+      groupMoviesByTitle(cinemas, {
+        filters: { timeWindow: "18", selectedTags: ["IMAX"] },
+      }),
+    ).toEqual([]);
+  });
+
   it("should sort movies by name by default", () => {
     const cinemas = [
       {

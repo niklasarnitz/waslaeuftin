@@ -7,7 +7,9 @@ import moment from "moment-timezone";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Analytics } from "@waslaeuftin/components/Analytics";
+import { SystemThemeListener } from "@waslaeuftin/components/ThemeToggle";
 import { SITE_URL } from "@waslaeuftin/helpers/seo";
+import { applyTheme } from "@waslaeuftin/lib/theme";
 import { TRPCReactProvider } from "@waslaeuftin/trpc/react";
 
 const rubik = Rubik({
@@ -43,8 +45,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: `(${applyTheme.toString()})();` }}
+        />
+      </head>
       <body className={libre_franklin.variable + " " + rubik.variable}>
+        <SystemThemeListener />
         <NuqsAdapter>
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </NuqsAdapter>

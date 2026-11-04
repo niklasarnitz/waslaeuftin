@@ -1,5 +1,6 @@
 import { CommandSearch } from "@waslaeuftin/components/CommandSearch";
 import { SiteHeader } from "@waslaeuftin/components/SiteHeader";
+import { ThemeToggle } from "@waslaeuftin/components/ThemeToggle";
 
 export const SiteWrapper = async ({
   pathname,
@@ -17,8 +18,9 @@ export const SiteWrapper = async ({
     <>
       <header className="border-border/70 bg-background/85 sticky top-0 z-30 flex shrink-0 items-center gap-2 border-b px-4 py-3 backdrop-blur-xl md:px-6">
         <SiteHeader pathname={pathname} date={searchParams?.date} />
-        <div className="ml-auto">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <CommandSearch />
+          <ThemeToggle />
         </div>
       </header>
       <div className="flex-1">{children}</div>

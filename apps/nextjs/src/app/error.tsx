@@ -17,7 +17,7 @@ export default function Error({
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12 text-center">
-      <div className="bg-destructive/10 text-destructive mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+      <div className="bg-destructive/10 text-destructive mb-4 flex h-16 w-16 items-center justify-center rounded-2xl dark:text-red-400">
         <AlertTriangle className="h-8 w-8" />
       </div>
 

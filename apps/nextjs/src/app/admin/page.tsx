@@ -228,13 +228,13 @@ const ProviderCard = ({
             ) : null}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No runs yet.</p>
+          <p className="text-muted-foreground text-sm">No runs yet.</p>
         )}
 
         {runs.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="text-slate-500">
+              <thead className="text-muted-foreground">
                 <tr>
                   <th className="py-1 pr-2 font-medium">Run</th>
                   <th className="py-1 pr-2 font-medium">Started</th>
@@ -251,7 +251,9 @@ const ProviderCard = ({
                     title={run.error ?? undefined}
                   >
                     <td className="py-1.5 pr-2">
-                      <span className="mr-1.5 text-slate-500">#{run.id}</span>
+                      <span className="text-muted-foreground mr-1.5">
+                        #{run.id}
+                      </span>
                       <StatusBadge run={run} />
                     </td>
                     <td className="py-1.5 pr-2 whitespace-nowrap">
@@ -278,7 +280,7 @@ const ProviderCard = ({
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <dt className="text-slate-500">{label}</dt>
+    <dt className="text-muted-foreground">{label}</dt>
     <dd className="font-medium tabular-nums">{value}</dd>
   </div>
 );
@@ -409,7 +411,7 @@ export default async function AdminPage({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Movie updates</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-muted-foreground text-sm">
             {movieUpdateCron === "off" ? (
               "Scheduled updates are disabled (MOVIE_UPDATE_CRON=off)."
             ) : (
@@ -421,7 +423,7 @@ export default async function AdminPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">
+          <span className="text-muted-foreground text-sm">
             {session.user?.name ?? session.user?.email}
           </span>
           <SignOutButton />
@@ -503,7 +505,7 @@ export default async function AdminPage({
         <section key={country} className="space-y-3">
           <h2 className="text-lg font-semibold">
             {COUNTRY_LABELS[country]}{" "}
-            <span className="text-sm font-normal text-slate-500">
+            <span className="text-muted-foreground text-sm font-normal">
               {providers.length}{" "}
               {providers.length === 1 ? "provider" : "providers"}
             </span>

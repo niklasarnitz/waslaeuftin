@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Film } from "lucide-react";
 
 import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
@@ -30,7 +31,7 @@ const CityHeader = async ({
           getDateString(date ?? new Date().toISOString()),
         )}
       </h1>
-      <UrlDatePicker citySlug={citySlug} />
+      <UrlDatePicker />
     </div>
   );
 };
@@ -60,7 +61,7 @@ const CinemaHeader = async ({
           getDateString(date ?? new Date().toISOString()),
         )}
       </h1>
-      <UrlDatePicker cinemaSlug={cinemaSlug} />
+      <UrlDatePicker />
     </div>
   );
 };
@@ -69,9 +70,18 @@ const HomeHeader = ({ date }: { date: string | null | undefined }) => {
   return (
     <div className="flex w-full flex-row items-center gap-x-2">
       <h1 className="text-base font-bold tracking-tight sm:text-xl">
-        {Constants["whats-showing-in-date"].home(
-          getDateString(date ?? new Date().toISOString()),
-        )}
+        <Link
+          href="/"
+          className="sm:hidden"
+          aria-label="wasläuft.in Startseite"
+        >
+          wasläuft.in
+        </Link>
+        <span className="hidden sm:inline">
+          {Constants["whats-showing-in-date"].home(
+            getDateString(date ?? new Date().toISOString()),
+          )}
+        </span>
       </h1>
     </div>
   );

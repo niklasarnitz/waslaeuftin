@@ -87,7 +87,7 @@ export function ShowingFilterBar({
             onClick={() => selectTime(isSelected ? "all" : timeOpt.id)}
             className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
               isSelected
-                ? "border-amber-600 bg-amber-600 text-white shadow-sm"
+                ? "border-amber-600 bg-amber-600 text-white shadow-sm dark:border-amber-500 dark:bg-amber-500 dark:text-amber-950"
                 : "bg-muted/60 text-foreground border-border/60 hover:bg-muted"
             }`}
           >

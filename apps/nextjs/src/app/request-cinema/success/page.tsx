@@ -20,7 +20,7 @@ const RequestSuccess = () => {
   return (
     <div className="p-10">
       <h1 className="text-2xl font-bold">Kino Wunsch gespeichert</h1>
-      <p className="text-gray-500">
+      <p className="text-muted-foreground">
         Vielen Dank für deine Wunsch.
         {searchParams.get("issue-number") && (
           <>

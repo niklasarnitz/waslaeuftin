@@ -10,11 +10,7 @@ import {
   serializeCalendarDate,
 } from "@waslaeuftin/helpers/calendarDate";
 
-export const UrlDatePicker = (
-  props: { citySlug: string } | { cinemaSlug: string },
-) => {
-  void props;
-
+export const UrlDatePicker = ({ compact = false }: { compact?: boolean }) => {
   const [date, setDate] = useQueryState("date", {
     parse: parseCalendarDate,
     serialize: serializeCalendarDate,
@@ -54,6 +50,16 @@ export const UrlDatePicker = (
           serializeCalendarDate(scheduleCalendarDate(1)),
     },
   ];
+
+  if (compact) {
+    return (
+      <DatePicker
+        compact
+        value={date ?? scheduleCalendarDate()}
+        onChange={updateDate}
+      />
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">

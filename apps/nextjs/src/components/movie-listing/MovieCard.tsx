@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Clock3, Film, Play, Star } from "lucide-react";
+import { useId, useState } from "react";
+import { ChevronDown, Clock3, Film, Play, Star } from "lucide-react";
 
 import type { ListingMovieCard } from "@waslaeuftin/core";
 import { CinemaShowingsCard } from "@waslaeuftin/components/movie-listing/CinemaShowingsCard";
@@ -19,6 +19,8 @@ export const MovieCard = ({
   maxShowingsPerCinema = 5,
   eagerCover = false,
 }: MovieCardProps) => {
+  const detailsId = useId();
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
   const cinemaEntries = movie.cinemaEntries ?? movie.cinemas;
   const sortedCinemas = [...cinemaEntries].sort((left, right) => {
@@ -54,20 +56,47 @@ export const MovieCard = ({
   const productionCompanies: Array<{ id: number; name: string }> =
     Array.isArray(meta?.productionCompanies) ? meta.productionCompanies : [];
 
+  const hasDetails = Boolean(
+    meta?.overview ||
+    directors.length ||
+    cast.length ||
+    productionCompanies.length ||
+    meta?.trailerUrl ||
+    tmdbMovieUrl,
+  );
+  const movieActions = (
+    <>
+      {meta?.trailerUrl && (
+        <a
+          href={meta.trailerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground flex min-h-9 items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold shadow-sm transition-colors"
+        >
+          <Play className="h-3 w-3 fill-current" />
+          <span>Trailer</span>
+        </a>
+      )}
+      {tmdbMovieUrl && (
+        <a
+          href={tmdbMovieUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-secondary/80 hover:bg-secondary text-secondary-foreground border-border flex min-h-9 items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
+        >
+          <Film className="h-3 w-3" />
+          <span>TMDB</span>
+        </a>
+      )}
+    </>
+  );
+
   return (
     <article className="border-border/70 bg-background/85 hover:bg-background rounded-xl border p-3 transition-colors sm:rounded-2xl sm:p-4 md:p-5">
-      {/* Title + badge — mobile only */}
-      <div className="mb-2 flex items-start justify-between gap-2 sm:hidden">
-        <h4 className="line-clamp-2 text-base font-bold tracking-tight">
-          {movie.name}
-        </h4>
-        <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold">
-          {cinemaEntries.length} {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 sm:grid-cols-[100px_minmax(0,1fr)] md:grid-cols-[120px_minmax(0,1fr)] md:gap-5 lg:grid-cols-[140px_minmax(0,1fr)]">
-        <div className="space-y-2 sm:row-span-2">
+      <div className="grid grid-cols-[64px_minmax(0,1fr)] gap-3 sm:grid-cols-[100px_minmax(0,1fr)] md:grid-cols-[120px_minmax(0,1fr)] md:gap-5 lg:grid-cols-[140px_minmax(0,1fr)]">
+        <div
+          className={`space-y-2 ${hasDetails ? "sm:row-span-3" : "sm:row-span-2"}`}
+        >
           <MovieCover
             title={movie.name}
             coverUrl={movie.coverUrl}
@@ -75,40 +104,17 @@ export const MovieCard = ({
             eager={eagerCover}
           />
 
-          {/* Action buttons under poster */}
-          <div className="flex flex-col gap-1.5 pt-1">
-            {meta?.trailerUrl && (
-              <a
-                href={meta.trailerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold shadow-sm transition-colors"
-              >
-                <Play className="h-3 w-3 fill-current" />
-                <span>Trailer</span>
-              </a>
-            )}
-            {tmdbMovieUrl && (
-              <a
-                href={tmdbMovieUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-secondary/80 hover:bg-secondary text-secondary-foreground border-border flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition-colors"
-              >
-                <Film className="h-3 w-3" />
-                <span>TMDB</span>
-              </a>
-            )}
+          <div className="hidden flex-col gap-1.5 pt-1 sm:flex">
+            {movieActions}
           </div>
         </div>
 
         <div className="min-w-0 space-y-2.5">
-          {/* Title + badge — desktop only */}
-          <div className="hidden items-start justify-between gap-2 sm:flex">
-            <h4 className="line-clamp-2 text-xl font-bold tracking-tight md:text-2xl">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="line-clamp-2 text-base font-bold tracking-tight sm:text-xl md:text-2xl">
               {movie.name}
             </h4>
-            <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
+            <span className="bg-primary/10 text-primary hidden shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold sm:inline-flex">
               {cinemaEntries.length}{" "}
               {cinemaEntries.length === 1 ? "Kino" : "Kinos"}
             </span>
@@ -116,11 +122,11 @@ export const MovieCard = ({
 
           {/* Meta row badges */}
           <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[11px] sm:gap-2 sm:text-xs">
-            <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
+            <span className="border-border/80 bg-background/80 hidden rounded-full border px-2.5 py-1 sm:inline-flex">
               {movie.showingsCount} Vorstellungen
             </span>
             {movie.nextShowing && (
-              <span className="border-border/80 bg-background/80 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
+              <span className="border-border/80 bg-background/80 hidden items-center gap-1 rounded-full border px-2.5 py-1 sm:inline-flex">
                 <Clock3 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 Nächste um{" "}
                 {formatShowingTime(
@@ -130,111 +136,27 @@ export const MovieCard = ({
               </span>
             )}
             {meta?.certification && (
-              <span className="border-border/80 bg-muted/60 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase sm:px-2.5 sm:py-1">
+              <span className="border-border/80 text-muted-foreground sm:bg-muted/60 text-[11px] sm:rounded-full sm:border sm:px-2.5 sm:py-1 sm:text-[10px] sm:font-bold">
                 FSK {meta.certification}
               </span>
             )}
             {meta?.runtime ? (
-              <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
+              <span className="border-border/80 sm:bg-background/80 sm:rounded-full sm:border sm:px-2.5 sm:py-1">
                 {meta.runtime} Min.
               </span>
             ) : null}
             {meta?.voteAverage ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-bold text-amber-600 sm:px-2.5 sm:py-1 dark:text-amber-400">
+              <span className="inline-flex items-center gap-1 border-amber-500/30 font-bold text-amber-600 sm:rounded-full sm:border sm:bg-amber-500/10 sm:px-2.5 sm:py-1 dark:text-amber-400">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                 {meta.voteAverage.toFixed(1)}
               </span>
             ) : null}
           </div>
-
-          {/* Directors, Cast, Studios */}
-          {(directors.length > 0 ||
-            cast.length > 0 ||
-            productionCompanies.length > 0) && (
-            <div className="space-y-1.5 text-xs">
-              {directors.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-muted-foreground font-semibold">
-                    Regie:
-                  </span>
-                  {directors.map((director) => (
-                    <a
-                      key={`dir-${director.id}`}
-                      href={`https://www.themoviedb.org/person/${director.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
-                    >
-                      {director.name}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {cast.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-muted-foreground font-semibold">
-                    Besetzung:
-                  </span>
-                  {cast.map((actor) => (
-                    <a
-                      key={`actor-${actor.id}`}
-                      href={`https://www.themoviedb.org/person/${actor.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
-                    >
-                      {actor.name}
-                      {actor.character ? ` (${actor.character})` : ""}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {productionCompanies.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-muted-foreground font-semibold">
-                    Studio:
-                  </span>
-                  {productionCompanies.map((studio) => (
-                    <a
-                      key={`studio-${studio.id}`}
-                      href={`https://www.themoviedb.org/company/${studio.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
-                    >
-                      {studio.name}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Overview snippet */}
-          {meta?.overview && (
-            <div className="text-xs leading-relaxed">
-              <p
-                className={`text-muted-foreground ${
-                  isOverviewExpanded ? "" : "line-clamp-2"
-                }`}
-              >
-                {meta.overview}
-              </p>
-              {meta.overview.length > 120 && (
-                <button
-                  type="button"
-                  onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
-                  className="text-primary mt-0.5 inline-block cursor-pointer text-[11px] font-medium hover:underline"
-                >
-                  {isOverviewExpanded ? "Weniger anzeigen" : "Mehr anzeigen"}
-                </button>
-              )}
-            </div>
-          )}
         </div>
-        <div className="col-span-2 space-y-2 sm:col-span-1 sm:col-start-2 sm:row-start-2 sm:space-y-3">
+
+        <div
+          className={`col-span-2 space-y-2 sm:col-span-1 sm:col-start-2 sm:space-y-3 ${hasDetails ? "sm:row-start-3" : "sm:row-start-2"}`}
+        >
           {sortedCinemas.map((cinemaEntry) => (
             <CinemaShowingsCard
               key={`${movie.name}-${cinemaEntry.cinema.id}`}
@@ -244,6 +166,118 @@ export const MovieCard = ({
             />
           ))}
         </div>
+
+        {hasDetails && (
+          <div className="col-span-2 sm:col-span-1 sm:col-start-2 sm:row-start-2">
+            <button
+              type="button"
+              aria-expanded={isDetailsExpanded}
+              aria-controls={detailsId}
+              onClick={() => setIsDetailsExpanded((expanded) => !expanded)}
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex min-h-9 items-center gap-1.5 rounded-md text-xs font-medium focus-visible:ring-2 focus-visible:outline-none sm:hidden"
+            >
+              Details
+              <ChevronDown
+                aria-hidden="true"
+                className={`h-3.5 w-3.5 transition-transform ${isDetailsExpanded ? "rotate-180" : ""}`}
+              />
+            </button>
+            <div
+              id={detailsId}
+              className={`${isDetailsExpanded ? "block" : "hidden"} space-y-2.5 sm:block`}
+            >
+              {/* Directors, Cast, Studios */}
+              {(directors.length > 0 ||
+                cast.length > 0 ||
+                productionCompanies.length > 0) && (
+                <div className="space-y-1.5 text-xs">
+                  {directors.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-muted-foreground font-semibold">
+                        Regie:
+                      </span>
+                      {directors.map((director) => (
+                        <a
+                          key={`dir-${director.id}`}
+                          href={`https://www.themoviedb.org/person/${director.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
+                        >
+                          {director.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {cast.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-muted-foreground font-semibold">
+                        Besetzung:
+                      </span>
+                      {cast.map((actor) => (
+                        <a
+                          key={`actor-${actor.id}`}
+                          href={`https://www.themoviedb.org/person/${actor.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
+                        >
+                          {actor.name}
+                          {actor.character ? ` (${actor.character})` : ""}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {productionCompanies.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-muted-foreground font-semibold">
+                        Studio:
+                      </span>
+                      {productionCompanies.map((studio) => (
+                        <a
+                          key={`studio-${studio.id}`}
+                          href={`https://www.themoviedb.org/company/${studio.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-muted/70 hover:bg-muted text-foreground border-border/60 hover:border-primary/50 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors"
+                        >
+                          {studio.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Overview snippet */}
+              {meta?.overview && (
+                <div className="text-xs leading-relaxed">
+                  <p
+                    className={`text-muted-foreground ${
+                      isOverviewExpanded ? "" : "sm:line-clamp-2"
+                    }`}
+                  >
+                    {meta.overview}
+                  </p>
+                  {meta.overview.length > 120 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                      className="text-primary mt-0.5 hidden cursor-pointer text-[11px] font-medium hover:underline sm:inline-block"
+                    >
+                      {isOverviewExpanded
+                        ? "Weniger anzeigen"
+                        : "Mehr anzeigen"}
+                    </button>
+                  )}
+                </div>
+              )}
+              <div className="flex gap-2 sm:hidden">{movieActions}</div>
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowUpDown,
+  ChevronDown,
   Compass,
   Film,
   Loader2,
@@ -13,13 +13,19 @@ import {
 } from "lucide-react";
 
 import type { ListingCinema } from "@waslaeuftin/core";
+import { CommandSearch } from "@waslaeuftin/components/CommandSearch";
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
+import { Button } from "@waslaeuftin/components/ui/button";
+import { UrlDatePicker } from "@waslaeuftin/components/UrlDatePicker";
 import {
   createScheduleDate,
   formatDistance,
   formatShowingTime,
   groupMoviesByTitle,
+  TAG_OPTIONS,
+  TIME_OPTIONS,
+  useShowingFilters,
 } from "@waslaeuftin/core";
 import { getDateString } from "@waslaeuftin/helpers/similarity/getDateString";
 import { useSortPreference } from "@waslaeuftin/hooks/useSortPreference";
@@ -52,10 +58,14 @@ const getInitialRadius = () => {
 
 export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
   const dateQuery = date ? `?date=${encodeURIComponent(date)}` : "";
+  const dateLabel = getDateString(date ?? new Date().toISOString());
+  const filtersId = useId();
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedCinemaSlugs, setSelectedCinemaSlugs] = useState<string[]>([]);
+  const { filters, toggleTag, selectTime, resetFilters } = useShowingFilters();
   const [sortBy, setSortBy] = useSortPreference("popularity");
   const [radiusKm, setRadiusKm] = useState(getInitialRadius);
   const [appliedRadiusKm, setAppliedRadiusKm] = useState(getInitialRadius);
@@ -63,11 +73,13 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
   const locationRequestId = useRef(0);
   const locationWatchdog = useRef<number | undefined>(undefined);
 
+  const applyRadius = (radius: number) => {
+    setAppliedRadiusKm(radius);
+    document.cookie = `${RADIUS_COOKIE_NAME}=${radius}; path=/; max-age=${RADIUS_COOKIE_MAX_AGE}; SameSite=Lax`;
+  };
+
   const handleRadiusRelease = () => {
-    setTimeout(() => {
-      setAppliedRadiusKm(radiusKm);
-      document.cookie = `${RADIUS_COOKIE_NAME}=${radiusKm}; path=/; max-age=${RADIUS_COOKIE_MAX_AGE}; SameSite=Lax`;
-    }, 100);
+    setTimeout(() => applyRadius(radiusKm), 100);
   };
 
   const nearbyQuery = api.cinemas.getNearbyCinemas.useQuery(
@@ -129,6 +141,10 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
   }, [effectiveSelectedCinemaSlugs, normalizedCinemas]);
 
   const isCinemaFilterActive = effectiveSelectedCinemaSlugs.length > 0;
+  const drawerFilterCount =
+    effectiveSelectedCinemaSlugs.length +
+    filters.selectedTags.length +
+    (appliedRadiusKm !== DEFAULT_RADIUS_KM ? 1 : 0);
 
   const toggleCinemaFilter = (cinemaSlug: string) => {
     setSelectedCinemaSlugs((previousSelectedCinemaSlugs) => {
@@ -143,8 +159,8 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
   };
 
   const nearbyMovies = useMemo(
-    () => groupMoviesByTitle(filteredCinemas, { sortBy }),
-    [filteredCinemas, sortBy],
+    () => groupMoviesByTitle(filteredCinemas, { sortBy, filters }),
+    [filteredCinemas, sortBy, filters],
   );
 
   const totalShowings = useMemo(() => {
@@ -214,9 +230,8 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
       return;
     }
 
-    hasRequestedLocation.current = true;
-
     const timeoutId = window.setTimeout(() => {
+      hasRequestedLocation.current = true;
       requestLocation();
     }, 0);
 
@@ -225,41 +240,59 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
     };
   }, []);
 
+  const noNearbyCinemas =
+    Boolean(coordinates) && nearbyQuery.isSuccess && nearbyCinemas.length === 0;
+  const showSearch =
+    nearbyCinemas.length === 0 &&
+    (Boolean(locationError) || noNearbyCinemas || nearbyQuery.isError);
+
   return (
     <section className="sm:border-border/70 sm:via-background sm:rounded-[2rem] sm:border sm:bg-gradient-to-br sm:from-slate-50/90 sm:to-cyan-50/70 sm:p-5 sm:shadow-sm md:p-8 dark:sm:from-slate-950/60 dark:sm:to-slate-900/40">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="border-border/70 bg-background/80 text-foreground/75 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase">
-            <Navigation className="h-3.5 w-3.5" />
-            In meiner Nähe
-          </p>
-          <div className="mt-3 flex items-center gap-2">
-            <h2 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
-              Kinos rund um deinen Standort
-            </h2>
-            <button
-              type="button"
-              onClick={requestLocation}
-              disabled={isLocating}
-              title="Standort erneut abfragen"
-              aria-label="Standort erneut abfragen"
-              className="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex shrink-0 items-center justify-center rounded-full p-1.5 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
-            >
-              {isLocating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
-              ) : (
-                <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              )}
-            </button>
+      <div className="flex items-start justify-between gap-3">
+        {!showSearch && (
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="border-border/70 bg-background/80 text-foreground/75 hidden items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase sm:inline-flex">
+                <Navigation className="h-3.5 w-3.5" />
+                In meiner Nähe
+              </p>
+              <div className="flex items-center gap-2 sm:mt-3">
+                <h2 className="text-lg font-bold tracking-tight sm:text-2xl md:text-3xl">
+                  <span className="sm:hidden">Filme in deiner Nähe</span>
+                  <span className="hidden sm:inline">
+                    Kinos rund um deinen Standort
+                  </span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={requestLocation}
+                  disabled={isLocating}
+                  title="Standort erneut abfragen"
+                  aria-label="Standort erneut abfragen"
+                  className="bg-primary text-primary-foreground focus-visible:ring-ring hidden shrink-0 items-center justify-center rounded-full p-2 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:inline-flex"
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-4 sm:w-4" />
+                  ) : (
+                    <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-muted-foreground mt-2 hidden max-w-2xl text-sm sm:block md:text-base">
+                Diese Filme laufen {dateLabel} in deiner Nähe.
+              </p>
+            </div>
           </div>
-          <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:mt-2 md:text-base">
-            Diese Filme laufen {getDateString(date ?? new Date().toISOString())}{" "}
-            in deiner Nähe.
-          </p>
-        </div>
+        )}
+        {showSearch && (
+          <h2 className="text-lg font-semibold">
+            {noNearbyCinemas ? "Keine Kinos gefunden" : "Finde dein Kino"}
+          </h2>
+        )}
+        <UrlDatePicker compact />
       </div>
 
-      {locationError && (
+      {locationError && !showSearch && (
         <p className="border-border text-muted-foreground mt-4 rounded-xl border border-dashed px-3 py-2 text-sm">
           {locationError}
         </p>
@@ -279,9 +312,40 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
         </div>
       )}
 
+      {showSearch && (
+        <div className="mt-3 space-y-3">
+          <div>
+            <p className="text-muted-foreground mt-1 max-w-xl text-sm">
+              {noNearbyCinemas
+                ? `Im Umkreis von ${appliedRadiusKm} km wurden keine Kinos mit Vorstellungen gefunden. Suche nach einer Stadt oder einem Kino.`
+                : nearbyQuery.isError
+                  ? "Kinos in deiner Nähe konnten nicht geladen werden. Suche stattdessen nach einer Stadt oder einem Kino."
+                  : "Dein Standort ist nicht verfügbar. Suche nach einer Stadt oder einem Kino, um das Programm zu sehen."}
+            </p>
+          </div>
+          <CommandSearch inline />
+          <Button
+            variant="ghost"
+            onClick={requestLocation}
+            disabled={isLocating}
+          >
+            <Compass aria-hidden="true" />
+            Standort erneut versuchen
+          </Button>
+        </div>
+      )}
+
       {nearbyCinemas.length > 0 && (
         <>
-          <div className="text-muted-foreground mt-4 flex flex-wrap items-center gap-1.5 text-[11px] sm:mt-5 sm:gap-2 sm:text-xs">
+          <p className="text-muted-foreground mt-1 text-sm sm:hidden">
+            {nearbyMovies.length} {nearbyMovies.length === 1 ? "Film" : "Filme"}
+            {" · "}
+            {filteredCinemas.length}{" "}
+            {filteredCinemas.length === 1 ? "Kino" : "Kinos"}
+            {" · "}
+            {appliedRadiusKm} km
+          </p>
+          <div className="text-muted-foreground mt-5 hidden flex-wrap items-center gap-2 text-xs sm:flex">
             <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
               {nearbyMovies.length} Filme in der Nähe
             </span>
@@ -293,30 +357,90 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
             <span className="border-border/80 bg-background/80 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
               {totalShowings} Vorstellungen
             </span>
-            <span className="border-border/80 bg-background/80 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 sm:px-2.5 sm:py-1">
-              <label
-                htmlFor="nearby-radius"
-                className="font-semibold whitespace-nowrap"
-              >
-                Radius: {radiusKm} km
-              </label>
-              <input
-                id="nearby-radius"
-                type="range"
-                min={MIN_RADIUS_KM}
-                max={MAX_RADIUS_KM}
-                step={5}
-                value={radiusKm}
-                onChange={(event) => setRadiusKm(Number(event.target.value))}
-                onMouseUp={handleRadiusRelease}
-                onTouchEnd={handleRadiusRelease}
-                onKeyUp={handleRadiusRelease}
-                className="accent-primary focus-visible:ring-ring h-3 w-20 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none sm:w-28"
-              />
-            </span>
           </div>
 
-          <div className="mt-2.5 sm:mt-3">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:flex">
+            <select
+              aria-label="Vorstellungsbeginn"
+              value={filters.timeWindow}
+              onChange={(event) =>
+                selectTime(event.target.value as typeof filters.timeWindow)
+              }
+              className={`border-border bg-background focus-visible:ring-ring h-10 min-w-0 rounded-lg border px-2 text-xs focus-visible:ring-2 focus-visible:outline-none sm:min-w-32 sm:text-sm ${filters.timeWindow !== "all" ? "border-primary text-primary" : ""}`}
+            >
+              {TIME_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              aria-expanded={isFiltersExpanded}
+              aria-controls={filtersId}
+              onClick={() => setIsFiltersExpanded((expanded) => !expanded)}
+              className="border-border bg-background focus-visible:ring-ring inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none sm:hidden"
+            >
+              Filter
+              {drawerFilterCount > 0 && (
+                <span className="bg-primary text-primary-foreground rounded-full px-1.5 text-xs">
+                  {drawerFilterCount}
+                </span>
+              )}
+              <ChevronDown
+                aria-hidden="true"
+                className={`h-4 w-4 transition-transform ${isFiltersExpanded ? "rotate-180" : ""}`}
+              />
+            </button>
+            <select
+              aria-label="Filme sortieren"
+              value={sortBy}
+              onChange={(event) =>
+                setSortBy(event.target.value === "name" ? "name" : "popularity")
+              }
+              className="border-border bg-background focus-visible:ring-ring h-10 min-w-0 rounded-lg border px-2 text-xs focus-visible:ring-2 focus-visible:outline-none sm:ml-auto sm:min-w-32 sm:text-sm"
+            >
+              <option value="popularity">Beliebtheit</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          </div>
+
+          <div
+            id={filtersId}
+            className={`${isFiltersExpanded ? "block" : "hidden"} border-border mt-3 space-y-3 rounded-xl border p-3 sm:block sm:border-0 sm:p-0`}
+          >
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                <label
+                  htmlFor="nearby-radius"
+                  className="font-semibold whitespace-nowrap"
+                >
+                  Umkreis: {radiusKm} km
+                </label>
+                <input
+                  id="nearby-radius"
+                  type="range"
+                  min={MIN_RADIUS_KM}
+                  max={MAX_RADIUS_KM}
+                  step={5}
+                  value={radiusKm}
+                  onChange={(event) => setRadiusKm(Number(event.target.value))}
+                  onMouseUp={handleRadiusRelease}
+                  onTouchEnd={handleRadiusRelease}
+                  onKeyUp={handleRadiusRelease}
+                  className="accent-primary focus-visible:ring-ring h-8 w-28 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={requestLocation}
+                disabled={isLocating}
+                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex min-h-8 items-center gap-1.5 rounded-md text-xs focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 sm:hidden"
+              >
+                <Compass aria-hidden="true" className="h-3.5 w-3.5" />
+                Standort aktualisieren
+              </button>
+            </div>
             <CinemaFilterBar
               options={nearbyCinemas.map(({ id, slug, name }) => ({
                 id,
@@ -327,40 +451,46 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
               onToggle={toggleCinemaFilter}
               onClear={() => setSelectedCinemaSlugs([])}
             />
+            <fieldset>
+              <legend className="text-muted-foreground mb-2 text-xs font-medium">
+                Sprache & Format
+              </legend>
+              <div className="flex flex-wrap gap-1.5">
+                {TAG_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-pressed={filters.selectedTags.includes(option.id)}
+                    onClick={() => toggleTag(option.id)}
+                    className={`focus-visible:ring-ring min-h-8 rounded-full border px-3 text-xs font-semibold focus-visible:ring-2 focus-visible:outline-none ${filters.selectedTags.includes(option.id) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-muted"}`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            {(drawerFilterCount > 0 || filters.timeWindow !== "all") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCinemaSlugs([]);
+                  resetFilters();
+                  setRadiusKm(DEFAULT_RADIUS_KM);
+                  applyRadius(DEFAULT_RADIUS_KM);
+                }}
+                className="text-primary focus-visible:ring-ring min-h-8 rounded-md text-xs font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none"
+              >
+                Alle Filter zurücksetzen
+              </button>
+            )}
           </div>
 
           <div className="mt-4">
-            <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+            <div className="mb-4 hidden items-center justify-between gap-2 sm:flex">
               <h3 className="inline-flex items-center gap-2 text-base font-bold tracking-tight sm:text-lg md:text-xl">
                 <Film className="text-primary h-4 w-4" />
                 Filme in deiner Nähe
               </h3>
-              <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
-                <ArrowUpDown className="h-3.5 w-3.5" />
-                <span>Sortierung:</span>
-                <div className="bg-muted/80 border-border/60 inline-flex rounded-full border p-0.5">
-                  <button
-                    onClick={() => setSortBy("popularity")}
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
-                      sortBy === "popularity"
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Beliebtheit
-                  </button>
-                  <button
-                    onClick={() => setSortBy("name")}
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all ${
-                      sortBy === "name"
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Name
-                  </button>
-                </div>
-              </div>
             </div>
 
             <div className="space-y-3">
@@ -375,9 +505,9 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
 
             {nearbyMovies.length === 0 && (
               <p className="border-border text-muted-foreground rounded-xl border border-dashed px-3 py-2 text-sm">
-                In den {isCinemaFilterActive ? "ausgewählten" : "gefundenen"}{" "}
-                Kinos sind aktuell keine Filme mit restlichen Vorstellungen
-                verügbar.
+                {filters.timeWindow !== "all" || filters.selectedTags.length > 0
+                  ? "Keine Vorstellungen für diese Filter. Wähle eine andere Uhrzeit oder setze die Filter zurück."
+                  : `In den ${isCinemaFilterActive ? "ausgewählten" : "gefundenen"} Kinos sind aktuell keine Filme mit restlichen Vorstellungen verfügbar.`}
               </p>
             )}
           </div>
@@ -471,13 +601,6 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
             </div>
           </div>
         </>
-      )}
-
-      {coordinates && nearbyQuery.isSuccess && nearbyCinemas.length === 0 && (
-        <p className="border-border text-muted-foreground mt-5 rounded-xl border border-dashed px-4 py-3 text-sm">
-          In einem Radius von {appliedRadiusKm} km wurden keine Kinos mit
-          Vorstellungen gefunden.
-        </p>
       )}
     </section>
   );

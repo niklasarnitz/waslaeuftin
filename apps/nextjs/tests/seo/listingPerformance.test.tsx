@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { CinemaFilterBar } from "@waslaeuftin/components/movie-listing/CinemaFilterBar";
 import { MovieCard } from "@waslaeuftin/components/movie-listing/MovieCard";
+import { DatePicker } from "@waslaeuftin/components/ui/date-picker";
 import { groupMoviesByTitle } from "@waslaeuftin/core";
 import {
   parseCalendarDate,
@@ -16,6 +17,31 @@ const options = Array.from({ length: 7 }, (_, index) => ({
   name: `Kino ${index}`,
   slug: `kino-${index}`,
 }));
+
+test("compact date controls label today and tomorrow, while the full picker keeps the year", () => {
+  for (const [offset, label] of [
+    [0, "Heute"],
+    [1, "Morgen"],
+  ] as const) {
+    const html = renderToStaticMarkup(
+      <DatePicker
+        compact
+        value={scheduleCalendarDate(offset)}
+        onChange={() => {}}
+      />,
+    );
+    expect(html).toContain(`aria-label="Datum wählen: ${label}"`);
+  }
+  const customDate = parseCalendarDate("2099-10-07")!;
+  const compact = renderToStaticMarkup(
+    <DatePicker compact value={customDate} onChange={() => {}} />,
+  );
+  expect(compact).toContain('aria-label="Datum wählen: 07.10."');
+  const full = renderToStaticMarkup(
+    <DatePicker value={customDate} onChange={() => {}} />,
+  );
+  expect(full).toContain("07.10.2099");
+});
 
 test("cinema filters initially show five plus any selected cinema", () => {
   const html = renderToStaticMarkup(
@@ -42,13 +68,17 @@ test("cinema filters initially show five plus any selected cinema", () => {
   expect(small).toContain("Kino 4");
 });
 
-test("responsive movie cards render each ticket link only once", () => {
+test("responsive movie cards keep tickets before optional details without duplicate links", () => {
   const html = renderToStaticMarkup(
     <MovieCard
       movie={{
         name: "Film",
         coverUrl: null,
         showingsCount: 1,
+        tmdbMetadata: {
+          overview: "Die Geschichte des Films.",
+          directors: [{ id: 2, name: "Regisseurin" }],
+        },
         cinemas: [
           {
             cinema: options[0]!,
@@ -65,6 +95,19 @@ test("responsive movie cards render each ticket link only once", () => {
     />,
   );
   expect(html.match(/aria-label="Tickets für/g)).toHaveLength(1);
+  expect(html).toContain('aria-expanded="false"');
+  expect(html.indexOf('aria-label="Tickets für')).toBeLessThan(
+    html.indexOf("Regie:"),
+  );
+  expect(html).toContain("Die Geschichte des Films.");
+  expect(html.match(/<h4\b/g)).toHaveLength(1);
+
+  const withoutDetails = renderToStaticMarkup(
+    <MovieCard
+      movie={{ name: "Film", coverUrl: null, showingsCount: 0, cinemas: [] }}
+    />,
+  );
+  expect(withoutDetails).not.toContain("aria-expanded=");
 });
 
 test("compact programme preserves grouping and filters while dropping unused payload", () => {

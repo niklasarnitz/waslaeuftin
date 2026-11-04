@@ -76,7 +76,7 @@ export const CinemaFilterBar = ({
           onClick={onClear}
           className="border-border/80 text-muted-foreground hover:border-primary/50 hover:text-foreground focus-visible:ring-ring rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none sm:px-3 sm:py-1 sm:text-xs"
         >
-          Filter zurücksetzen
+          Kinoauswahl zurücksetzen
         </button>
       )}
     </div>
