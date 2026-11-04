@@ -69,6 +69,14 @@ and Park-Kino. UCI uses programme HTML: a Chromium network investigation found
 HTML slider snippets, but no usable JSON schedule feed. Other Cineprog website
 templates are not assumed compatible.
 
+UCI blocks the production datacenter IP, including browser-like TLS clients.
+Set `UCI_PROXY_URL` to the private home-egress HTTP CONNECT proxy managed in
+`niklasarnitz/ops` (`stacks/uci-proxy`). It permits only delta → UCI on port 443
+over Tailscale, without intercepting TLS. Discovery and programme fetches use
+this proxy in both Node and Bun; other providers remain direct. Leave it empty
+for local direct requests. Proxy failures fail the refresh normally, retaining
+previous listings and freshness rather than silently returning an empty feed.
+
 **Apply `20261102220000_add_native_cinema_providers` before deploying this code.**
 The Docker entrypoint does not apply migrations. Then deploy the new importer
 before activating any native mappings. The migration retains legacy slot keys

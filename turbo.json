@@ -66,7 +66,8 @@
     "POSTGRES_URL",
     "PORT",
     "EXPO_ACCESS_TOKEN",
-    "WORKER_CRON"
+    "WORKER_CRON",
+    "UCI_PROXY_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

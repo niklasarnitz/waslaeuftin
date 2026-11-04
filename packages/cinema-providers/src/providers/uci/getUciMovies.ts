@@ -21,7 +21,14 @@ const validConfig = ({ slug, siteId }: UciCinemaConfig) =>
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && /^[1-9]\d*$/.test(siteId);
 
 const readHtml = async (url: string, request: typeof fetchTextWithBun) => {
-  const response = await request(url, { Accept: "text/html" });
+  // UCI blocks the production datacenter IP even with Bun's TLS client.
+  // Keep residential egress scoped to UCI, never global HTTP(S)_PROXY.
+  const response = await request(
+    url,
+    { Accept: "text/html" },
+    undefined,
+    process.env.UCI_PROXY_URL || undefined,
+  );
   if (response.status !== 200)
     throw new Error(`UCI: ${describeFailedResponse(response)}`);
   return load(response.body);

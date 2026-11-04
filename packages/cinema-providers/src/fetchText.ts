@@ -19,10 +19,12 @@ export const fetchText = async (
   url: string,
   headers: Record<string, string>,
   method: "GET" | "POST" = "GET",
+  proxy?: string,
 ): Promise<RawResponse> => {
   const response = await fetch(url, {
     headers,
     method,
+    ...(proxy ? { proxy } : {}),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   return {
@@ -36,7 +38,7 @@ export const fetchText = async (
 const BUN_FETCH_SCRIPT = `
 const url = process.env.WASLAEUFTIN_FETCH_URL;
 const headers = JSON.parse(process.env.WASLAEUFTIN_FETCH_HEADERS);
-const response = await fetch(url, { headers, method: process.env.WASLAEUFTIN_FETCH_METHOD });
+const response = await fetch(url, { headers, method: process.env.WASLAEUFTIN_FETCH_METHOD, proxy: process.env.WASLAEUFTIN_FETCH_PROXY || undefined });
 process.stdout.write(JSON.stringify({ status: response.status, body: await response.text(), cookies: response.headers.getSetCookie() }));
 `;
 
@@ -44,6 +46,7 @@ const fetchTextInBunProcess = (
   url: string,
   headers: Record<string, string>,
   method: "GET" | "POST" = "GET",
+  proxy?: string,
 ): Promise<RawResponse> =>
   new Promise((resolve, reject) => {
     execFile(
@@ -55,6 +58,7 @@ const fetchTextInBunProcess = (
           WASLAEUFTIN_FETCH_URL: url,
           WASLAEUFTIN_FETCH_METHOD: method,
           WASLAEUFTIN_FETCH_HEADERS: JSON.stringify(headers),
+          WASLAEUFTIN_FETCH_PROXY: proxy ?? "",
         },
         timeout: TIMEOUT_MS,
         maxBuffer: MAX_BUFFER_BYTES,
@@ -82,10 +86,11 @@ export const fetchTextWithBun = (
   url: string,
   headers: Record<string, string>,
   method: "GET" | "POST" = "GET",
+  proxy?: string,
 ): Promise<RawResponse> =>
   process.versions.bun
-    ? fetchText(url, headers, method)
-    : fetchTextInBunProcess(url, headers, method);
+    ? fetchText(url, headers, method, proxy)
+    : fetchTextInBunProcess(url, headers, method, proxy);
 
 export const describeFailedResponse = ({ status, body }: RawResponse) => {
   const snippet = body.slice(0, 200).replace(/\s+/g, " ");
