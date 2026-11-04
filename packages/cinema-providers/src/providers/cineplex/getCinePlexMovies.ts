@@ -1,5 +1,7 @@
 import type { TypedDocumentNode } from "@apollo/client";
 import { ApolloClient, gql, HttpLink, InMemoryCache } from "@apollo/client";
+import { ServerError } from "@apollo/client/errors";
+import { RetryLink } from "@apollo/client/link/retry";
 import moment from "moment-timezone";
 
 interface CineplexScreeningsResponse {
@@ -23,9 +25,35 @@ interface CineplexScreeningsResponse {
 }
 
 const client = new ApolloClient({
-  link: new HttpLink({
-    uri: "https://graphql-api.app.cineplex.de",
-  }),
+  link: new RetryLink({
+    delay: (attempt) => 1000 * 2 ** (attempt - 1),
+    attempts: (attempt, operation, error) => {
+      if (!ServerError.is(error)) return false;
+
+      const retry = [502, 503, 504].includes(error.statusCode) && attempt < 3;
+      const details = {
+        cinemas: operation.getContext().cinemas as unknown,
+        status: error.statusCode,
+        attempt,
+        retryInMs: retry ? 1000 * 2 ** (attempt - 1) : null,
+        server: error.response.headers.get("server"),
+        via: error.response.headers.get("via"),
+        requestId: error.response.headers.get("x-request-id"),
+        cfRay: error.response.headers.get("cf-ray"),
+        responseBody: error.bodyText.slice(0, 1000),
+      };
+      if (retry) {
+        console.warn("[Cineplex] API request failed; retrying", details);
+      } else {
+        console.error("[Cineplex] API request failed; giving up", details);
+      }
+      return retry;
+    },
+  }).concat(
+    new HttpLink({
+      uri: "https://graphql-api.app.cineplex.de",
+    }),
+  ),
   cache: new InMemoryCache(),
 });
 
@@ -67,6 +95,7 @@ export const getCineplexMovies = async (
   const { data } = await client.query({
     fetchPolicy: "no-cache",
     query: getQuery(cinemas.map((cinema) => cinema.cineplexCinemaId)),
+    context: { cinemas },
   });
 
   if (!data) {
