@@ -152,9 +152,36 @@ export const ProviderShowingSchema = z.object({
 export const MovieIdentityEvidenceSchema = z.object({
   tmdbId: z.number().int().positive().optional(),
   productionYear: z.number().int().min(1800).max(2100).optional(),
+  germanTheatricalReleaseDate: z.iso.date().optional(),
   originalTitle: z.string().trim().min(1).optional(),
   director: z.string().trim().min(1).optional(),
+  // Alternative complete credit claims from explicitly linked film sources,
+  // not additional co-directors or guessed spelling variants.
+  directorAlternatives: z.array(z.string().trim().min(1)).optional(),
   runtimeMinutes: z.number().int().positive().optional(),
+  edition: z.literal("extended").optional(),
+  // Explicit titles from an official, film-bound source. The source's complete
+  // identity must still corroborate a candidate; these are not guessed aliases.
+  officialTitleAliases: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1),
+        originalTitle: z.string().trim().min(1),
+        director: z.string().trim().min(1),
+        productionYear: z.number().int().min(1800).max(2100),
+        runtimeMinutes: z.number().int().positive(),
+        sourceUrl: z.url(),
+      }),
+    )
+    .optional(),
+  youtubeTrailerIds: z
+    .array(
+      z
+        .string()
+        .length(11)
+        .regex(/^[\w-]+$/),
+    )
+    .optional(),
 });
 export type MovieIdentityEvidence = z.infer<typeof MovieIdentityEvidenceSchema>;
 

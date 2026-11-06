@@ -35,6 +35,61 @@ const response = (result: unknown): RawResponse => ({
   body: JSON.stringify({ result }),
 });
 
+test("identity evidence retains fetched director and runtime on movies and showings", async () => {
+  const client = createCinemaxxVueClient(async (url) => {
+    if (url.endsWith("/auth/token"))
+      return { ...response({}), cookies: ["guest=test"] };
+    return response(
+      fixture().map((film) => ({
+        ...film,
+        director: "  Fatih Akin  ",
+        runningTime: 106,
+        isDurationUnknown: false,
+        releaseDate: "2026-11-05T00:00:00",
+      })),
+    );
+  });
+  const catalog = await client.getMovies(1490, 1931);
+  expect(catalog.movies[0]).toMatchObject({
+    providerFilmId: "HO00001610",
+    evidence: {
+      originalTitle: "Original Film",
+      director: "Fatih Akin",
+      runtimeMinutes: 106,
+    },
+  });
+  expect(catalog.showings[0]?.evidence).toEqual({
+    originalTitle: "Original Film",
+    director: "Fatih Akin",
+    runtimeMinutes: 106,
+  });
+});
+
+test("identity evidence: cinemaxx omits unknown, invalid and missing optional values", async () => {
+  for (const metadata of [
+    {},
+    { director: " \t ", runningTime: 0 },
+    { director: 123, runningTime: "106" },
+    { director: null, runningTime: -1 },
+    { runningTime: 106.5 },
+    { runningTime: 106, isDurationUnknown: true },
+    { runningTime: 1e20 },
+  ]) {
+    const client = createCinemaxxVueClient(async (url) => {
+      if (url.endsWith("/auth/token"))
+        return { ...response({}), cookies: ["guest=test"] };
+      return response(
+        fixture().map((film) => ({ ...film, originalTitle: " ", ...metadata })),
+      );
+    });
+    const catalog = await client.getMovies(1490, 1931);
+    expect(catalog.movies).toHaveLength(1);
+    expect(catalog.showings).toHaveLength(1);
+    expect(catalog.movies[0]?.evidence).toBeUndefined();
+    expect(catalog.showings[0]?.evidence).toBeUndefined();
+  }
+});
+
 test("direct sessions use zoned time, booking URL, and distinct attributes", () => {
   const films = fixture();
   films[0]!.showingGroups.push(films[0]!.showingGroups[0]!);

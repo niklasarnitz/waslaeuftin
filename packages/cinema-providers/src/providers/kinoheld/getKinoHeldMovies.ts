@@ -114,6 +114,55 @@ export async function getKinoHeldMovies(
   ]);
 
   const transformedMovies = movies.map((movie) => {
+    const film = movie.movie;
+    const productionYear =
+      typeof film.productionYear === "string" &&
+      /^\d{4}$/.test(film.productionYear.trim())
+        ? Number(film.productionYear)
+        : undefined;
+    const director = (Array.isArray(film.directors) ? film.directors : [])
+      .map((person) => person?.name)
+      .filter(
+        (name): name is string => typeof name === "string" && !!name.trim(),
+      )
+      .map((name) => name.trim())
+      .join(", ");
+    const youtubeTrailerIds = Array.from(
+      new Set(
+        (Array.isArray(film.trailers) ? film.trailers : []).flatMap(
+          (trailer) => {
+            const id = trailer?.remoteVideoId;
+            return trailer?.format === "YOUTUBE" &&
+              typeof id === "string" &&
+              id.length === 11 &&
+              /^[A-Za-z0-9_-]{11}$/.test(id)
+              ? [id]
+              : [];
+          },
+        ),
+      ),
+    );
+    const evidence = {
+      ...(productionYear && productionYear >= 1800 && productionYear <= 2100
+        ? { productionYear }
+        : {}),
+      ...(typeof film.titleOriginal === "string" && film.titleOriginal.trim()
+        ? { originalTitle: film.titleOriginal.trim() }
+        : {}),
+      ...(director ? { director } : {}),
+      ...(typeof film.duration === "number" &&
+      Number.isSafeInteger(film.duration) &&
+      film.duration > 0
+        ? { runtimeMinutes: film.duration }
+        : {}),
+      ...(youtubeTrailerIds.length ? { youtubeTrailerIds } : {}),
+    };
+    const identity = {
+      provider: "KinoHeld",
+      providerFilmId:
+        typeof film.id === "string" && film.id.trim() ? film.id : undefined,
+      ...(Object.keys(evidence).length ? { evidence } : {}),
+    };
     const showings = movie.shows.data.map((showing) => {
       const showingAdditionalData = Array.from(
         new Set([
@@ -123,6 +172,7 @@ export async function getKinoHeldMovies(
       ).filter((item) => item !== "");
 
       return {
+        ...identity,
         dateTime: moment(showing?.beginning).toDate(),
         bookingUrl: getKinoHeldBookingUrl(movie, showing),
         showingAdditionalData,
@@ -132,14 +182,19 @@ export async function getKinoHeldMovies(
     return {
       name: movie.movie.title,
       cinemaId,
+      ...identity,
       showings,
     };
   });
 
   return {
+    provider: "KinoHeld",
     movies: transformedMovies.flatMap((movie) => ({
       name: movie.name,
       cinemaId,
+      provider: movie.provider,
+      providerFilmId: movie.providerFilmId,
+      ...(movie.evidence ? { evidence: movie.evidence } : {}),
     })),
     showings: transformedMovies.flatMap((movie) =>
       movie.showings.flatMap((showing) => ({

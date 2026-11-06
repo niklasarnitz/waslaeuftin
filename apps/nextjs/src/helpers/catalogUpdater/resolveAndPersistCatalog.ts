@@ -43,6 +43,19 @@ const sourceKeyFor = (source: RawProviderMovie) =>
     source.evidence?.director,
     source.evidence?.runtimeMinutes,
     ...(source.evidence?.tmdbId ? [source.evidence.tmdbId] : []),
+    ...(source.evidence?.edition ? [source.evidence.edition] : []),
+    ...(source.evidence?.youtubeTrailerIds?.length
+      ? [source.evidence.youtubeTrailerIds]
+      : []),
+    ...(source.evidence?.directorAlternatives?.length
+      ? [source.evidence.directorAlternatives]
+      : []),
+    ...(source.evidence?.germanTheatricalReleaseDate
+      ? [source.evidence.germanTheatricalReleaseDate]
+      : []),
+    ...(source.evidence?.officialTitleAliases?.length
+      ? [source.evidence.officialTitleAliases]
+      : []),
   ]);
 
 type CreateResolvedMovieParams = Pick<

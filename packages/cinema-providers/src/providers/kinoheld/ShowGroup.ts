@@ -2,7 +2,15 @@ export interface ShowGroup {
   uuid: string;
   urlSlug: string;
   movie: {
+    id?: string | null;
     title: string;
+    titleOriginal?: string | null;
+    productionYear?: string | null;
+    duration?: number | null;
+    directors?: ({ name?: string | null } | null)[] | null;
+    trailers?:
+      | ({ format?: string | null; remoteVideoId?: string | null } | null)[]
+      | null;
   };
   cinema: {
     urlSlug: string;

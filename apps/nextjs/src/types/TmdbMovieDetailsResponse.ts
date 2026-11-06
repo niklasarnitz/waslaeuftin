@@ -74,6 +74,8 @@ export type TmdbMovieDetailsResponse = {
       iso_3166_1: string;
       release_dates: Array<{
         certification: string;
+        release_date?: string;
+        type?: number;
       }>;
     }>;
   };

@@ -23,7 +23,18 @@ export const FETCH_SHOW_GROUPS_FOR_CINEMA = gql`
           }
         }
         movie {
+          id
           title
+          titleOriginal
+          productionYear
+          duration
+          directors {
+            name
+          }
+          trailers {
+            format
+            remoteVideoId
+          }
         }
         shows {
           data {
