@@ -56,6 +56,375 @@ const evaluate = async (title: string, candidates: TmdbMovieSearchResult[]) => {
 afterEach(() => restoreFetch?.());
 
 describe("TmdbMovieMatcher audited cinema titles", () => {
+  test.each([
+    {
+      title: "Vaiana",
+      originalTitle: "Moana",
+      director: "Thomas Kail",
+      productionYear: 2002,
+      releaseYear: 2026,
+      date: "2026-07-09",
+      runtime: 115,
+      id: 1108427,
+    },
+    {
+      title: "Vaiana",
+      tmdbTitle: "Vaiana - Realverfilmung",
+      originalTitle: "Moana",
+      director: "Thomas Kail",
+      productionYear: 2002,
+      releaseYear: 2026,
+      date: "2026-07-09",
+      runtime: 115,
+      id: 1108427,
+    },
+    {
+      title: "Edmund und Luzie - Winterabenteuer",
+      originalTitle: "L'Hiver d'Edmond et Lucy",
+      director: "François Narboux",
+      productionYear: 2026,
+      releaseYear: 2023,
+      date: "2026-10-22",
+      runtime: 45,
+      id: 1202205,
+    },
+  ])(
+    "requires independently recorded German theatrical date and complete identity for $title",
+    async (film) => {
+      let country = "DE";
+      let type = 3;
+      let recordedDate: string = film.date;
+      let knownRuntime = true;
+      let ambiguous = false;
+      let recordedAlias = true;
+      mockTmdb((url) => {
+        if (url.pathname.endsWith("/alternative_titles"))
+          return Response.json({
+            titles: recordedAlias ? [{ title: film.title }] : [],
+          });
+        if (url.pathname.startsWith("/3/person/"))
+          return Response.json({ id: 1, also_known_as: [] });
+        if (url.pathname.startsWith("/3/movie/"))
+          return Response.json({
+            runtime:
+              knownRuntime &&
+              (film.id !== 1202205 ||
+                url.searchParams.get("language") === "de-DE")
+                ? film.runtime
+                : 0,
+            credits: {
+              crew: [{ id: 1, name: film.director, job: "Director" }],
+            },
+            release_dates: {
+              results: [
+                {
+                  iso_3166_1: country,
+                  release_dates: [
+                    {
+                      type,
+                      release_date: `${url.pathname.endsWith("/99") ? "1995-01-01" : recordedDate}T00:00:00.000Z`,
+                    },
+                  ],
+                },
+              ],
+            },
+          });
+        // A production-year-filtered search cannot discover the correct film.
+        return Response.json({
+          results: url.searchParams.has("year")
+            ? []
+            : [
+                movie(
+                  film.id,
+                  film.tmdbTitle ?? film.title,
+                  film.releaseYear,
+                  film.originalTitle,
+                ),
+                movie(99, film.title, 1995, film.originalTitle),
+                ...(ambiguous
+                  ? [
+                      movie(
+                        100,
+                        film.tmdbTitle ?? film.title,
+                        film.releaseYear,
+                        film.originalTitle,
+                      ),
+                    ]
+                  : []),
+              ],
+        });
+      });
+      const evidence = {
+        productionYear: film.productionYear,
+        originalTitle: film.originalTitle,
+        director: film.director,
+        runtimeMinutes: film.runtime,
+        germanTheatricalReleaseDate: film.date,
+      };
+      const matcher = new TmdbMovieMatcher();
+      expect(
+        (await matcher.evaluate(film.title, evidence)).acceptedCandidate
+          ?.tmdbMovieId,
+      ).toBe(film.id);
+      if (film.tmdbTitle) {
+        recordedAlias = false;
+        expect(
+          (await new TmdbMovieMatcher().evaluate(film.title, evidence))
+            .acceptedCandidate,
+        ).toBeNull();
+        recordedAlias = true;
+      }
+      for (const changed of [
+        { germanTheatricalReleaseDate: undefined },
+        { germanTheatricalReleaseDate: "2026-07-10" },
+        { originalTitle: "Another Original" },
+        { director: undefined },
+        { director: "Another Director" },
+        { runtimeMinutes: undefined },
+        { runtimeMinutes: film.runtime + 6 },
+      ])
+        expect(
+          (await matcher.evaluate(film.title, { ...evidence, ...changed }))
+            .acceptedCandidate,
+        ).toBeNull();
+      expect(
+        (
+          await matcher.evaluate(
+            `${film.title} (${film.productionYear})`,
+            evidence,
+          )
+        ).acceptedCandidate,
+      ).toBeNull();
+      for (const invalid of [
+        "foreign",
+        "digital",
+        "premiere",
+        "wrong-date",
+        "unknown-runtime",
+        "ambiguous",
+      ]) {
+        country = invalid === "foreign" ? "FR" : "DE";
+        type = invalid === "digital" ? 4 : invalid === "premiere" ? 1 : 3;
+        recordedDate = invalid === "wrong-date" ? "2026-10-23" : film.date;
+        knownRuntime = invalid !== "unknown-runtime";
+        ambiguous = invalid === "ambiguous";
+        expect(
+          (await new TmdbMovieMatcher().evaluate(film.title, evidence))
+            .acceptedCandidate,
+        ).toBeNull();
+      }
+    },
+    30_000,
+  );
+
+  test("uses credited person aliases without guessing initials or dropping co-directors", async () => {
+    let unavailable = false;
+    mockTmdb((url) => {
+      if (url.pathname === "/3/person/4259335")
+        return unavailable
+          ? new Response("Unavailable", { status: 503 })
+          : Response.json({
+              id: 4259335,
+              also_known_as: ["Krysianna B. Papadakis"],
+            });
+      if (url.pathname === "/3/person/4259336")
+        return Response.json({ id: 4259336, also_known_as: [] });
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      return Response.json(
+        url.pathname === "/3/movie/1518731"
+          ? {
+              runtime: 121,
+              credits: {
+                crew: [
+                  { id: 4259335, name: "Krysianna Papadakis", job: "Director" },
+                  { id: 4259336, name: "Stergios Dinopoulos", job: "Director" },
+                ],
+              },
+              release_dates: {
+                results: [{ release_dates: [{ release_date: "2025-08-27" }] }],
+              },
+            }
+          : { results: [movie(1518731, "Bearcave", 2026)] },
+      );
+    });
+    const matcher = new TmdbMovieMatcher();
+    const evidence = {
+      productionYear: 2025,
+      runtimeMinutes: 121,
+      director: "Krysianna B. Papadakis und Stergios Dinopoulos",
+    };
+    expect(
+      (await matcher.evaluate("Bearcave (OmU)", evidence)).acceptedCandidate
+        ?.tmdbMovieId,
+    ).toBe(1518731);
+    for (const director of [
+      "Krysianna C. Papadakis und Stergios Dinopoulos",
+      "Krysianna B. Papadakis und Another Director",
+    ])
+      expect(
+        (await matcher.evaluate("Bearcave (OmU)", { ...evidence, director }))
+          .acceptedCandidate,
+      ).toBeNull();
+    unavailable = true;
+    await expect(
+      new TmdbMovieMatcher().evaluate("Bearcave (OmU)", evidence),
+    ).rejects.toThrow("TMDB person aliases failed (503)");
+  });
+
+  test("preserves alternative source director claims without bypassing ambiguity or other evidence", async () => {
+    let ambiguous = false;
+    mockTmdb((url) => {
+      if (url.pathname.startsWith("/3/person/"))
+        return Response.json({ id: 5125, also_known_as: ["Fatih Akın"] });
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      return Response.json(
+        url.pathname.startsWith("/3/movie/")
+          ? {
+              runtime: 106,
+              credits: {
+                crew: [{ id: 5125, job: "Director", name: "Fatih Akin" }],
+              },
+            }
+          : {
+              results: [
+                movie(1447206, "Geister", 2026),
+                ...(ambiguous ? [movie(1447207, "Geister", 2026)] : []),
+              ],
+            },
+      );
+    });
+    const matcher = new TmdbMovieMatcher();
+    const evidence = {
+      productionYear: 2026,
+      runtimeMinutes: 105,
+      director: "Fathi Akin",
+    };
+    expect(
+      (await matcher.evaluate("Geister", evidence)).acceptedCandidate,
+    ).toBeNull();
+    const corroborated = { ...evidence, directorAlternatives: ["Fatih Akin"] };
+    expect(
+      (await matcher.evaluate("Geister", corroborated)).acceptedCandidate
+        ?.tmdbMovieId,
+    ).toBe(1447206);
+    for (const conflicting of [
+      { ...corroborated, directorAlternatives: ["Another Director"] },
+      { ...corroborated, runtimeMinutes: 120 },
+      { ...corroborated, productionYear: 2024 },
+      { ...corroborated, originalTitle: "Another film" },
+    ])
+      expect(
+        (await matcher.evaluate("Geister", conflicting)).acceptedCandidate,
+      ).toBeNull();
+    ambiguous = true;
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Geister", corroborated))
+        .acceptedCandidate,
+    ).toBeNull();
+  });
+
+  test("matches transliterated Polish director credits without accepting a different director", async () => {
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname === "/3/movie/1299799"
+          ? {
+              runtime: 114,
+              credits: {
+                crew: [{ job: "Director", name: "Michał Kwieciński" }],
+              },
+            }
+          : { results: [movie(1299799, "Chopin, Chopin!", 2025)] },
+      ),
+    );
+    const matcher = new TmdbMovieMatcher();
+    expect(
+      (
+        await matcher.evaluate("Chopin, Chopin!", {
+          director: "Michal Kwiecinski",
+          runtimeMinutes: 114,
+        })
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(1299799);
+    expect(
+      (
+        await matcher.evaluate("Chopin, Chopin!", {
+          director: "Another Director",
+          runtimeMinutes: 114,
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+  });
+
+  test.each([
+    [558582, "First Cow", "First Cow", 2019, 2020, "Kelly Reichardt", 122],
+    [
+      1299799,
+      "Chopin - Eine Sonate in Paris",
+      "Chopin, Chopin!",
+      2026,
+      2025,
+      "Michał Kwieciński",
+      114,
+    ],
+  ] as const)(
+    "corroborates a one-year production/release difference for native identity %s",
+    async (
+      id,
+      title,
+      originalTitle,
+      productionYear,
+      releaseYear,
+      director,
+      runtime,
+    ) => {
+      mockTmdb((url) => {
+        if (url.pathname.endsWith("/alternative_titles"))
+          return Response.json({ titles: [] });
+        const candidate = movie(id, title, releaseYear, originalTitle);
+        return Response.json(
+          url.pathname === `/3/movie/${id}`
+            ? {
+                ...candidate,
+                runtime,
+                genres: [],
+                credits: { crew: [{ job: "Director", name: director }] },
+              }
+            : { results: [candidate] },
+        );
+      });
+      const matcher = new TmdbMovieMatcher();
+      const evidence = {
+        tmdbId: id,
+        originalTitle,
+        productionYear,
+        director,
+        runtimeMinutes: runtime,
+      };
+      expect(
+        (await matcher.evaluate(title, evidence)).acceptedCandidate
+          ?.tmdbMovieId,
+      ).toBe(id);
+      for (const contradictory of [
+        { ...evidence, director: "Another Director" },
+        { ...evidence, director: undefined },
+        { ...evidence, runtimeMinutes: runtime + 6 },
+        { ...evidence, runtimeMinutes: undefined },
+        { ...evidence, productionYear: releaseYear - 2 },
+        { ...evidence, tmdbId: undefined },
+      ]) {
+        expect(
+          (await matcher.evaluate(title, contradictory)).acceptedCandidate,
+        ).toBeNull();
+      }
+      expect(
+        (await matcher.evaluate(`${title} (${productionYear})`, evidence))
+          .acceptedCandidate,
+      ).toBeNull();
+    },
+  );
+
   test.each([0, null])(
     "does not reject a corroborated film when TMDB runtime is unknown (%s)",
     async (runtime) => {
@@ -92,6 +461,256 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
       ).toBeNull();
     },
   );
+
+  test.each([
+    [1366, "Rocky", "Rocky", 1976, 114, 118, 120],
+    [1477104, "Shaun", "Shaun", 2026, 80, 91, 81],
+    [
+      1477104,
+      "Shaun das Schaf - Spuk im Kürbisfeld",
+      "Shaun the Sheep: The Beast of Mossy Bottom",
+      2026,
+      91,
+      91,
+      81,
+    ],
+  ] as const)(
+    "corroborates runtime against default and regional metadata for %s",
+    async (
+      id,
+      title,
+      originalTitle,
+      year,
+      runtime,
+      localRuntime,
+      defaultRuntime,
+    ) => {
+      mockTmdb((url) =>
+        Response.json(
+          url.pathname.endsWith("/alternative_titles")
+            ? { titles: [] }
+            : url.pathname === `/3/movie/${id}`
+              ? {
+                  ...movie(id, title, year, originalTitle),
+                  genres: [],
+                  runtime:
+                    url.searchParams.get("language") === "de-DE"
+                      ? localRuntime
+                      : defaultRuntime,
+                }
+              : { results: [movie(id, title, year, originalTitle)] },
+        ),
+      );
+      const matcher = new TmdbMovieMatcher();
+      expect(
+        (await matcher.evaluate(title, { runtimeMinutes: runtime }))
+          .acceptedCandidate?.tmdbMovieId,
+      ).toBe(id);
+      expect(
+        (
+          await new TmdbMovieMatcher().evaluate(title, {
+            tmdbId: id,
+            runtimeMinutes: runtime,
+          })
+        ).acceptedCandidate?.tmdbMovieId,
+      ).toBe(id);
+      expect(
+        (
+          await matcher.evaluate(title, {
+            runtimeMinutes: Math.max(localRuntime, defaultRuntime) + 6,
+          })
+        ).acceptedCandidate,
+      ).toBeNull();
+    },
+  );
+
+  test("uses explicit extended-cut evidence without ignoring ordinary runtime or identity conflicts", async () => {
+    const title = "Der Herr der Ringe - Die Gefährten";
+    const originalTitle = "The Lord of the Rings: The Fellowship of the Ring";
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      return Response.json(
+        url.pathname === "/3/movie/120"
+          ? {
+              runtime: 179,
+              credits: { crew: [{ job: "Director", name: "Peter Jackson" }] },
+            }
+          : { results: [movie(120, title, 2001, originalTitle)] },
+      );
+    });
+    const matcher = new TmdbMovieMatcher();
+    const evidence = { originalTitle, runtimeMinutes: 227 };
+    expect(
+      (await matcher.evaluate(title, { ...evidence, edition: "extended" }))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(120);
+    expect(
+      (await matcher.evaluate(`${title} (Extended Version)`, evidence))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(120);
+    for (const contradictory of [
+      evidence,
+      { ...evidence, edition: "extended" as const, runtimeMinutes: 120 },
+      { ...evidence, edition: "extended" as const, originalTitle: undefined },
+      {
+        ...evidence,
+        edition: "extended" as const,
+        director: "Another Director",
+      },
+      {
+        ...evidence,
+        edition: "extended" as const,
+        originalTitle: "The Lord of the Rings: The Two Towers",
+      },
+    ]) {
+      expect(
+        (await matcher.evaluate(title, contradictory)).acceptedCandidate,
+      ).toBeNull();
+    }
+  }, 15_000);
+
+  test("complete titles, year and director cannot override an unexplained runtime conflict", async () => {
+    const title = "Die Tribute von Panem: The Ballad of Songbirds and Snakes";
+    const originalTitle = "The Hunger Games: The Ballad of Songbirds & Snakes";
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? { titles: [] }
+          : url.pathname === "/3/movie/695721"
+            ? {
+                runtime: 157,
+                credits: {
+                  crew: [{ job: "Director", name: "Francis Lawrence" }],
+                },
+              }
+            : { results: [movie(695721, title, 2023, originalTitle)] },
+      ),
+    );
+    const matcher = new TmdbMovieMatcher();
+    const evidence = {
+      originalTitle,
+      productionYear: 2023,
+      director: "Francis Lawrence",
+      runtimeMinutes: 165,
+    };
+    expect(
+      (await matcher.evaluate(title, evidence)).acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (await matcher.evaluate(title, { ...evidence, runtimeMinutes: 10 }))
+        .acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (await matcher.evaluate(title, { ...evidence, runtimeMinutes: 162 }))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(695721);
+    expect(
+      (await matcher.evaluate(title, { ...evidence, runtimeMinutes: 163 }))
+        .acceptedCandidate,
+    ).toBeNull();
+    for (const incompleteOrConflicting of [
+      { ...evidence, originalTitle: undefined },
+      { ...evidence, productionYear: undefined },
+      { ...evidence, director: undefined },
+      {
+        ...evidence,
+        originalTitle: "The Hunger Games: Sunrise on the Reaping",
+      },
+      { ...evidence, productionYear: 2022 },
+      { ...evidence, director: "Different Director" },
+    ]) {
+      expect(
+        (await matcher.evaluate(title, incompleteOrConflicting))
+          .acceptedCandidate,
+      ).toBeNull();
+    }
+    expect(
+      (await matcher.evaluate("Unlisted translation", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+  }, 15_000);
+
+  test("missing director credits neither contradict a film nor corroborate a year mismatch or ambiguity", async () => {
+    const title = "Stray Kids World Tour 'RUN IT' LIVE VIEWING";
+    let director: string | undefined;
+    let ambiguous = false;
+    mockTmdb((url) => {
+      const candidate = movie(1795555, title, 2026);
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      if (url.pathname.startsWith("/3/movie/"))
+        return Response.json({
+          ...candidate,
+          genres: [],
+          runtime: 195,
+          credits: {
+            crew: director ? [{ job: "Director", name: director }] : [],
+          },
+        });
+      return Response.json({
+        results: ambiguous
+          ? [candidate, movie(1795556, title, 2026)]
+          : [candidate],
+      });
+    });
+    const evidence = {
+      originalTitle: title,
+      director: "JYP Entertainment",
+      runtimeMinutes: 195,
+    };
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence)).acceptedCandidate
+        ?.tmdbMovieId,
+    ).toBe(1795555);
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate(title, {
+          ...evidence,
+          tmdbId: 1795555,
+          productionYear: 2025,
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+    director = "Different Director";
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    director = undefined;
+    ambiguous = true;
+    const result = await new TmdbMovieMatcher().evaluate(title, evidence);
+    expect(result.acceptedCandidate).toBeNull();
+    expect(result.decisionReason).toBe("ambiguous");
+  });
+
+  test("does not mislabel a rejected film as a missing poster on an unrelated candidate", async () => {
+    const title = "Der Herr der Ringe - Die Gefährten";
+    const originalTitle = "The Lord of the Rings: The Fellowship of the Ring";
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname === "/3/movie/120"
+          ? { runtime: 179 }
+          : url.pathname.endsWith("/alternative_titles")
+            ? { titles: [] }
+            : {
+                results: [
+                  movie(120, title, 2001, originalTitle),
+                  {
+                    ...movie(1434460, "Herr der Ringe", 2025),
+                    poster_path: null,
+                  },
+                ],
+              },
+      ),
+    );
+    const result = await new TmdbMovieMatcher().evaluate(title, {
+      originalTitle,
+      runtimeMinutes: 227,
+    });
+    expect(result.acceptedCandidate).toBeNull();
+    expect(result.decisionReason).toBe("identity-evidence-conflict");
+  });
 
   test("director evidence disambiguates Emil without an unreliable provider year", async () => {
     mockTmdb((url) => {
@@ -220,6 +839,371 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
         })
       ).acceptedCandidate?.tmdbMovieId,
     ).toBe(670);
+  });
+
+  test("an official trailer resolves conflicting runtime only with complete titles and a known matching director", async () => {
+    let official = true;
+    let type = "Trailer";
+    let site = "YouTube";
+    let knownDirector = true;
+    let ambiguous = false;
+    let unavailable = false;
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      if (/^\/3\/movie\/\d+$/.test(url.pathname)) {
+        if (unavailable && url.searchParams.get("language") === "de-DE")
+          return new Response("Unavailable", { status: 503 });
+        return Response.json({
+          runtime: 129,
+          credits: {
+            crew: knownDirector
+              ? [{ job: "Director", name: "Alejandro G. Iñárritu" }]
+              : [],
+          },
+          videos: {
+            results:
+              url.searchParams.get("language") === "de-DE"
+                ? [{ key: "qU-7KUMw-tk", site, type, official }]
+                : [],
+          },
+        });
+      }
+      return Response.json({
+        results: [
+          movie(1248832, "Digger", 2026),
+          ...(ambiguous ? [movie(1248833, "Digger", 2026)] : []),
+        ],
+      });
+    });
+    const evidence = {
+      originalTitle: "Digger",
+      director: "Alejandro G. Iñárritu",
+      runtimeMinutes: 106,
+      youtubeTrailerIds: ["qU-7KUMw-tk"],
+    };
+    const matcher = new TmdbMovieMatcher();
+    expect(
+      (await matcher.evaluate("Digger", evidence)).acceptedCandidate
+        ?.tmdbMovieId,
+    ).toBe(1248832);
+    for (const conflicting of [
+      { ...evidence, youtubeTrailerIds: undefined },
+      { ...evidence, youtubeTrailerIds: ["OHGIHaDxYy8"] },
+      { ...evidence, originalTitle: undefined },
+      { ...evidence, originalTitle: "Another film" },
+      { ...evidence, director: undefined },
+      { ...evidence, director: "Georgis Grigorakis" },
+      { ...evidence, director: "Alejandro G. Iñárritu / Another Director" },
+      { ...evidence, productionYear: 2025 },
+    ]) {
+      expect(
+        (await matcher.evaluate("Digger", conflicting)).acceptedCandidate,
+      ).toBeNull();
+    }
+    expect(
+      (await matcher.evaluate("Digger 2", evidence)).acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (await matcher.evaluate("Digger: Another film", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    official = false;
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Digger", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    official = true;
+    type = "Clip";
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Digger", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    type = "Trailer";
+    site = "Vimeo";
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Digger", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    site = "YouTube";
+    knownDirector = false;
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Digger", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    knownDirector = true;
+    ambiguous = true;
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Digger", evidence))
+        .decisionReason,
+    ).toBe("ambiguous");
+    ambiguous = false;
+    unavailable = true;
+    await expect(
+      new TmdbMovieMatcher().evaluate("Digger", evidence),
+    ).rejects.toThrow("TMDB identity details failed (503)");
+  }, 30_000);
+
+  test.each([false, true])(
+    "retains regional official trailer corroboration with native ID: %s",
+    async (native) => {
+      const title = "Emil und die Detektive";
+      const candidate = movie(1426805, title, 2026);
+      let official = true;
+      mockTmdb((url) => {
+        if (url.pathname.endsWith("/alternative_titles"))
+          return Response.json({ titles: [] });
+        if (url.pathname.startsWith("/3/movie/"))
+          return Response.json({
+            ...candidate,
+            genres: [],
+            runtime: url.searchParams.get("language") === "de-DE" ? 100 : 101,
+            credits: { crew: [{ job: "Director", name: "David Dietl" }] },
+            videos: {
+              results:
+                url.searchParams.get("language") === "de-DE" &&
+                url.searchParams
+                  .get("append_to_response")
+                  ?.split(",")
+                  .includes("videos")
+                  ? [
+                      {
+                        key: "HCnFyyvkM5s",
+                        site: "YouTube",
+                        type: "Trailer",
+                        official,
+                      },
+                    ]
+                  : [],
+            },
+          });
+        return Response.json({ results: [candidate] });
+      });
+      const evidence = {
+        ...(native ? { tmdbId: candidate.id } : {}),
+        originalTitle: title,
+        director: "David Dietl",
+        runtimeMinutes: 110,
+        youtubeTrailerIds: ["HCnFyyvkM5s"],
+      };
+      const matcher = new TmdbMovieMatcher();
+      expect(
+        (await matcher.evaluate(title, evidence)).acceptedCandidate
+          ?.tmdbMovieId,
+      ).toBe(candidate.id);
+      expect(
+        (await matcher.evaluate(title, { ...evidence, youtubeTrailerIds: [] }))
+          .acceptedCandidate,
+      ).toBeNull();
+      official = false;
+      expect(
+        (await new TmdbMovieMatcher().evaluate(title, evidence))
+          .acceptedCandidate,
+      ).toBeNull();
+    },
+  );
+
+  test("a shared official trailer corroborates a working original title only with complete known identity", async () => {
+    const title = "PAW Patrol: Der Dino Film";
+    let official = true;
+    let videoType = "Teaser";
+    let videoSite = "YouTube";
+    let knownDirector = true;
+    let ambiguous = false;
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? { titles: [] }
+          : url.pathname.startsWith("/3/movie/")
+            ? {
+                runtime: 88,
+                credits: {
+                  crew: knownDirector
+                    ? [{ job: "Director", name: "Cal Brunker" }]
+                    : [],
+                },
+                videos: {
+                  results: [
+                    {
+                      site: videoSite,
+                      key: "aHw4PuLCUIc",
+                      type: videoType,
+                      official,
+                    },
+                  ],
+                },
+              }
+            : {
+                results: [
+                  movie(1185806, title, 2026, "PAW Patrol: The Dino Movie"),
+                  ...(ambiguous
+                    ? [
+                        movie(
+                          1185807,
+                          title,
+                          2026,
+                          "PAW Patrol: The Dino Movie",
+                        ),
+                      ]
+                    : []),
+                ],
+              },
+      ),
+    );
+    const evidence = {
+      originalTitle: "Paw Patrol 3",
+      productionYear: 2026,
+      director: "Cal Brunker",
+      runtimeMinutes: 88,
+      youtubeTrailerIds: ["aHw4PuLCUIc"],
+    };
+    const matcher = new TmdbMovieMatcher();
+    expect(
+      (await matcher.evaluate(title, evidence)).acceptedCandidate?.tmdbMovieId,
+    ).toBe(1185806);
+    for (const conflicting of [
+      { ...evidence, youtubeTrailerIds: ["OHGIHaDxYy8"] },
+      { ...evidence, director: "Different Director" },
+      { ...evidence, director: "/" },
+      { ...evidence, director: undefined },
+      { ...evidence, productionYear: 2025 },
+      { ...evidence, runtimeMinutes: 100 },
+    ])
+      expect(
+        (await matcher.evaluate(title, conflicting)).acceptedCandidate,
+      ).toBeNull();
+    expect(
+      (await matcher.evaluate("PAW Patrol: Der Kinofilm", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    official = false;
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    official = true;
+    videoType = "Clip";
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    videoType = "Teaser";
+    videoSite = "Vimeo";
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    videoSite = "YouTube";
+    knownDirector = false;
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    knownDirector = true;
+    ambiguous = true;
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence)).decisionReason,
+    ).toBe("ambiguous");
+  }, 30_000);
+
+  test("corroborates a shortened numbered original title only with a full listing title and official alias", async () => {
+    const title = "Morgen, Findus wird's was geben";
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? {
+              titles: [{ title: "Pettson and Findus 3: Pettson's Promise" }],
+            }
+          : url.pathname === "/3/movie/39702"
+            ? { runtime: 74 }
+            : {
+                results: [
+                  movie(
+                    39702,
+                    "Morgen, Findus, wird's was geben",
+                    2005,
+                    "Pettson & Findus - Tomtemaskinen",
+                  ),
+                ],
+              },
+      ),
+    );
+    const matcher = new TmdbMovieMatcher();
+    const evidence = {
+      originalTitle: "PETTSON AND FINDUS III",
+      runtimeMinutes: 77,
+    };
+    expect(
+      (await matcher.evaluate(title, evidence)).acceptedCandidate?.tmdbMovieId,
+    ).toBe(39702);
+    for (const originalTitle of [
+      "Pettson and Findus II",
+      "Pettson and Findus",
+    ]) {
+      expect(
+        (await matcher.evaluate(title, { ...evidence, originalTitle }))
+          .acceptedCandidate,
+      ).toBeNull();
+    }
+    expect(
+      (await matcher.evaluate("Unlisted translation", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+  });
+
+  test("corroborates a production year with the first recorded release, not a later rerelease", async () => {
+    let releaseYears = [2025, 2026];
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      if (url.pathname === "/3/movie/1518731")
+        return Response.json({
+          runtime: 121,
+          release_dates: {
+            results: [
+              {
+                iso_3166_1: "IT",
+                release_dates: releaseYears.map((year) => ({
+                  release_date: `${year}-08-27T00:00:00.000Z`,
+                })),
+              },
+            ],
+          },
+        });
+      return Response.json({
+        results:
+          url.searchParams.get("year") === "2025"
+            ? [
+                movie(1518731, "Bearcave", 2026),
+                movie(1175262, "Bearcave", 2023),
+              ]
+            : [],
+      });
+    });
+    const evidence = { productionYear: 2025, runtimeMinutes: 121 };
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Bearcave (OmU)", evidence))
+        .acceptedCandidate?.tmdbMovieId,
+    ).toBe(1518731);
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate("Bearcave (OmU)", {
+          ...evidence,
+          runtimeMinutes: 127,
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (await new TmdbMovieMatcher().evaluate("Bearcave (2025)", evidence))
+        .acceptedCandidate,
+    ).toBeNull();
+    for (const years of [[2024, 2025, 2026], [2026], []]) {
+      releaseYears = years;
+      expect(
+        (await new TmdbMovieMatcher().evaluate("Bearcave (OmU)", evidence))
+          .acceptedCandidate,
+      ).toBeNull();
+    }
   });
 
   test("uses provider evidence and does not reuse another version's cached decision", async () => {
@@ -418,6 +1402,251 @@ describe("TmdbMovieMatcher audited cinema titles", () => {
           movie(5915, "Into the Wild", 2007),
         ])
       ).acceptedCandidate,
+    ).toBeNull();
+  });
+
+  test("recognizes a bilingual title using TMDB's primary and original titles", async () => {
+    expect(
+      (
+        await evaluate(
+          "Gruppo di famiglia in un interno - Gewalt und Leidenschaft",
+          [
+            movie(
+              56142,
+              "Gewalt und Leidenschaft",
+              1974,
+              "Gruppo di Famiglia in un Interno",
+            ),
+          ],
+        )
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(56142);
+  });
+
+  test("source-backed official title aliases corroborate only complete matching identities", async () => {
+    const title = "Gioia mia - Mein Sommer mit Nonna";
+    let knownDirector = true;
+    let ambiguous = false;
+    let poster = true;
+    mockTmdb((url) => {
+      if (url.pathname.endsWith("/alternative_titles"))
+        return Response.json({ titles: [] });
+      if (url.pathname.startsWith("/3/movie/"))
+        return Response.json({
+          runtime: 92,
+          credits: {
+            crew: knownDirector
+              ? [{ job: "Director", name: "Margherita Spampinato" }]
+              : [],
+          },
+        });
+      return Response.json({
+        results: [1510325, ...(ambiguous ? [1510326] : [])].map((id) => ({
+          ...movie(id, "Mein Sommer bei Nonna", 2025, "Gioia mia"),
+          poster_path: poster ? "/poster.jpg" : null,
+        })),
+      });
+    });
+    const alias = {
+      title,
+      originalTitle: "Gioia mia",
+      director: "Margherita Spampinato",
+      productionYear: 2025,
+      runtimeMinutes: 90,
+      sourceUrl:
+        "https://www.cinema-italia.net/filme.php?selectedday=17&selectedfilm=3",
+    };
+    const evidence = {
+      originalTitle: "Gioia mia",
+      director: "Margherita Spampinato",
+      productionYear: 2025,
+      runtimeMinutes: 90,
+    };
+    const matcher = new TmdbMovieMatcher();
+    expect(
+      (await matcher.evaluate(title, evidence)).acceptedCandidate,
+    ).toBeNull();
+    expect(
+      (
+        await matcher.evaluate(title, {
+          ...evidence,
+          officialTitleAliases: [alias],
+        })
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(1510325);
+    for (const changed of [
+      { title: "An invented subtitle" },
+      { originalTitle: "Another film" },
+      { director: "Another Director" },
+      { productionYear: 2024 },
+      { runtimeMinutes: 120 },
+    ])
+      expect(
+        (
+          await matcher.evaluate(title, {
+            ...evidence,
+            officialTitleAliases: [{ ...alias, ...changed }],
+          })
+        ).acceptedCandidate,
+      ).toBeNull();
+    for (const changed of [
+      { productionYear: 2024 },
+      { director: "Another Director" },
+      { runtimeMinutes: 120 },
+      { originalTitle: "Another original" },
+    ])
+      expect(
+        (
+          await matcher.evaluate(title, {
+            ...evidence,
+            ...changed,
+            officialTitleAliases: [alias],
+          })
+        ).acceptedCandidate,
+      ).toBeNull();
+    expect(
+      (
+        await matcher.evaluate("Gioia mia 2 - Mein Sommer mit Nonna", {
+          ...evidence,
+          officialTitleAliases: [alias],
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+    knownDirector = false;
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate(title, {
+          ...evidence,
+          officialTitleAliases: [alias],
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+    knownDirector = true;
+    ambiguous = true;
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate(title, {
+          ...evidence,
+          officialTitleAliases: [alias],
+        })
+      ).decisionReason,
+    ).toBe("ambiguous");
+    ambiguous = false;
+    poster = false;
+    expect(
+      (
+        await new TmdbMovieMatcher().evaluate(title, {
+          ...evidence,
+          officialTitleAliases: [alias],
+        })
+      ).acceptedCandidate,
+    ).toBeNull();
+  }, 30_000);
+
+  test("requires a recorded title translation rather than inferring it from identity metadata", async () => {
+    let ambiguous = false;
+    let recordedTranslation = false;
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? {
+              titles: recordedTranslation
+                ? [{ title: "Das Leben als Erwachsene" }]
+                : [],
+            }
+          : /^\/3\/movie\/\d+$/.test(url.pathname)
+            ? {
+                runtime: 95,
+                credits: { crew: [{ job: "Director", name: "Greta Scarano" }] },
+              }
+            : {
+                results: [
+                  movie(1421309, "La vita da grandi", 2025),
+                  ...(ambiguous
+                    ? [movie(1421310, "La vita da grandi", 2025)]
+                    : []),
+                ],
+              },
+      ),
+    );
+    const matcher = new TmdbMovieMatcher();
+    const title = "La vita da grandi - Das Leben als Erwachsene";
+    const evidence = {
+      productionYear: 2025,
+      runtimeMinutes: 95,
+      director: "Greta Scarano",
+    };
+    expect(
+      (await matcher.evaluate(title, evidence)).acceptedCandidate,
+    ).toBeNull();
+    recordedTranslation = true;
+    const corroboratedMatcher = new TmdbMovieMatcher();
+    expect(
+      (await corroboratedMatcher.evaluate(title, evidence)).acceptedCandidate
+        ?.tmdbMovieId,
+    ).toBe(1421309);
+    expect(
+      (
+        await corroboratedMatcher.evaluate(title, {
+          ...evidence,
+          runtimeMinutes: 100,
+        })
+      ).acceptedCandidate?.tmdbMovieId,
+    ).toBe(1421309);
+    for (const conflicting of [
+      { ...evidence, productionYear: 2024 },
+      { ...evidence, runtimeMinutes: 101 },
+      { ...evidence, director: "Another Director" },
+      { ...evidence, originalTitle: "Another film" },
+    ]) {
+      expect(
+        (await corroboratedMatcher.evaluate(title, conflicting))
+          .acceptedCandidate,
+      ).toBeNull();
+    }
+    for (const unsupportedTitle of [
+      "Another film - Das Leben als Erwachsene",
+      "La vita da grandi 2 - Das Leben als Erwachsene",
+      "La vita da grandi - Das Leben als Erwachsene 2",
+    ]) {
+      expect(
+        (await corroboratedMatcher.evaluate(unsupportedTitle, evidence))
+          .acceptedCandidate,
+      ).toBeNull();
+    }
+    ambiguous = true;
+    expect(
+      (await new TmdbMovieMatcher().evaluate(title, evidence)).decisionReason,
+    ).toBe("ambiguous");
+  }, 15_000);
+
+  test("does not discard a named installment despite complete metadata for its predecessor", async () => {
+    mockTmdb((url) =>
+      Response.json(
+        url.pathname.endsWith("/alternative_titles")
+          ? { titles: [] }
+          : url.pathname.startsWith("/3/movie/")
+            ? {
+                runtime: 155,
+                credits: {
+                  crew: [{ job: "Director", name: "Denis Villeneuve" }],
+                },
+              }
+            : { results: [movie(438631, "Dune", 2021)] },
+      ),
+    );
+    const evidence = {
+      originalTitle: "Dune",
+      productionYear: 2021,
+      director: "Denis Villeneuve",
+      runtimeMinutes: 155,
+    };
+    const matcher = new TmdbMovieMatcher();
+    expect(
+      (await matcher.evaluate("Dune", evidence)).acceptedCandidate?.tmdbMovieId,
+    ).toBe(438631);
+    expect(
+      (await matcher.evaluate("Dune - Messiah", evidence)).acceptedCandidate,
     ).toBeNull();
   });
 

@@ -40,14 +40,17 @@ export const hasTmdbTitleConflict = (
   )
     return true;
 
-  // A full official alias can corroborate a subtitle. A bare franchise title
-  // cannot establish which named installment the listing refers to.
+  // A full official alias can corroborate a subtitle. Matching only one half
+  // cannot establish the other title in a bilingual listing or installment.
+  const requestedParts = normalizeMovieTitle(requestedTitle)
+    .normalizedTitle.split(/\s+[-–—]\s+|:\s*/)
+    .map(normalizeTitleOrdinals);
   return (
     requestedTitles.length > 1 &&
     [result.title, result.original_title, ...alternativeTitles].some((title) =>
       getMovieTitleCandidates(title)
         .map(normalizeTitleOrdinals)
-        .includes(requestedTitles[1]!),
+        .some((variant) => requestedParts.includes(variant)),
     ) &&
     !candidateTitles.includes(requested) &&
     !candidateTitles.includes(withoutFranchiseOrdinal)

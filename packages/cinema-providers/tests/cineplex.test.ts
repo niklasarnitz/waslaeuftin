@@ -2,6 +2,139 @@ import { expect, spyOn, test } from "bun:test";
 
 import { getCineplexMovies } from "@waslaeuftin/cinema-providers/server";
 
+test("identity evidence: cineplex preserves native film IDs and only director credits", async () => {
+  const request = spyOn(globalThis, "fetch").mockResolvedValue(
+    Response.json({
+      data: {
+        screenedMovies: [
+          {
+            id: "screened-film-1",
+            movie: {
+              id: "TW92aWU6MjI2MTQ=",
+              title: "Rocky",
+              duration: 114,
+              directedBy: "von Presentation Name",
+              releaseDate: "2026-11-05",
+              credits: [
+                {
+                  department: "DIRECTING",
+                  role: "Regie",
+                  person: { fullName: " John G. Avildsen " },
+                },
+                {
+                  department: "DIRECTING",
+                  role: "Assistant Director",
+                  person: { fullName: "Assistant" },
+                },
+                {
+                  department: "ACTING",
+                  role: "Director",
+                  person: { fullName: "Actor" },
+                },
+              ],
+              screenings: [
+                {
+                  cinema: { id: "identity-test" },
+                  onlineTicketingId: "ticket-1",
+                  datetime: "2026-11-05T18:00:00Z",
+                  auditoriumName: "Saal 2",
+                  attributes: [],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    }),
+  );
+  try {
+    const catalog = await getCineplexMovies([
+      { cinemaId: 42, cineplexCinemaId: "identity-test" },
+    ]);
+    expect(catalog.movies[0]).toMatchObject({
+      provider: "Cineplex",
+      providerFilmId: "TW92aWU6MjI2MTQ=",
+      evidence: { director: "John G. Avildsen", runtimeMinutes: 114 },
+    });
+    expect(catalog.showings[0]).toMatchObject({
+      provider: "Cineplex",
+      providerFilmId: "TW92aWU6MjI2MTQ=",
+      evidence: { director: "John G. Avildsen", runtimeMinutes: 114 },
+    });
+    const body = request.mock.calls[0]?.[1]?.body;
+    expect(typeof body).toBe("string");
+    if (typeof body !== "string")
+      throw new Error("Expected a JSON request body");
+    const { query } = JSON.parse(body) as { query: string };
+    expect(query).toContain("duration");
+    expect(query).toContain("credits(departments: [DIRECTING])");
+    expect(query).toContain("fullName");
+  } finally {
+    request.mockRestore();
+  }
+});
+
+test("identity evidence: cineplex omits invalid runtimes and presentation-only directors", async () => {
+  const request = spyOn(globalThis, "fetch").mockResolvedValue(
+    Response.json({
+      data: {
+        screenedMovies: [
+          {
+            id: "partial",
+            movie: [undefined, null, 0, -1, 99.5, "99", 1e20].map(
+              (duration, index) => ({
+                id: `film-${index}`,
+                title: "Film",
+                duration,
+                directedBy: "von Presentation Name",
+                releaseDate: "2026-11-05",
+                credits: [
+                  null,
+                  {
+                    department: "DIRECTING",
+                    role: "Assistant Director",
+                    person: { fullName: "Assistant" },
+                  },
+                ],
+                screenings: [
+                  {
+                    cinema: { id: "partial-test" },
+                    onlineTicketingId: "ticket",
+                    datetime: "2026-11-05T18:00:00Z",
+                    auditoriumName: "",
+                    attributes: [],
+                  },
+                ],
+              }),
+            ),
+          },
+        ],
+      },
+    }),
+  );
+  try {
+    const catalog = await getCineplexMovies([
+      { cinemaId: 42, cineplexCinemaId: "partial-test" },
+    ]);
+    expect(catalog.movies).toHaveLength(7);
+    expect(catalog.showings).toHaveLength(7);
+    for (const movie of catalog.movies) expect(movie.evidence).toBeUndefined();
+    for (const showing of catalog.showings)
+      expect(showing.evidence).toBeUndefined();
+    expect(catalog.movies.map((movie) => movie.providerFilmId)).toEqual([
+      "film-0",
+      "film-1",
+      "film-2",
+      "film-3",
+      "film-4",
+      "film-5",
+      "film-6",
+    ]);
+  } finally {
+    request.mockRestore();
+  }
+});
+
 test.each([502, 503, 504])(
   "cineplex: recovers from HTTP %s without losing screenings",
   async (status) => {
@@ -40,6 +173,8 @@ test.each([502, 503, 504])(
         {
           cinemaId: 42,
           movieName: "Recovered movie",
+          provider: "Cineplex",
+          providerFilmId: undefined,
           dateTime: new Date("2026-11-05T18:00:00Z"),
           bookingUrl: "https://buchung.cineplex.de/checkout/ticket-1init",
           showingAdditionalData: ["Saal 2", "OV"],

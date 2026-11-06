@@ -213,6 +213,9 @@ const replacementTransaction = {
         cineprogBaseUrl: null,
         uciCinemaId: null,
         uciCinemaSlug: null,
+        dieselKinoSlug: null,
+        starMovieSlug: null,
+        megaplexSlug: null,
       },
     ]),
     updateMany: mock(async () => ({ count: 1 })),
@@ -785,6 +788,46 @@ describe("resolveAndPersistCatalog", () => {
       changedEvidence: true,
       reuse: false,
     },
+    {
+      name: "newly advertised extended edition",
+      matched: true,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: "edition",
+      reuse: false,
+    },
+    {
+      name: "new provider trailer evidence after abstention",
+      matched: false,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: "trailers",
+      reuse: false,
+    },
+    {
+      name: "new linked director claim after abstention",
+      matched: false,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: "directors",
+      reuse: false,
+    },
+    {
+      name: "new German theatrical date after abstention",
+      matched: false,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: "theatrical-date",
+      reuse: false,
+    },
+    {
+      name: "new source-backed official title alias after abstention",
+      matched: false,
+      ageHours: 1,
+      versionOffset: 0,
+      changedEvidence: "official-title",
+      reuse: false,
+    },
   ])(
     "revalidates source decisions: $name",
     async ({ matched, ageHours, versionOffset, changedEvidence, reuse }) => {
@@ -842,6 +885,32 @@ describe("resolveAndPersistCatalog", () => {
         posterPath: "/current.jpg",
         confidence: 0.95,
       };
+      const evidence =
+        changedEvidence === "edition"
+          ? { edition: "extended" as const }
+          : changedEvidence === "trailers"
+            ? { youtubeTrailerIds: ["aHw4PuLCUIc"] }
+            : changedEvidence === "directors"
+              ? { directorAlternatives: ["A Verified Director"] }
+              : changedEvidence === "theatrical-date"
+                ? { germanTheatricalReleaseDate: "2026-10-22" }
+                : changedEvidence === "official-title"
+                  ? {
+                      officialTitleAliases: [
+                        {
+                          title: "Vaterland",
+                          originalTitle: "Ojczyzna",
+                          director: "A Verified Director",
+                          productionYear: 2026,
+                          runtimeMinutes: 81,
+                          sourceUrl:
+                            "https://www.cinema-italia.net/filme.php?selectedfilm=3",
+                        },
+                      ],
+                    }
+                  : changedEvidence
+                    ? { productionYear: 2026 }
+                    : {};
       await resolveAndPersistCatalog([
         {
           provider: "TestProvider",
@@ -850,7 +919,7 @@ describe("resolveAndPersistCatalog", () => {
               cinemaId: 10,
               providerFilmId: "film-a",
               name: "Vaterland",
-              evidence: changedEvidence ? { productionYear: 2026 } : {},
+              evidence,
             },
           ],
           showings: [
@@ -868,7 +937,7 @@ describe("resolveAndPersistCatalog", () => {
       expect(createdShowings[0]).toMatchObject({
         sourceProvider: "TestProvider",
         providerFilmId: "film-a",
-        sourceEvidence: changedEvidence ? { productionYear: 2026 } : {},
+        sourceEvidence: evidence,
         matcherVersion: MOVIE_MATCHER_VERSION,
         matchEvaluatedAt: reuse ? evaluatedAt : expect.any(Date),
       });
@@ -1212,7 +1281,17 @@ describe("resolveAndPersistCatalog", () => {
       provider: "Yorck",
       fetchedCinemaIds: [42],
       cinemaSourceKeys: {
-        42: JSON.stringify(["1001", "delphi-lux", null, null, null, null]),
+        42: JSON.stringify([
+          "1001",
+          "delphi-lux",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ]),
       },
       movies: [movie],
       showings: [first, second],

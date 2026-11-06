@@ -3,14 +3,18 @@ import {
   fetchProgramme,
   readProgrammeData,
 } from "@waslaeuftin/cinema-providers/internal/providers/comtrada/cineorder/publicProgramme";
+import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
 
 type PmkinoMovie = {
   id: string;
   title: string;
   origTitle?: string | null;
   productionYear?: number | null;
+  startingDate?: string | null;
   length?: number | null;
   directors?: { name: string }[] | null;
+  trailerURL?: string | null;
+  images?: { poster?: { alt?: string | null } | null } | null;
 };
 
 type PmkinoProgramme = {
@@ -84,17 +88,81 @@ export const getPmkinoCatalog = async (
     seen.add(performance.id);
     let movie = movies.get(record.id);
     if (!movie) {
+      let youtubeTrailerId: string | undefined;
+      if (record.trailerURL) {
+        try {
+          const trailer = new URL(record.trailerURL);
+          let id: string | null = null;
+          if (trailer.origin === "https://youtu.be")
+            id = trailer.pathname.slice(1);
+          else if (
+            ["https://youtube.com", "https://www.youtube.com"].includes(
+              trailer.origin,
+            )
+          ) {
+            if (trailer.pathname === "/watch")
+              id = trailer.searchParams.get("v");
+            else if (/^\/embed\/[\w-]{11}$/.test(trailer.pathname))
+              id = trailer.pathname.slice(7);
+          }
+          if (id && /^[\w-]{11}$/.test(id)) youtubeTrailerId = id;
+        } catch {
+          // Malformed optional trailers must not discard the programme.
+        }
+      }
+      const originalTitle = record.origTitle
+        ?.trim()
+        .replace(
+          /^(.*),\s*(The|A|An|Der|Die|Das|L['’])$/i,
+          (_, title: string, article: string) =>
+            `${article}${/['’]$/.test(article) ? "" : " "}${title}`,
+        );
+      const posterEdition =
+        /^(.*?)\s+(?:extended(?:\s+(?:version|edition))?|ext\.)(?:\s*-\s*poster)?$/i.exec(
+          record.images?.poster?.alt ?? "",
+        );
+      const posterTitles = [
+        posterEdition?.[1],
+        record.title,
+        originalTitle,
+      ].map((title) =>
+        title
+          ?.normalize("NFKC")
+          .toLowerCase()
+          .replace(/^(?:the|a|an|der|die|das)\s+/, "")
+          .replace(/[^\p{L}\p{N}]+/gu, " ")
+          .trim(),
+      );
+      const startingDate =
+        MovieIdentityEvidenceSchema.shape.germanTheatricalReleaseDate.safeParse(
+          record.startingDate,
+        );
       movie = {
         cinemaId,
         name: record.title,
         provider: "ComtradaCineOrder",
         providerFilmId: record.id,
+        sourceMetadata: {
+          posterAlt: record.images?.poster?.alt,
+          productionYear: record.productionYear,
+          startingDate: record.startingDate,
+          originalTitle: record.origTitle,
+        },
         evidence: {
-          originalTitle:
-            record.origTitle
-              ?.trim()
-              .replace(/^(.*),\s*(The|A|An|Der|Die|Das)$/i, "$2 $1") ||
-            undefined,
+          ...(youtubeTrailerId
+            ? { youtubeTrailerIds: [youtubeTrailerId] }
+            : {}),
+          ...(startingDate.success && startingDate.data
+            ? { germanTheatricalReleaseDate: startingDate.data }
+            : {}),
+          // Some programmes omit the cut from the title but advertise it in
+          // the film's poster label. Require the complete listing/original
+          // title, not a series prefix or another film's label.
+          edition:
+            posterEdition && posterTitles.slice(1).includes(posterTitles[0])
+              ? "extended"
+              : undefined,
+          originalTitle: originalTitle || undefined,
           // Filmpalast publishes placeholder years (1999 for new releases)
           // and incorrect years for older films. Do not turn that field into
           // an identity constraint; titles, directors and runtimes still apply.

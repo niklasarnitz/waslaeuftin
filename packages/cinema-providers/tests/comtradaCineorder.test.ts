@@ -225,6 +225,119 @@ test("Forum joins presentation variants and extra films by source ID without imp
   );
 });
 
+test.each([
+  [
+    "Der Herr der Ringe - Die Gefährten extended - Poster",
+    "extended",
+    "Der Herr der Ringe - Die Gefährten",
+  ],
+  [
+    "Der Herr der Ringe - Die Gefährten - Poster",
+    undefined,
+    "Der Herr der Ringe - Die Gefährten",
+  ],
+  [
+    "Another Film extended - Poster",
+    undefined,
+    "Der Herr der Ringe - Die Gefährten",
+  ],
+  [
+    "Lord of the Rings - The Fellowship of the Ring ext. - Poster",
+    "extended",
+    "The Lord of the Rings: The Fellowship of the Ring",
+  ],
+  [
+    "Lord of the Rings - The Two Towers ext. - Poster",
+    undefined,
+    "The Lord of the Rings: The Fellowship of the Ring",
+  ],
+  [
+    "Lord of the Rings ext. - Poster",
+    undefined,
+    "The Lord of the Rings: The Fellowship of the Ring",
+  ],
+] as const)(
+  "Filmpalast preserves cut evidence from its own film poster: %s",
+  async (posterAlt, edition, title) => {
+    const data = pmkino();
+    const record = {
+      id: "film-a",
+      title,
+      origTitle: "The Lord of the Rings: The Fellowship of the Ring",
+      productionYear: 2000,
+      length: 227,
+      directors: [],
+      images: { poster: { alt: posterAlt } },
+    };
+    data.apiData.movies.items["pk-a"] = record;
+    await withPages(
+      {
+        "https://filmpalast.net/programmuebersicht/": embedded(
+          "pmkinoFrontVars",
+          data,
+        ),
+      },
+      async () => {
+        const result = await getComtradaCineOrderMovies(
+          22,
+          metadata("https://cineorder.filmpalast.net", "zkm"),
+        );
+        expect(result.movies[0]?.evidence?.edition).toBe(edition);
+        expect(result.showings[0]?.evidence?.edition).toBe(edition);
+        expect(result.movies[0]?.sourceMetadata?.posterAlt).toBe(posterAlt);
+        expect(result.movies[0]?.evidence?.runtimeMinutes).toBe(227);
+      },
+    );
+  },
+);
+
+test("Forum preserves production year separately from its local theatrical date and restores French articles", async () => {
+  const data = pmkino();
+  Object.assign(data.apiData.movies.items["pk-a"], {
+    title: "Edmund und Luzie - Winterabenteuer",
+    origTitle: "Hiver d'Edmond et Lucy, L'",
+    productionYear: 2026,
+    startingDate: "2026-10-22",
+    length: 45,
+    directors: [{ name: "François Narboux" }],
+  });
+  Object.assign(data.apiData.extraMovies.items["pk-b"], {
+    title: "Vaiana",
+    origTitle: "Moana",
+    productionYear: 2002,
+    startingDate: "2026-07-09",
+    length: 115,
+    directors: [{ name: "Thomas Kail" }],
+  });
+  await withPages(
+    {
+      "https://rastatt.forumcinemas.de/programmuebersicht/": embedded(
+        "pmkinoFrontVars",
+        data,
+      ),
+    },
+    async () => {
+      const result = await getComtradaCineOrderMovies(
+        8,
+        metadata("https://cineorder.forumcinemas.de", "fra"),
+      );
+      expect(result.movies[0]?.evidence).toMatchObject({
+        originalTitle: "L'Hiver d'Edmond et Lucy",
+        productionYear: 2026,
+        germanTheatricalReleaseDate: "2026-10-22",
+        director: "François Narboux",
+        runtimeMinutes: 45,
+      });
+      expect(result.movies[1]?.evidence).toMatchObject({
+        productionYear: 2002,
+        germanTheatricalReleaseDate: "2026-07-09",
+      });
+      expect(result.showings[0]?.evidence).toEqual(result.movies[0]?.evidence);
+      expect(result.showings[2]?.evidence).toEqual(result.movies[1]?.evidence);
+    },
+  );
+});
+
 test("Filmpalast omits unreliable production years and restores catalog-sorted original titles", async () => {
   const data = pmkino();
   data.apiData.movies.items["pk-a"] = {
@@ -267,6 +380,50 @@ test("Filmpalast omits unreliable production years and restores catalog-sorted o
     },
   );
 });
+
+test.each([
+  ["https://www.youtube.com/watch?v=qU-7KUMw-tk", ["qU-7KUMw-tk"]],
+  ["https://youtu.be/qU-7KUMw-tk?t=10", ["qU-7KUMw-tk"]],
+  ["https://www.youtube.com/embed/qU-7KUMw-tk", ["qU-7KUMw-tk"]],
+  ["https://youtube.com.evil.example/watch?v=qU-7KUMw-tk", undefined],
+  ["https://example.com/watch?v=qU-7KUMw-tk", undefined],
+  ["http://www.youtube.com/watch?v=qU-7KUMw-tk", undefined],
+  ["https://www.youtube.com/watch?v=invalid", undefined],
+  ["https://www.youtube.com/channel/qU-7KUMw-tk", undefined],
+  ["not a URL", undefined],
+] as const)(
+  "Filmpalast preserves only its own valid YouTube trailer identity: %s",
+  async (trailerURL, expected) => {
+    const data = pmkino();
+    Object.assign(data.apiData.movies.items["pk-a"], {
+      title: "Digger",
+      origTitle: "Digger",
+      length: 106,
+      directors: [{ name: "Alejandro G. Iñárritu" }],
+      trailerURL,
+    });
+    await withPages(
+      {
+        "https://filmpalast.net/programmuebersicht/": embedded(
+          "pmkinoFrontVars",
+          data,
+        ),
+      },
+      async () => {
+        const result = await getComtradaCineOrderMovies(
+          8,
+          metadata("https://cineorder.filmpalast.net", "zkm"),
+        );
+        expect(result.movies[0]?.evidence?.youtubeTrailerIds).toEqual(expected);
+        expect(result.movies[0]?.evidence?.runtimeMinutes).toBe(106);
+        expect(result.showings[0]?.evidence).toEqual(
+          result.movies[0]?.evidence,
+        );
+        expect(result.movies[1]?.evidence?.youtubeTrailerIds).toBeUndefined();
+      },
+    );
+  },
+);
 
 test("Gernsbach normalizes singleton and array screenings, preserves individual booking links and omits unknown evidence", async () => {
   const booking = (id: string) =>

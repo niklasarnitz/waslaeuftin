@@ -7,6 +7,7 @@ export const normalizeForComparison = (value: string) => {
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/ß/g, "ss")
+      .replace(/ł/g, "l")
       .replace(/&/g, " und ")
       .replace(/[^\p{L}\p{N}\s]/gu, " "),
   );

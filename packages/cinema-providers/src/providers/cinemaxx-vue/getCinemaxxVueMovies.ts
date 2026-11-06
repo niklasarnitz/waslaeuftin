@@ -14,6 +14,9 @@ export interface CinemaxxVueFilm {
   filmTitle: string;
   filmUrl?: string;
   originalTitle?: string;
+  director?: string | null;
+  runningTime?: number | null;
+  isDurationUnknown?: boolean | null;
   filmAttributes: Attribute[];
   showingGroups: {
     sessions: {
@@ -140,6 +143,20 @@ export const parseCinemaxxVueFilms = (
   for (const film of films) {
     if (!film.filmTitle.trim())
       throw new Error("CinemaxX/Vue: empty film title");
+    const evidence = {
+      ...(typeof film.originalTitle === "string" && film.originalTitle.trim()
+        ? { originalTitle: film.originalTitle }
+        : {}),
+      ...(typeof film.director === "string" && film.director.trim()
+        ? { director: film.director.trim() }
+        : {}),
+      ...(film.isDurationUnknown !== true &&
+      typeof film.runningTime === "number" &&
+      Number.isSafeInteger(film.runningTime) &&
+      film.runningTime > 0
+        ? { runtimeMinutes: film.runningTime }
+        : {}),
+    };
     for (const group of film.showingGroups) {
       for (const session of group.sessions) {
         if (sessions.has(session.sessionId)) continue;
@@ -169,11 +186,7 @@ export const parseCinemaxxVueFilms = (
           movieName: film.filmTitle,
           provider: "CinemaxxVue",
           providerFilmId: bookingUrl.pathname.split("/")[4] || undefined,
-          evidence: {
-            originalTitle: film.originalTitle?.trim()
-              ? film.originalTitle
-              : undefined,
-          },
+          ...(Object.keys(evidence).length ? { evidence } : {}),
           dateTime,
           bookingUrl: bookingUrl.href,
           showingAdditionalData: [

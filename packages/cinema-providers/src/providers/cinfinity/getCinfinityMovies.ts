@@ -8,7 +8,16 @@ type CinfinityScreening = {
   isInfoOnly: boolean | null;
   auditoriumName: string | null;
   movie: {
+    id?: string | null;
     title: string | null;
+    duration?: number | null;
+    credits?:
+      | ({
+          department?: string | null;
+          role?: string | null;
+          person?: { fullName?: string | null } | null;
+        } | null)[]
+      | null;
   } | null;
   cinema: {
     id: string;
@@ -29,7 +38,16 @@ const CINFINITY_SCREENINGS_QUERY = `
             isInfoOnly
             auditoriumName
             movie {
+                id
                 title
+                duration
+                credits(departments: [DIRECTING]) {
+                    department
+                    role
+                    person {
+                        fullName
+                    }
+                }
             }
             cinema {
                 id
@@ -100,9 +118,37 @@ export const getCinfinityMovies = async (
         return null;
       }
 
+      const movie = screening.movie;
+      const director = (Array.isArray(movie?.credits) ? movie.credits : [])
+        .filter(
+          (credit) =>
+            credit?.department === "DIRECTING" &&
+            typeof credit.role === "string" &&
+            /^(?:Regie|Director)$/i.test(credit.role.trim()),
+        )
+        .map((credit) => credit?.person?.fullName)
+        .filter(
+          (name): name is string => typeof name === "string" && !!name.trim(),
+        )
+        .map((name) => name.trim())
+        .join(", ");
+      const evidence = {
+        ...(director ? { director } : {}),
+        ...(typeof movie?.duration === "number" &&
+        Number.isSafeInteger(movie.duration) &&
+        movie.duration > 0
+          ? { runtimeMinutes: movie.duration }
+          : {}),
+      };
       return {
         cinemaId: cinema.cinemaId,
         movieName,
+        provider: "Cinfinity",
+        providerFilmId:
+          typeof movie?.id === "string" && movie.id.trim()
+            ? movie.id
+            : undefined,
+        ...(Object.keys(evidence).length ? { evidence } : {}),
         dateTime: moment(screening.datetime).toDate(),
         bookingUrl: getBookingUrl(screening),
         showingAdditionalData: [
@@ -121,7 +167,10 @@ export const getCinfinityMovies = async (
   const movies = showings.map((showing) => ({
     name: showing.movieName,
     cinemaId: showing.cinemaId,
+    provider: showing.provider,
+    providerFilmId: showing.providerFilmId,
+    ...(showing.evidence ? { evidence: showing.evidence } : {}),
   }));
 
-  return { movies, showings };
+  return { provider: "Cinfinity", movies, showings };
 };
