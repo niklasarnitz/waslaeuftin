@@ -109,6 +109,52 @@ from writing after a source switch. Native raw evidence remains separate from
 canonical movie metadata; a native runtime disagreement does not establish
 which source is correct.
 
+## Austrian direct providers
+
+Diesel Kino (9 locations), Star Movie (7) and Megaplex/Metropol (5) participate
+in the same native-provider update pipeline. All 21 programmes were checked
+against their public sites. None of these locations was present in the public
+cinema directory when coverage was checked on 2026-11-06. Cinema Paradiso is
+not included: its booking-link contract still needs verification.
+
+**Apply `20261106120000_add_austrian_cinema_providers` and
+`20261106130000_add_missing_tmdb_metadata_fields` before deploying this code**,
+after the earlier native-provider migrations. The latter completes the existing
+TMDB metadata schema so enrichment writes work on migration-created databases;
+compatible existing columns/data are preserved. Regenerate the Prisma client
+for local development with `bun run db:generate`.
+
+The onboarding script validates selected programmes without connecting to the
+database by default. Run from the repository root:
+
+```sh
+bun apps/nextjs/scripts/create-austrian-cinemas.ts
+bun apps/nextjs/scripts/create-austrian-cinemas.ts StarMovie
+```
+
+After reviewing source permissions and physical venues, adding `--apply`
+registers missing Austrian cities and cinemas in one transaction. It refuses
+conflicting mappings rather than switching an existing source, and can be
+rerun for matching mappings. Registration does not import showings or trigger
+a deployment; the normal provider updater imports their programmes afterward.
+All 21 new entries have sourced coordinates: official contact-page pins for
+Star Movie and matched OpenStreetMap cinema objects for Diesel and Megaplex.
+Existing coordinates are not overwritten. The
+[activation runbook](packages/cinema-providers/research/austria-activation.md)
+records the full inventory, coordinate provenance/attribution, deployment gates,
+ordered commands, read-only acceptance queries and scoped rollback plan.
+Existing cinema records can instead use `configure-native-cinema.ts`
+with `DieselKino`, `StarMovie` or `Megaplex` and the verified location slug.
+
+Diesel uses embedded structured programme data; Star Movie and Megaplex use
+programme/detail HTML. Megaplex JSON-LD contains at most 20 screenings per film,
+so the adapter reads the full HTML schedule and cross-checks available events.
+Metropol's venue metadata intentionally uses `metropol-kino.at`. All three
+adapters reject malformed or wrong-location feeds rather than withdrawing
+listings on an incomplete refresh. Their public readability does not establish
+redistribution rights. Deployment, migration and production onboarding require
+separate approval; none is performed by the default dry run.
+
 ## Movie matching
 
 Matching uses the raw listing title plus observed provider evidence, not just a

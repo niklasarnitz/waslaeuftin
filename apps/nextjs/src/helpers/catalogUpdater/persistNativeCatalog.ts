@@ -19,6 +19,9 @@ export type NativeCinemaMapping = Pick<
   | "cineprogBaseUrl"
   | "uciCinemaId"
   | "uciCinemaSlug"
+  | "dieselKinoSlug"
+  | "starMovieSlug"
+  | "megaplexSlug"
 > & { previousSourceKey: string };
 
 // Movie resolution happens before the transaction. Listings, source metadata,

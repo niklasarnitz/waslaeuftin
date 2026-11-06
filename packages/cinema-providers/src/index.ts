@@ -6,6 +6,9 @@ export { getYorckMovies } from "@waslaeuftin/cinema-providers/internal/providers
 export { getCinetixxMovies } from "@waslaeuftin/cinema-providers/internal/providers/cinetixx/getCinetixxMovies";
 export { getCineprogMovies } from "@waslaeuftin/cinema-providers/internal/providers/cineprog/getCineprogMovies";
 export { getUciMovies } from "@waslaeuftin/cinema-providers/internal/providers/uci/getUciMovies";
+export { getDieselKinoMovies } from "@waslaeuftin/cinema-providers/internal/providers/dieselkino/getDieselKinoMovies";
+export { getStarMovieMovies } from "@waslaeuftin/cinema-providers/internal/providers/starmovie/getStarMovieMovies";
+export { getMegaplexMovies } from "@waslaeuftin/cinema-providers/internal/providers/megaplex/getMegaplexMovies";
 
 export { getCineplexxATMovies } from "@waslaeuftin/cinema-providers/internal/providers/cineplex-at/getCineplexxATMovies";
 export type { CineplexxATCinema } from "@waslaeuftin/cinema-providers/internal/providers/cineplex-at/types/CineplexxATCinema";

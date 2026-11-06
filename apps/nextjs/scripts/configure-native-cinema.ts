@@ -22,7 +22,7 @@ if (
   ((provider === "Yorck" || provider === "UCI") && !slug)
 ) {
   throw new Error(
-    "Usage: configure-native-cinema.ts <Yorck|Cinetixx|Cineprog|UCI> <existing-cinema-id> <native-id|base-url> [slug] [--apply]",
+    "Usage: configure-native-cinema.ts <Yorck|Cinetixx|Cineprog|UCI|DieselKino|StarMovie|Megaplex> <existing-cinema-id> <native-id|base-url|location-slug> [slug] [--apply]",
   );
 }
 
@@ -31,8 +31,9 @@ try {
     where: { id: Number(id) },
     include: { city: true },
   });
-  if (cinema.country !== "GERMANY")
-    throw new Error("Native providers require a German cinema");
+  const austrian = ["DieselKino", "StarMovie", "Megaplex"].includes(provider);
+  if (cinema.country !== (austrian ? "AUSTRIA" : "GERMANY"))
+    throw new Error("Native provider does not match this cinema's country");
   if (
     cinema.cinemaxxVueCinemasMetadataId ||
     cinema.cineStarCinemaId ||
@@ -54,6 +55,9 @@ try {
     cineprogBaseUrl: provider === "Cineprog" ? nativeId : null,
     uciCinemaId: provider === "UCI" ? nativeId : null,
     uciCinemaSlug: provider === "UCI" ? (slug ?? null) : null,
+    dieselKinoSlug: provider === "DieselKino" ? nativeId : null,
+    starMovieSlug: provider === "StarMovie" ? nativeId : null,
+    megaplexSlug: provider === "Megaplex" ? nativeId : null,
   };
   const catalog = await fetchNativeCinema(provider, { ...cinema, ...mapping });
   catalog.fetchedCinemaIds = [cinema.id];
