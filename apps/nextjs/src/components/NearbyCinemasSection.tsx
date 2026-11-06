@@ -489,7 +489,7 @@ export const NearbyCinemasSection = ({ date }: { date?: string | null }) => {
                           {cinema.name}
                         </Link>
                         {cinema.city && (
-                          <p className="text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs sm:mt-1.5 sm:text-sm">
+                          <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs sm:mt-1.5 sm:text-sm">
                             <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             <Link
                               href={`/city/${cinema.city.slug}${dateQuery}`}
