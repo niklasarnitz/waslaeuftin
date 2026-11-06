@@ -22,6 +22,9 @@ FROM base AS build
 # next.config.js derives the allowed next/image host from this at build time, so changing the
 # storage host requires a rebuild. The Image workflow passes it from the S3_PUBLIC_BASE_URL repo variable.
 ARG S3_PUBLIC_BASE_URL
+# Public ingest key, not an administrative API credential. Next.js inlines it.
+ARG NEXT_PUBLIC_BUGSINK_DSN
+ARG NEXT_PUBLIC_BUGSINK_RELEASE
 COPY . .
 # Fail early instead of shipping LFS pointer files as download links.
 RUN if head -c 100 apps/nextjs/public/waslaeuftin.apk | grep -q '^version https://git-lfs'; then \
@@ -32,13 +35,15 @@ RUN bun install --frozen-lockfile
 # UMAMI_* are left out: the Umami client contacts its host at module load.
 RUN test -n "${S3_PUBLIC_BASE_URL}" || { echo "S3_PUBLIC_BASE_URL build arg is required" >&2; exit 1; }
 RUN grep -v '^UMAMI_' .env.example > .env \
-  && S3_PUBLIC_BASE_URL="${S3_PUBLIC_BASE_URL}" NODE_ENV=production bunx turbo run build --filter=@waslaeuftin/web... \
+  && S3_PUBLIC_BASE_URL="${S3_PUBLIC_BASE_URL}" NEXT_PUBLIC_BUGSINK_DSN="${NEXT_PUBLIC_BUGSINK_DSN}" NEXT_PUBLIC_BUGSINK_RELEASE="${NEXT_PUBLIC_BUGSINK_RELEASE}" NODE_ENV=production bunx turbo run build --filter=@waslaeuftin/web... \
   && rm -rf .env apps/nextjs/.next/cache
 
 FROM base AS runtime
+ARG NEXT_PUBLIC_BUGSINK_RELEASE
 ENV NODE_ENV=production \
   HOSTNAME=0.0.0.0 \
-  PORT=3000
+  PORT=3000 \
+  BUGSINK_RELEASE=${NEXT_PUBLIC_BUGSINK_RELEASE}
 COPY --from=build --chown=node:node /app /app
 USER node
 EXPOSE 3000

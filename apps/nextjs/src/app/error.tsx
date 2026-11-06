@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { captureException } from "@sentry/nextjs";
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 
 export default function Error({
@@ -13,6 +14,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error("App render error:", error);
+    captureException(error);
   }, [error]);
 
   return (

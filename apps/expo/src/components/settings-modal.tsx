@@ -103,14 +103,14 @@ function SettingsModalContent({
           <FieldGroup.Section title="Rechtliches & Datenschutz">
             <Button
               onPress={() =>
-                void openExternalUrl("https://waslaeuftin.de/legal#impressum")
+                void openExternalUrl("https://waslaeuft.in/legal#impressum")
               }
             >
               Impressum
             </Button>
             <Button
               onPress={() =>
-                void openExternalUrl("https://waslaeuftin.de/legal#datenschutz")
+                void openExternalUrl("https://waslaeuft.in/legal#datenschutz")
               }
             >
               Datenschutzerklärung

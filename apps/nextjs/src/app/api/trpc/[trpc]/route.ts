@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { captureException } from "@sentry/nextjs";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import {
@@ -25,14 +26,17 @@ const handler = (req: NextRequest) =>
     req,
     router: appRouter,
     createContext: () => createContext(req),
-    onError:
-      env.NODE_ENV === "development"
-        ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
-            );
-          }
-        : undefined,
+    onError: ({ path, error }) => {
+      if (env.NODE_ENV === "development") {
+        console.error(
+          `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+        );
+      } else if (error.code === "INTERNAL_SERVER_ERROR") {
+        // tRPC handles these itself, so Next's onRequestError never sees them.
+        // Do not include inputs, procedure paths or request context.
+        captureException(error.cause ?? error);
+      }
+    },
   });
 
 export { handler as GET, handler as POST };

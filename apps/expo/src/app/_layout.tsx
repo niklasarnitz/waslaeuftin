@@ -1,5 +1,7 @@
+import type { ErrorBoundaryProps } from "expo-router";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
+import { ErrorBoundary as RouterErrorBoundary } from "expo-router";
 import {
   DarkTheme,
   DefaultTheme,
@@ -7,6 +9,7 @@ import {
 } from "expo-router/react-navigation";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { StatusBar } from "expo-status-bar";
+import { captureException } from "@sentry/react-native";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
 import { trackMobileEvent } from "@waslaeuftin/expo/utils/analytics";
@@ -18,6 +21,13 @@ import {
 } from "@waslaeuftin/expo/utils/use-notifications";
 
 import "@waslaeuftin/expo/styles.css";
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  useEffect(() => {
+    captureException(props.error);
+  }, [props.error]);
+  return <RouterErrorBoundary {...props} />;
+}
 
 function RootLayoutInner() {
   const colorScheme = useColorScheme();

@@ -9,6 +9,7 @@
     "./movieGrouping": "./src/movieGrouping/groupMoviesByTitle.ts",
     "./date": "./src/date/index.ts",
     "./tmdb": "./src/tmdb/getTmdbPosterUrl.ts",
+    "./errorReporting": "./src/errorReporting/sanitizeErrorEvent.ts",
     "./hooks": "./src/hooks/useShowingFilters.ts"
   },
   "license": "MIT",

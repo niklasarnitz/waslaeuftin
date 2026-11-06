@@ -28,6 +28,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // export-compliance prompt on every App Store build/submit.
       ITSAppUsesNonExemptEncryption: false,
     },
+    privacyManifests: {
+      NSPrivacyTracking: false,
+      NSPrivacyCollectedDataTypes: [
+        {
+          NSPrivacyCollectedDataType: "NSPrivacyCollectedDataTypeCrashData",
+          NSPrivacyCollectedDataTypeLinked: false,
+          NSPrivacyCollectedDataTypeTracking: false,
+          NSPrivacyCollectedDataTypePurposes: [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+          ],
+        },
+      ],
+    },
   },
   android: {
     package: "com.niklasarnitz.waslaeuft.in",

@@ -6,6 +6,8 @@
 // Requires a persistent server (`next start` / self-hosted), which is the case
 // for the Coolify/Docker deployment.
 
+import { captureException } from "@sentry/nextjs";
+
 // How often the matching job runs. Override with WORKER_CRON.
 const CRON_SCHEDULE = process.env.WORKER_CRON ?? "*/30 * * * *";
 
@@ -42,6 +44,7 @@ export async function registerNodeJobs() {
       }
     } catch (error) {
       console.error("[reminder-cron] run failed:", error);
+      captureException(error);
     }
   };
 
@@ -68,6 +71,7 @@ async function scheduleMovieUpdates(
     }
   } catch (error) {
     console.error("[movie-update-cron] could not clean up runs:", error);
+    captureException(error);
     await sendPushoverNotification(
       "Movie Update Setup Failed",
       `Could not clean up interrupted update runs on server start:\n${errorToString(error)}`,
@@ -95,6 +99,7 @@ async function scheduleMovieUpdates(
         }
       } catch (error) {
         console.error("[movie-update-cron] could not start updates:", error);
+        captureException(error);
         await sendPushoverNotification(
           "Movie Update Failed",
           `The scheduled movie update could not be started:\n${errorToString(error)}`,

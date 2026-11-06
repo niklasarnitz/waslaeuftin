@@ -28,7 +28,10 @@
     "production": {
       "extends": "base",
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_BUGSINK_DSN": "https://a21171b095e14c19b83785b9fdeb0cdd@bugsink.arnitz.org/2"
+      }
     }
   },
   "submit": {

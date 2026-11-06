@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function Legal() {
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center space-y-4 p-4 wrap-anywhere">
       <div className="text-3xl font-bold">Rechtliche Informationen</div>
 
       <div className="border-border/70 bg-muted/40 text-muted-foreground max-w-3xl rounded-xl border px-4 py-3 text-center text-sm">
@@ -16,7 +16,9 @@ export default function Legal() {
         Bildmaterial liegen bei den jeweiligen Filmstudios bzw. Rechteinhabern.
       </div>
 
-      <h1 className="text-2xl font-semibold">Datenschutz</h1>
+      <h1 id="datenschutz" className="text-2xl font-semibold">
+        Datenschutz
+      </h1>
       <div className="text-center">
         Mit der folgenden Datenschutzerklärung möchten wir Sie darüber
         aufklären, welche Arten Ihrer personenbezogenen Daten (nachfolgend auch
@@ -30,7 +32,7 @@ export default function Legal() {
         Die verwendeten Begriffe sind nicht geschlechtsspezifisch.
         <br />
         <br />
-        Stand: 28. März 2024
+        Stand: 6. November 2026 (ergänzt um technische Fehlerdiagnose)
         <br />
         <br />
         Inhaltsübersicht
@@ -349,6 +351,47 @@ export default function Legal() {
         <br />
         Sicherheitsmaßnahmen: IP-Masking (Pseudonymisierung der IP-Adresse).
         <br />
+        <br />
+        <strong id="fehlerdiagnose">
+          Technische Fehlerdiagnose mit Bugsink
+        </strong>
+        <br />
+        Wir nutzen für Website und mobile App eine selbst betriebene
+        Bugsink-Installation auf unserem europäischen Server, um technische
+        Fehler zu erkennen und die Zuverlässigkeit des Angebots zu verbessern.
+        Bugsink dient nicht zur Verhaltensanalyse oder zur Erstellung von
+        Nutzerprofilen. Die Sentry-Programmbibliotheken dienen dabei nur der
+        Übermittlung an unseren Server; Fehlerberichte werden nicht an den
+        Sentry-Cloud-Dienst geschickt.
+        <br />
+        Vor dem Versand werden Fehlerberichte auf Fehlerkategorie,
+        Fehlerzeitpunkt, zufällige Kennung des einzelnen Berichts, gekürzte
+        Code-Dateinamen mit Zeilenpositionen, App-Version soweit verfügbar und
+        die Unterscheidung Website/Server/App reduziert. Fehlermeldungstexte,
+        Kontokennungen, E-Mail-Adressen, Standorte, Suchbegriffe, URLs mit
+        Parametern, Anfrageinhalte, Header, Cookies, Nutzungsverläufe und lokale
+        Variablen werden nicht in die Berichte übernommen. Bildschirmaufnahmen,
+        Session Replay, Leistungsprofile und native Speicherabbilder sind
+        deaktiviert. In der mobilen App werden ausschließlich JavaScript-Fehler
+        gemeldet.
+        <br />
+        Die IP-Adresse wird technisch für die HTTPS-Verbindung verarbeitet, aber
+        nicht als Nutzerkennung in Fehlerberichten gespeichert. Diagnoseberichte
+        werden im stündlichen Löschlauf nach 14 Tagen entfernt. Das Verfahren
+        setzt keine Analyse-Cookies oder dauerhaften Diagnose-Nutzerkennungen.
+        Aktivierte Do-Not-Track- und Global-Privacy-Control-Signale werden im
+        Browser berücksichtigt.
+        <br />
+        Rechtsgrundlage für die auf technische Fehler beschränkte Verarbeitung
+        ist unser berechtigtes Interesse an einem sicheren und zuverlässigen
+        Angebot (Art. 6 Abs. 1 lit. f DSGVO). Sie können der Verarbeitung aus
+        Gründen, die sich aus Ihrer besonderen Situation ergeben, widersprechen
+        (Art. 21 DSGVO). Für Auskunft, Löschung und weitere Betroffenenrechte
+        wenden Sie sich an den oben genannten Verantwortlichen. Die rechtlichen
+        Angaben zum Hosting und zu den Auftragsverarbeitern gelten auch für
+        diesen Dienst.
+        <br />
+        <br />
         Änderung und Aktualisierung der Datenschutzerklärung
         <br />
         Wir bitten Sie, sich regelmäßig über den Inhalt unserer
@@ -461,7 +504,9 @@ export default function Legal() {
         <br />
         Ansonsten: Vielen Dank für jedes Kino, das regelmäßig Filme zeigt!
       </div>
-      <h1 className="text-2xl font-semibold">Impressum</h1>
+      <h1 id="impressum" className="text-2xl font-semibold">
+        Impressum
+      </h1>
       <div className="text-center">
         <p>
           Niklas Arnitz
