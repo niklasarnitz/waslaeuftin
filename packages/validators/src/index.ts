@@ -27,7 +27,16 @@ export const FavoriteMoviesInputSchema = z.object({
 
 export const CitySlugSchema = z.string();
 export const CityQuerySchema = z.string().optional();
-export const CitySearchSchema = z.string();
+export const CitySearchSchema = z.union([
+  z.string(),
+  z.object({
+    query: z.string(),
+    location: NearbyCinemasInputSchema.pick({
+      latitude: true,
+      longitude: true,
+    }).optional(),
+  }),
+]);
 export const CityIdSchema = z.number();
 
 export const CityMoviesAndShowingsInputSchema = z.object({

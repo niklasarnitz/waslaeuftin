@@ -36,11 +36,38 @@ export function CommandSearch({ inline = false }: { inline?: boolean }) {
   const searchId = useId();
   const router = useRouter();
   const showResults = !inline || query.trim().length > 0;
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  }>();
 
-  const { data, isFetching, isError } = api.cities.search.useQuery(query, {
-    enabled: open || (inline && showResults),
-    placeholderData: (prev) => prev,
-  });
+  useEffect(() => {
+    if (!open || !navigator.geolocation) return;
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (!cancelled) {
+          setLocation({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+        }
+      },
+      () => {
+        if (!cancelled) setLocation(undefined);
+      },
+      { maximumAge: 5 * 60 * 1000, timeout: 12000 },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const { data, isFetching, isError } = api.cities.search.useQuery(
+    { query, location: query.trim() ? undefined : location },
+    { enabled: open || (inline && showResults) },
+  );
+  const hasNearbyResults = !query.trim() && !!location && !!data;
 
   const items = useMemo<SearchItem[]>(() => {
     if (!data) return [];
@@ -243,7 +270,7 @@ export function CommandSearch({ inline = false }: { inline?: boolean }) {
           {cityItems.length > 0 && (
             <div className="px-1 py-2">
               <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
-                {query.length > 0 ? "Städte" : "Städte in der Nähe"}
+                {hasNearbyResults ? "Städte in der Nähe" : "Städte"}
               </p>
               {cityItems.map((item, index) => {
                 const flatIndex = movieItems.length + index;
@@ -275,7 +302,7 @@ export function CommandSearch({ inline = false }: { inline?: boolean }) {
           {cinemaItems.length > 0 && (
             <div className="px-1 py-2">
               <p className="text-muted-foreground px-3 pb-1.5 text-xs font-medium">
-                {query.length > 0 ? "Kinos" : "Kinos in der Nähe"}
+                {hasNearbyResults ? "Kinos in der Nähe" : "Kinos"}
               </p>
               {cinemaItems.map((item, index) => {
                 const flatIndex = movieItems.length + cityItems.length + index;

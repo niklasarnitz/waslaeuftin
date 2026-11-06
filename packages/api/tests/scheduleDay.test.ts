@@ -72,6 +72,7 @@ describe("scheduleDay", () => {
     await mock.module("@waslaeuftin/api/internal/umami", () => ({
       getAnalyticsSource: () => "web",
       trackCinemaView: () => Promise.resolve(undefined),
+      trackCityView: () => Promise.resolve(undefined),
     }));
     const { db } = await import("@waslaeuftin/db/client");
     const { cinemaRouter } =

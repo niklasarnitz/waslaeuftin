@@ -209,7 +209,36 @@ export const citiesRouter = createTRPCRouter({
   search: publicProcedure
     .input(CitySearchSchema)
     .query(async ({ ctx, input }) => {
-      const query = input.trim();
+      const query = (typeof input === "string" ? input : input.query).trim();
+      const location = typeof input === "string" ? undefined : input.location;
+      const sortByDistance = !query && location;
+
+      // Rank all candidates before limiting; limiting alphabetically first
+      // would exclude nearby places. Unknown positions are not nearby results.
+      const nearest = <
+        T extends { latitude: number | null; longitude: number | null },
+      >(
+        rows: T[],
+      ) => {
+        if (!sortByDistance) return rows;
+        const radians = (degrees: number) => (degrees * Math.PI) / 180;
+        const distance = (row: T) => {
+          if (row.latitude === null || row.longitude === null) return Infinity;
+          const lat = radians(row.latitude);
+          const userLat = radians(location.latitude);
+          return (
+            1 -
+            (Math.sin(userLat) * Math.sin(lat) +
+              Math.cos(userLat) *
+                Math.cos(lat) *
+                Math.cos(radians(row.longitude - location.longitude)))
+          );
+        };
+        return rows
+          .filter((row) => row.latitude !== null && row.longitude !== null)
+          .sort((a, b) => distance(a) - distance(b))
+          .slice(0, 5);
+      };
 
       const cityWhere = query
         ? { name: { contains: query, mode: "insensitive" as const } }
@@ -233,9 +262,15 @@ export const citiesRouter = createTRPCRouter({
 
       const cities = await ctx.db.city.findMany({
         where: cityWhere,
-        select: { id: true, name: true, slug: true },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          latitude: true,
+          longitude: true,
+        },
         orderBy: { name: "asc" },
-        take: 5,
+        take: sortByDistance ? undefined : 5,
       });
 
       const cinemas = await ctx.db.cinema.findMany({
@@ -244,10 +279,12 @@ export const citiesRouter = createTRPCRouter({
           id: true,
           name: true,
           slug: true,
-          city: { select: { name: true } },
+          latitude: true,
+          longitude: true,
+          city: { select: { name: true, latitude: true, longitude: true } },
         },
         orderBy: { name: "asc" },
-        take: 5,
+        take: sortByDistance ? undefined : 5,
       });
 
       const movies = movieWhere
@@ -264,7 +301,17 @@ export const citiesRouter = createTRPCRouter({
           })
         : [];
 
-      return { cities, cinemas, movies };
+      return {
+        cities: nearest(cities),
+        cinemas: nearest(
+          cinemas.map((cinema) => ({
+            ...cinema,
+            latitude: cinema.latitude ?? cinema.city.latitude,
+            longitude: cinema.longitude ?? cinema.city.longitude,
+          })),
+        ),
+        movies,
+      };
     }),
   getCityById: publicProcedure
     .input(CityIdSchema)
