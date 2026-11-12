@@ -1,8 +1,8 @@
 import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { ListingMovieCard as GroupedMovie } from "@waslaeuftin/core";
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
@@ -51,56 +51,27 @@ export function MovieCard({
 
   return (
     <View
-      className="bg-card border-border/40 mb-4 rounded-2xl border p-4 shadow-sm"
+      className="bg-card mb-4 rounded-3xl p-4"
       style={{ borderCurve: "continuous" }}
     >
-      {/* Two-column layout: cover | title + cinemas */}
+      {/* Keep the poster beside the title, not beside the entire programme. */}
       <View className="flex-row gap-3">
-        {/* Left: Movie cover & Action buttons */}
-        <View className="items-center gap-2">
-          <Pressable onPress={openMovieDetail} disabled={!showDetailsLink}>
-            <MoviePoster coverUrl={movie.coverUrl} />
-          </Pressable>
+        <Pressable
+          onPress={openMovieDetail}
+          disabled={!showDetailsLink}
+          accessibilityRole={showDetailsLink ? "button" : undefined}
+          accessibilityLabel={movie.name}
+        >
+          <MoviePoster coverUrl={movie.coverUrl} />
+        </Pressable>
 
-          <View className="flex-row gap-1">
-            {meta?.trailerUrl ? (
-              <Pressable
-                onPress={() =>
-                  meta.trailerUrl && void openExternalUrl(meta.trailerUrl)
-                }
-                className="bg-primary/90 active:bg-primary flex-row items-center gap-1 rounded-lg px-2 py-1"
-              >
-                <Ionicons name="play" color="#FFF" size={10} />
-                <Text className="text-[10px] font-bold text-white">
-                  Trailer
-                </Text>
-              </Pressable>
-            ) : null}
-
-            {tmdbMovieUrl ? (
-              <Pressable
-                onPress={() => void openExternalUrl(tmdbMovieUrl)}
-                className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2 py-1"
-              >
-                <Ionicons
-                  name="film-outline"
-                  size={10}
-                  className="text-foreground"
-                />
-                <Text className="text-foreground text-[10px] font-semibold">
-                  TMDB
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-
-        {/* Right: title + meta + cinemas */}
+        {/* Title, metadata and secondary actions */}
         <View className="min-w-0 flex-1">
           {/* Title */}
           <Pressable
             onPress={openMovieDetail}
             disabled={!showDetailsLink}
+            accessibilityRole={showDetailsLink ? "button" : undefined}
             className="active:opacity-70"
           >
             <Text
@@ -136,7 +107,7 @@ export function MovieCard({
             )}
             {meta?.voteAverage ? (
               <View className="flex-row items-center gap-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5">
-                <Ionicons name="star" color="#F59E0B" size={10} />
+                <AppIcon name="star.fill" color="#F59E0B" size={10} />
                 <Text className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
                   {meta.voteAverage.toFixed(1)}
                 </Text>
@@ -144,40 +115,92 @@ export function MovieCard({
             ) : null}
           </View>
 
-          {/* Cinemas & showings */}
-          <View className="mt-3 gap-2.5">
-            {visibleCinemas.map((cinemaEntry, cIdx) => {
-              const { cinema, showings } = cinemaEntry;
-              return (
-                <CinemaShowingsCard
-                  key={`${cinema.slug}-${cIdx}`}
-                  cinema={cinema}
-                  showings={showings}
-                  hideCinemaHeader={hideCinemaHeader}
-                  movieName={movie.name}
-                  onCinemaPress={() =>
-                    router.push({
-                      pathname: "/cinema/[cinemaSlug]",
-                      params: { cinemaSlug: cinema.slug, name: cinema.name },
-                    })
-                  }
-                />
-              );
-            })}
-            {hiddenCinemaCount > 0 && showDetailsLink && (
+          <View className="mt-3 flex-row flex-wrap gap-2">
+            {meta?.trailerUrl ? (
               <Pressable
-                onPress={openMovieDetail}
-                className="border-primary/40 bg-muted/40 active:bg-muted/60 rounded-xl border border-dashed p-2.5"
-                style={{ borderCurve: "continuous" }}
+                accessibilityRole="button"
+                accessibilityLabel={`Trailer zu ${movie.name} ansehen`}
+                onPress={() =>
+                  meta.trailerUrl && void openExternalUrl(meta.trailerUrl)
+                }
+                style={{ minHeight: 44 }}
+                className="justify-center active:opacity-70"
               >
-                <Text className="text-primary text-center text-sm font-bold">
-                  {formatCinemaCount(hiddenCinemaCount)} weitere{" "}
-                  {hiddenCinemaCount === 1 ? "Kino" : "Kinos"} anzeigen
-                </Text>
+                <View
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    minHeight: 30,
+                  }}
+                  className="bg-action flex-row items-center gap-1 rounded-full"
+                >
+                  <AppIcon name="play" color="#FFF" size={12} />
+                  <Text className="text-xs font-semibold text-white">
+                    Trailer
+                  </Text>
+                </View>
               </Pressable>
-            )}
+            ) : null}
+            {tmdbMovieUrl ? (
+              <Pressable
+                onPress={() => void openExternalUrl(tmdbMovieUrl)}
+                accessibilityRole="button"
+                accessibilityLabel={`${movie.name} auf TMDB öffnen`}
+                style={{ minHeight: 44 }}
+                className="justify-center active:opacity-70"
+              >
+                <View
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    minHeight: 30,
+                  }}
+                  className="bg-muted flex-row items-center gap-1 rounded-full"
+                >
+                  <AppIcon name="film" size={12} color="#8E8E93" />
+                  <Text className="text-foreground text-xs font-semibold">
+                    TMDB
+                  </Text>
+                </View>
+              </Pressable>
+            ) : null}
           </View>
         </View>
+      </View>
+
+      {/* Full-width showtimes remain readable at larger text sizes. */}
+      <View className="mt-3 gap-2.5">
+        {visibleCinemas.map((cinemaEntry, cIdx) => {
+          const { cinema, showings } = cinemaEntry;
+          return (
+            <CinemaShowingsCard
+              key={`${cinema.slug}-${cIdx}`}
+              cinema={cinema}
+              showings={showings}
+              hideCinemaHeader={hideCinemaHeader}
+              movieName={movie.name}
+              onCinemaPress={() =>
+                router.push({
+                  pathname: "/cinema/[cinemaSlug]",
+                  params: { cinemaSlug: cinema.slug, name: cinema.name },
+                })
+              }
+            />
+          );
+        })}
+        {hiddenCinemaCount > 0 && showDetailsLink && (
+          <Pressable
+            onPress={openMovieDetail}
+            accessibilityRole="button"
+            className="bg-primary/10 justify-center rounded-2xl p-2.5 active:opacity-70"
+            style={{ borderCurve: "continuous", minHeight: 44 }}
+          >
+            <Text className="text-primary text-center text-sm font-bold">
+              {formatCinemaCount(hiddenCinemaCount)} weitere{" "}
+              {hiddenCinemaCount === 1 ? "Kino" : "Kinos"} anzeigen
+            </Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

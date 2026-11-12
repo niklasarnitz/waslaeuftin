@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
@@ -41,6 +42,9 @@ export const apiClient = createTRPCClient<AppRouter>({
       headers() {
         const headers = new Map<string, string>();
         headers.set("x-trpc-source", "expo-react");
+        if (Platform.OS === "ios" || Platform.OS === "android") {
+          headers.set("x-app-platform", Platform.OS);
+        }
 
         return headers;
       },

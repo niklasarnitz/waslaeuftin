@@ -5,3 +5,47 @@
 @import "nativewind/theme";
 
 @import "@waslaeuftin/tailwind-config/theme";
+
+/* Keep the native content layer neutral; glass belongs to system navigation.
+   Literal tint/fill values also support NativeWind's opacity modifiers. */
+:root {
+  --background: #f2f2f7;
+  --foreground: #000;
+  --card: #fff;
+  --card-foreground: #000;
+  --primary: #0066cc;
+  --primary-foreground: #fff;
+  --action: #0066cc;
+  --secondary: #e5e5ea;
+  --secondary-foreground: #3c3c43;
+  --muted: #e5e5ea;
+  --muted-foreground: #636366;
+  --border: #c6c6c8;
+
+  @variant dark {
+    --background: #000;
+    --foreground: #fff;
+    --card: #1c1c1e;
+    --card-foreground: #fff;
+    --primary: #66b2ff;
+    --primary-foreground: #fff;
+    --secondary: #2c2c2e;
+    --secondary-foreground: #ebebf5;
+    --muted: #2c2c2e;
+    --muted-foreground: #aeaeb2;
+    --border: #38383a;
+  }
+}
+
+@media ios {
+  :root {
+    --background: platformColor(systemGroupedBackground);
+    --foreground: platformColor(label);
+    --card: platformColor(secondarySystemGroupedBackground);
+    --card-foreground: platformColor(label);
+  }
+}
+
+@theme inline {
+  --color-action: var(--action);
+}

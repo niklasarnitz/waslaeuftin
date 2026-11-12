@@ -175,6 +175,8 @@ export default function SearchIndex() {
         // List all cities
         <FlatList
           contentInsetAdjustmentBehavior="automatic"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           data={allCitiesQuery.data ?? []}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 16 }}
@@ -194,27 +196,18 @@ export default function SearchIndex() {
           renderItem={({ item }) => (
             <Pressable
               onPress={() => handleCityPress(item.slug)}
-              className="bg-card border-border/40 flex-row items-center justify-between rounded-xl border p-4"
-              style={{ borderCurve: "continuous" }}
+              accessibilityRole="button"
+              className="bg-card flex-row items-center gap-3 rounded-2xl px-4 py-3 active:opacity-70"
+              style={{ borderCurve: "continuous", minHeight: 52 }}
             >
-              <View className="min-w-0 flex-1">
-                <Text
-                  numberOfLines={1}
-                  className="text-foreground text-base font-bold"
-                >
-                  {item.name}
-                </Text>
-                <Text className="text-muted-foreground mt-0.5 text-xs font-medium">
-                  {item._count.cinemas}{" "}
-                  {item._count.cinemas === 1 ? "Kino" : "Kinos"}
-                </Text>
-              </View>
-              <AppIcon
-                name="chevron.right"
-                tintColor="#8E8E93"
-                size={14}
-                style={{ marginLeft: 8 }}
-              />
+              <Text className="text-foreground min-w-0 flex-1 text-[17px] font-medium">
+                {item.name}
+              </Text>
+              <Text className="text-muted-foreground text-sm">
+                {item._count.cinemas}{" "}
+                {item._count.cinemas === 1 ? "Kino" : "Kinos"}
+              </Text>
+              <AppIcon name="chevron.right" tintColor="#8E8E93" size={14} />
             </Pressable>
           )}
         />
@@ -222,6 +215,8 @@ export default function SearchIndex() {
         // List search results
         <FlatList
           contentInsetAdjustmentBehavior="automatic"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           data={searchResultsData}
           keyExtractor={(item, index) => `${item.type}-${index}`}
           contentContainerStyle={{ padding: 16 }}
@@ -247,7 +242,8 @@ export default function SearchIndex() {
                   onPress={() =>
                     handleMoviePress(item.item.name, item.item.tmdbMovieId)
                   }
-                  className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
+                  accessibilityRole="button"
+                  className="bg-card mb-2 flex-row items-center justify-between rounded-2xl p-4 active:opacity-70"
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
@@ -277,7 +273,8 @@ export default function SearchIndex() {
               return (
                 <Pressable
                   onPress={() => handleCityPress(item.item.slug)}
-                  className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
+                  accessibilityRole="button"
+                  className="bg-card mb-2 flex-row items-center justify-between rounded-2xl p-4 active:opacity-70"
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">
@@ -307,7 +304,8 @@ export default function SearchIndex() {
                   onPress={() =>
                     handleCinemaPress(item.item.slug, item.item.name)
                   }
-                  className="bg-card border-border/40 mb-2 flex-row items-center justify-between rounded-xl border p-4"
+                  accessibilityRole="button"
+                  className="bg-card mb-2 flex-row items-center justify-between rounded-2xl p-4 active:opacity-70"
                   style={{ borderCurve: "continuous" }}
                 >
                   <View className="min-w-0 flex-1 flex-row items-center gap-3">

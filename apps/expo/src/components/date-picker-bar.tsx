@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
 import {
@@ -13,8 +7,6 @@ import {
   isSameScheduleDay,
   SCHEDULE_TIME_ZONE,
 } from "@waslaeuftin/core";
-import { AdaptiveGlass } from "@waslaeuftin/expo/components/glass";
-import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface DatePickerBarProps {
   selectedDate: Date;
@@ -31,9 +23,6 @@ const weekdayFormatter = new Intl.DateTimeFormat("de-DE", {
 });
 
 export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
-  const primaryColor = usePrimaryColor();
-  const isDark = useColorScheme() === "dark";
-  const glassFallback = isDark ? "#2C2C2E" : "#FFFFFF";
   // Generate next 10 days
   const days = React.useMemo(() => {
     const list: Date[] = [];
@@ -44,18 +33,16 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
   }, []);
 
   const handlePress = (date: Date) => {
-    Haptics.selectionAsync().catch(() => {
-      /* noop */
-    });
+    if (Platform.OS === "ios") void Haptics.selectionAsync();
     onChange(date);
   };
 
   return (
-    <View className="border-border bg-background border-b py-2">
+    <View className="pt-1">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 4 }}
       >
         {days.map((date, index) => {
           const active = isSameScheduleDay(date, selectedDate);
@@ -68,37 +55,31 @@ export function DatePickerBar({ selectedDate, onChange }: DatePickerBarProps) {
             <Pressable
               key={index}
               onPress={() => handlePress(date)}
-              className="overflow-hidden rounded-[14px]"
-              style={{ borderCurve: "continuous" }}
+              accessibilityRole="button"
+              accessibilityLabel={date.toLocaleDateString("de-DE", {
+                dateStyle: "full",
+                timeZone: SCHEDULE_TIME_ZONE,
+              })}
+              accessibilityState={{ selected: active }}
+              className="justify-center active:opacity-70"
+              style={{ minHeight: 44 }}
             >
-              <AdaptiveGlass
-                isInteractive
-                glassEffectStyle="regular"
-                tintColor={active ? primaryColor : undefined}
-                fallbackColor={active ? primaryColor : glassFallback}
+              <View
                 style={{
-                  minWidth: 70,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingHorizontal: 16,
-                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  minHeight: 32,
                 }}
+                className={`rounded-full ${active ? "bg-action" : ""}`}
               >
                 <Text
-                  className={`text-xs font-medium ${
+                  className={`text-sm font-semibold tabular-nums ${
                     active ? "text-white" : "text-muted-foreground"
                   }`}
                 >
-                  {dayName}
+                  {dayName} {dayNumberFormatter.format(date)}.
                 </Text>
-                <Text
-                  className={`mt-0.5 text-lg font-bold ${
-                    active ? "text-white" : "text-foreground"
-                  }`}
-                >
-                  {dayNumberFormatter.format(date)}
-                </Text>
-              </AdaptiveGlass>
+              </View>
             </Pressable>
           );
         })}

@@ -1,9 +1,11 @@
-import { Alert, Pressable, Share, Text } from "react-native";
+import { Alert, Pressable, Share, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
 import type { ListingShowing as Showing } from "@waslaeuftin/core";
 import { categorizeShowingTags, formatTime } from "@waslaeuftin/core";
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
+import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 interface ShowingTimePillProps {
   showing: Showing;
@@ -22,6 +24,7 @@ export function ShowingTimePill({
   movieName,
   cinemaName,
 }: ShowingTimePillProps) {
+  const primaryColor = usePrimaryColor();
   // In the cinema's time zone, not the device's.
   const timeStr = formatTime(showing.dateTime, showing.timeZone);
   const { prominentTags, infoItems } = categorizeShowingTags(
@@ -61,54 +64,71 @@ export function ShowingTimePill({
   };
 
   return (
-    <Pressable
-      onPress={() => openBooking(showing.bookingUrl ?? null)}
-      onLongPress={handleLongPress}
-      delayLongPress={350}
-      className="bg-primary/10 border-primary/20 flex-row items-center gap-1.5 rounded-xl border px-3 py-2.5 active:opacity-75"
-    >
-      {/* Time — text-sm */}
-      <Text className="text-primary text-sm font-bold">{timeStr}</Text>
-      {prominentTags.map((tag) => {
-        let badgeStyle = "bg-primary/20 text-primary";
-        if (["OV", "OmU", "OmeU", "OmEU"].includes(tag)) {
-          badgeStyle =
-            "bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400";
-        } else if (["3D"].includes(tag)) {
-          badgeStyle =
-            "bg-cyan-100 text-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-400";
-        } else if (["70mm", "35mm", "IMAX", "IMAX 3D"].includes(tag)) {
-          badgeStyle =
-            "bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400";
-        }
+    <View className="flex-row items-center">
+      <Pressable
+        onPress={() => openBooking(showing.bookingUrl ?? null)}
+        onLongPress={handleLongPress}
+        delayLongPress={350}
+        accessibilityRole="button"
+        accessibilityLabel={`${timeStr} Uhr${prominentTags.length ? `, ${prominentTags.join(", ")}` : ""}`}
+        accessibilityHint="Tippen, um Tickets zu öffnen. Gedrückt halten, um die Vorstellung zu teilen."
+        style={{ minHeight: 44, flexShrink: 1, alignContent: "center" }}
+        className="relative flex-row flex-wrap items-center justify-center gap-1.5 px-3 py-2 active:opacity-75"
+      >
+        <View
+          pointerEvents="none"
+          className="bg-primary/10"
+          style={{
+            position: "absolute",
+            top: 6,
+            bottom: 6,
+            left: 0,
+            right: 0,
+            borderRadius: 10,
+          }}
+        />
+        {/* Time — text-sm */}
+        <Text className="text-primary text-sm font-bold">{timeStr}</Text>
+        {prominentTags.map((tag) => {
+          let badgeStyle = "bg-primary/20 text-primary";
+          if (["OV", "OmU", "OmeU", "OmEU"].includes(tag)) {
+            badgeStyle =
+              "bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400";
+          } else if (["3D"].includes(tag)) {
+            badgeStyle =
+              "bg-cyan-100 text-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-400";
+          } else if (["70mm", "35mm", "IMAX", "IMAX 3D"].includes(tag)) {
+            badgeStyle =
+              "bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400";
+          }
 
-        return (
-          <Text
-            key={`expo-tag-${showing.id}-${tag}`}
-            className={`rounded-md px-1.5 py-0.5 text-xs font-black uppercase ${badgeStyle}`}
-          >
-            {tag}
-          </Text>
-        );
-      })}
+          return (
+            <Text
+              key={`expo-tag-${showing.id}-${tag}`}
+              className={`rounded-md px-1.5 py-0.5 text-xs font-black uppercase ${badgeStyle}`}
+            >
+              {tag}
+            </Text>
+          );
+        })}
+      </Pressable>
       {infoItems.length > 0 && (
         <Pressable
-          onPress={(e) => {
-            e.stopPropagation();
+          accessibilityRole="button"
+          accessibilityLabel="Vorstellungsinformationen"
+          onPress={() => {
             Alert.alert(
               "Vorstellungsinformationen",
               infoItems.map((item) => `• ${item}`).join("\n"),
               [{ text: "OK" }],
             );
           }}
-          className="border-border/60 bg-muted/40 ml-0.5 flex h-4 w-4 items-center justify-center rounded-full border"
-          hitSlop={8}
+          style={{ minHeight: 44, minWidth: 44 }}
+          className="items-center justify-center active:opacity-70"
         >
-          <Text className="text-muted-foreground text-[10px] font-bold italic">
-            i
-          </Text>
+          <AppIcon name="info.circle" size={16} color={primaryColor} />
         </Pressable>
       )}
-    </Pressable>
+    </View>
   );
 }

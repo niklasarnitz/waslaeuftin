@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -9,6 +10,9 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import { Host } from "@expo/ui";
+import { Text as NativeText, Picker } from "@expo/ui/swift-ui";
+import { pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import { useQuery } from "@tanstack/react-query";
 
 import type {
@@ -23,7 +27,6 @@ import {
 import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { DatePickerBar } from "@waslaeuftin/expo/components/date-picker-bar";
 import { MovieCard } from "@waslaeuftin/expo/components/movie-card";
-import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
 import { SettingsModal } from "@waslaeuftin/expo/components/settings-modal";
 import { ShowingFilterBar } from "@waslaeuftin/expo/components/showing-filter-bar";
 import {
@@ -59,7 +62,6 @@ export default function HomeIndex() {
     selectedTags: [],
     timeWindow: "all",
   });
-  const [searchVisible, setSearchVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const viewMode = useSettingsStore((s) => s.lastViewMode);
   const setViewMode = useSettingsStore((s) => s.setLastViewMode);
@@ -277,61 +279,83 @@ export default function HomeIndex() {
         <DatePickerBar selectedDate={selectedDate} onChange={setSelectedDate} />
 
         {/* Format & Time Filter Bar */}
-        <View className="mt-2">
-          <ShowingFilterBar
-            filters={filters}
-            onChangeFilters={setFilters}
-            sortBy={sortBy}
-            onChangeSortBy={setSortBy}
-          />
-        </View>
+        <ShowingFilterBar
+          filters={filters}
+          onChangeFilters={setFilters}
+          sortBy={sortBy}
+          onChangeSortBy={setSortBy}
+        />
 
-        {/* View Mode Segmented Control */}
-        <View
-          className="bg-muted/60 mx-4 mt-2 flex-row rounded-2xl p-1"
-          style={{ borderCurve: "continuous" }}
-        >
-          <Pressable
-            onPress={() => setViewMode("nearby")}
-            className={`flex-1 items-center justify-center rounded-xl py-2 ${
-              viewMode === "nearby" ? "bg-card shadow-sm" : ""
-            }`}
-            style={
-              viewMode === "nearby" ? { borderCurve: "continuous" } : undefined
-            }
+        {/* SwiftUI owns the segmented control's selection, motion and accessibility. */}
+        {Platform.OS === "ios" ? (
+          <Host
+            matchContents={{ vertical: true }}
+            ignoreSafeArea="all"
+            style={{ marginHorizontal: 16, marginTop: 4 }}
           >
-            <Text
-              className={`text-xs font-bold ${
+            <Picker
+              label="Kinoauswahl"
+              selection={viewMode}
+              onSelectionChange={setViewMode}
+              modifiers={[pickerStyle("segmented")]}
+            >
+              <NativeText modifiers={[tag("nearby")]}>
+                In deiner Nähe
+              </NativeText>
+              <NativeText modifiers={[tag("favorites")]}>
+                {`Favoriten (${favoriteCinemaIds.length})`}
+              </NativeText>
+            </Picker>
+          </Host>
+        ) : (
+          <View
+            className="bg-muted/60 mx-4 mt-2 flex-row rounded-2xl p-1"
+            style={{ borderCurve: "continuous" }}
+          >
+            <Pressable
+              onPress={() => setViewMode("nearby")}
+              className={`flex-1 items-center justify-center rounded-xl py-2 ${
+                viewMode === "nearby" ? "bg-card shadow-sm" : ""
+              }`}
+              style={
                 viewMode === "nearby"
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              }`}
+                  ? { borderCurve: "continuous" }
+                  : undefined
+              }
             >
-              In deiner Nähe
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setViewMode("favorites")}
-            className={`flex-1 items-center justify-center rounded-xl py-2 ${
-              viewMode === "favorites" ? "bg-card shadow-sm" : ""
-            }`}
-            style={
-              viewMode === "favorites"
-                ? { borderCurve: "continuous" }
-                : undefined
-            }
-          >
-            <Text
-              className={`text-xs font-bold ${
+              <Text
+                className={`text-xs font-bold ${
+                  viewMode === "nearby"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                In deiner Nähe
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setViewMode("favorites")}
+              className={`flex-1 items-center justify-center rounded-xl py-2 ${
+                viewMode === "favorites" ? "bg-card shadow-sm" : ""
+              }`}
+              style={
                 viewMode === "favorites"
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              }`}
+                  ? { borderCurve: "continuous" }
+                  : undefined
+              }
             >
-              Favoriten ({favoriteCinemaIds.length})
-            </Text>
-          </Pressable>
-        </View>
+              <Text
+                className={`text-xs font-bold ${
+                  viewMode === "favorites"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Favoriten ({favoriteCinemaIds.length})
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         <View className="gap-6 p-4">
           {/* Cinema Feed Section */}
@@ -355,8 +379,10 @@ export default function HomeIndex() {
               {!isFavoritesMode && (
                 <Pressable
                   onPress={() => setSettingsVisible(true)}
-                  hitSlop={8}
-                  className="bg-primary/10 flex-row items-center gap-1 rounded-full px-2.5 py-1"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Suchradius: ${searchRadiusKm} Kilometer. Einstellungen öffnen`}
+                  style={{ minHeight: 44 }}
+                  className="flex-row items-center gap-1 px-1"
                 >
                   <AppIcon
                     name="slider.horizontal.3"
@@ -426,7 +452,9 @@ export default function HomeIndex() {
                 </Text>
                 <Pressable
                   onPress={requestLocation}
-                  className="bg-primary self-start rounded-lg px-4 py-2"
+                  accessibilityRole="button"
+                  style={{ minHeight: 44 }}
+                  className="bg-action justify-center self-start rounded-full px-4 py-2"
                 >
                   <Text className="text-xs font-bold text-white">
                     Standort freigeben
@@ -464,8 +492,9 @@ export default function HomeIndex() {
                 <Pressable
                   key={city.slug}
                   onPress={() => handleCityPress(city.slug)}
-                  className="bg-muted border-border/30 active:bg-muted/80 rounded-xl border px-4 py-2.5"
-                  style={{ borderCurve: "continuous" }}
+                  accessibilityRole="button"
+                  className="bg-card active:bg-muted justify-center rounded-2xl px-4 py-2.5"
+                  style={{ borderCurve: "continuous", minHeight: 44 }}
                 >
                   <Text className="text-foreground text-sm font-semibold">
                     {city.name}
@@ -473,9 +502,10 @@ export default function HomeIndex() {
                 </Pressable>
               ))}
               <Pressable
-                onPress={() => setSearchVisible(true)}
-                className="bg-muted/40 border-border/80 active:bg-muted/60 rounded-xl border border-dashed px-4 py-2.5"
-                style={{ borderCurve: "continuous" }}
+                onPress={() => router.navigate("/(search)")}
+                accessibilityRole="button"
+                className="bg-card active:bg-muted justify-center rounded-2xl px-4 py-2.5"
+                style={{ borderCurve: "continuous", minHeight: 44 }}
               >
                 <Text className="text-primary text-sm font-semibold">
                   Alle Städte...
@@ -485,10 +515,6 @@ export default function HomeIndex() {
           </View>
         </View>
       </ScrollView>
-      <SearchModal
-        visible={searchVisible}
-        onClose={() => setSearchVisible(false)}
-      />
       <SettingsModal
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}

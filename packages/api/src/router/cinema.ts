@@ -10,6 +10,7 @@ import {
   publicProcedure,
 } from "@waslaeuftin/api/internal/trpc";
 import {
+  getAnalyticsPlatform,
   getAnalyticsSource,
   trackCinemaView,
 } from "@waslaeuftin/api/internal/umami";
@@ -486,6 +487,7 @@ export const cinemaRouter = createTRPCRouter({
         cinema,
         ctx.ip,
         getAnalyticsSource(ctx.headers),
+        getAnalyticsPlatform(ctx.headers),
       ).catch(console.error);
 
       return {

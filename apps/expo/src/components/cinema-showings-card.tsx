@@ -24,17 +24,19 @@ export function CinemaShowingsCard({
 }: CinemaShowingsCardProps) {
   return (
     <View
-      className="border-border/20 bg-muted/30 rounded-xl border p-2.5"
+      className="border-border/40 border-t pt-3"
       style={{ borderCurve: "continuous" }}
     >
       {!hideCinemaHeader && (
         <Pressable
           onPress={onCinemaPress}
           disabled={!onCinemaPress}
-          className="mb-3 flex-row items-center justify-between"
+          accessibilityRole={onCinemaPress ? "button" : undefined}
+          style={{ minHeight: 44 }}
+          className="mb-2 flex-row items-center justify-between"
         >
           <View className="mr-2 flex-1">
-            <Text className="text-foreground text-sm font-bold tracking-tight">
+            <Text className="text-foreground text-base font-semibold">
               {cinema.name}
             </Text>
             {cinema.city && (

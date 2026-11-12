@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { Pressable } from "react-native";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { useRouter } from "expo-router";
 import Stack from "expo-router/stack";
-import { Ionicons } from "@expo/vector-icons";
 
-import { glassSupported } from "@waslaeuftin/expo/components/glass";
-import { SearchModal } from "@waslaeuftin/expo/components/search-modal";
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
 
 export default function HomeLayout() {
   const primaryColor = usePrimaryColor();
-  const [searchVisible, setSearchVisible] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -26,15 +25,21 @@ export default function HomeLayout() {
             title: "wasläuft.in",
             // On iOS 26 the tab-bar search button is the primary search entry,
             // so the redundant header button is hidden when glass is available.
-            headerRight: glassSupported
+            headerRight: isLiquidGlassAvailable()
               ? undefined
               : () => (
                   <Pressable
-                    onPress={() => setSearchVisible(true)}
+                    onPress={() => router.navigate("/(search)")}
+                    accessibilityRole="button"
+                    accessibilityLabel="Suchen"
                     hitSlop={12}
                     className="p-1"
                   >
-                    <Ionicons name="search" size={22} color={primaryColor} />
+                    <AppIcon
+                      name="magnifyingglass"
+                      size={22}
+                      color={primaryColor}
+                    />
                   </Pressable>
                 ),
           }}
@@ -52,10 +57,6 @@ export default function HomeLayout() {
           options={{ title: "", headerLargeTitle: false }}
         />
       </Stack>
-      <SearchModal
-        visible={searchVisible}
-        onClose={() => setSearchVisible(false)}
-      />
     </>
   );
 }

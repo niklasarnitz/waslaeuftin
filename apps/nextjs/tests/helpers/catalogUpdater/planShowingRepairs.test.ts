@@ -5,7 +5,10 @@ import type {
   ShowingReviewInput,
 } from "@waslaeuftin/helpers/catalogUpdater/planShowingRepairs";
 import type { TmdbMatchEvaluation } from "@waslaeuftin/types/TmdbMatchEvaluation";
-import { planShowingRepairs } from "@waslaeuftin/helpers/catalogUpdater/planShowingRepairs";
+import {
+  planBoundShowingRepairs,
+  planShowingRepairs,
+} from "@waslaeuftin/helpers/catalogUpdater/planShowingRepairs";
 
 const showing = (
   id: number,
@@ -128,4 +131,128 @@ test("holds inconsistent provider years, API errors, missing targets and mismatc
     "target-not-stored",
     "source-title-conflict",
   ]);
+});
+
+const boundInput = (): Parameters<typeof planBoundShowingRepairs>[0] => {
+  const updatedAt = new Date("2026-11-01T12:00:00Z");
+  return {
+    capturedAt: new Date("2026-11-06T12:00:00Z"),
+    requests: [
+      { showingId: 1, sourceMovieId: 3, targetTmdbId: 1437696, updatedAt },
+    ],
+    showings: [
+      {
+        ...showing(1, "Vaterland"),
+        movieId: 3,
+        bookingUrl: "https://kinotickets.express/test/booking/123",
+        providerSessionId: "",
+        sourceProvider: null,
+        providerFilmId: null,
+        updatedAt,
+        isListed: true,
+        showingAdditionalData: ["OV"],
+      },
+    ],
+    movies: [
+      { id: 3, tmdbMovieId: null, coverUrl: null },
+      {
+        id: 2,
+        tmdbMovieId: 1437696,
+        coverUrl: "https://example.com/cover.jpg",
+      },
+    ],
+    catalogs: [
+      {
+        movies: [],
+        showings: [
+          {
+            cinemaId: 10,
+            movieName: "Vaterland",
+            dateTime: new Date("2026-12-01T18:00:00Z"),
+            bookingUrl: "https://kinotickets.express/test/booking/123",
+            provider: "KinoTicketsExpress",
+            providerFilmId: "film-123",
+            evidence: { productionYear: 2026 },
+          },
+        ],
+      },
+    ],
+    occupiedSlots: [],
+    evaluate: async (title: string) => {
+      const result = decision(title, 1437696);
+      if (!("evaluation" in result)) throw new Error("Missing fixture");
+      return result.evaluation;
+    },
+  };
+};
+
+test("plans only explicitly selected unmatched showings using uniquely booking-bound fresh evidence", async () => {
+  const input = boundInput();
+  input.showings.push({ ...input.showings[0]!, id: 99 });
+  const before = structuredClone(input.showings);
+  input.evaluate = async (title, evidence) => {
+    // A stale stored year would select the wrong film instead.
+    const result = decision(
+      title,
+      evidence?.productionYear === 2026 ? 1437696 : null,
+    );
+    if (!("evaluation" in result)) throw new Error("Missing fixture");
+    return result.evaluation;
+  };
+  const rows = await planBoundShowingRepairs(input);
+  expect(rows).toHaveLength(1);
+  expect(rows[0]).toMatchObject({
+    status: "proposed-remap",
+    targetMovieId: 2,
+    proposedTmdbId: 1437696,
+    source: { providerFilmId: "film-123", evidence: { productionYear: 2026 } },
+    before: { id: 1, movieId: 3, showingAdditionalData: ["OV"] },
+  });
+  expect(input.showings).toEqual(before);
+});
+
+test.each([
+  "booking",
+  "time",
+  "cinema",
+  "title",
+  "provider",
+  "film",
+  "session",
+  "ambiguous-source",
+  "empty-evidence",
+  "changed-row",
+  "positive-source",
+  "wrong-target",
+  "no-cover",
+  "duplicate-target",
+  "missing-row",
+  "unlisted",
+])("holds unsafe bounded repairs: %s", async (scenario) => {
+  const input = boundInput();
+  const stored = input.showings[0]!;
+  const fresh = input.catalogs[0]!.showings[0]!;
+  if (scenario === "booking") fresh.bookingUrl += "4";
+  if (scenario === "time") fresh.dateTime = new Date("2026-12-01T19:00:00Z");
+  if (scenario === "cinema") fresh.cinemaId = 11;
+  if (scenario === "title") fresh.movieName = "Vaterland - Part Two";
+  if (scenario === "provider") fresh.provider = "KinoHeld";
+  if (scenario === "film")
+    Object.assign(stored, { providerFilmId: "other-film" });
+  if (scenario === "session") stored.providerSessionId = "other-session";
+  if (scenario === "ambiguous-source")
+    input.catalogs[0]!.showings.push({ ...fresh });
+  if (scenario === "empty-evidence") fresh.evidence = {};
+  if (scenario === "changed-row")
+    stored.updatedAt = new Date("2026-11-02T12:00:00Z");
+  if (scenario === "positive-source") input.movies[0]!.tmdbMovieId = 11248;
+  if (scenario === "wrong-target") input.requests[0]!.targetTmdbId = 11248;
+  if (scenario === "no-cover") input.movies[1]!.coverUrl = null;
+  if (scenario === "duplicate-target")
+    Object.assign(input, {
+      occupiedSlots: [{ cinemaId: 10, movieId: 2, dateTime: stored.dateTime }],
+    });
+  if (scenario === "missing-row") input.showings = [];
+  if (scenario === "unlisted") stored.isListed = false;
+  expect((await planBoundShowingRepairs(input))[0]?.status).toBe("held");
 });

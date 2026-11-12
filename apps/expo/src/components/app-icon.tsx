@@ -10,6 +10,8 @@ export type IconName =
   | "location.fill"
   | "mappin.circle.fill"
   | "slider.horizontal.3"
+  | "arrow.up.arrow.down"
+  | "info.circle"
   | "film"
   | "film.fill"
   | "magnifyingglass"
@@ -18,6 +20,7 @@ export type IconName =
   | "calendar"
   | "bell"
   | "bell.fill"
+  | "trash"
   | "xmark"
   | "checkmark";
 
@@ -28,6 +31,8 @@ const SF_TO_IONICONS_MAP: Record<IconName, keyof typeof Ionicons.glyphMap> = {
   "location.fill": "location",
   "mappin.circle.fill": "location",
   "slider.horizontal.3": "options-outline",
+  "arrow.up.arrow.down": "swap-vertical",
+  "info.circle": "information-circle-outline",
   film: "videocam-outline",
   "film.fill": "videocam",
   magnifyingglass: "search",
@@ -36,6 +41,7 @@ const SF_TO_IONICONS_MAP: Record<IconName, keyof typeof Ionicons.glyphMap> = {
   calendar: "calendar-outline",
   bell: "notifications-outline",
   "bell.fill": "notifications",
+  trash: "trash-outline",
   xmark: "close",
   checkmark: "checkmark",
 };

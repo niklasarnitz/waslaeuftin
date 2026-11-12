@@ -2,6 +2,9 @@ import type { Cinema, Prisma } from "@waslaeuftin/db";
 import {
   getCineprogMovies,
   getCinetixxMovies,
+  getDieselKinoMovies,
+  getMegaplexMovies,
+  getStarMovieMovies,
   getUciMovies,
   getYorckMovies,
 } from "@waslaeuftin/cinema-providers/server";
@@ -11,6 +14,9 @@ export const nativeProviderNames = [
   "Cinetixx",
   "Cineprog",
   "UCI",
+  "DieselKino",
+  "StarMovie",
+  "Megaplex",
 ] as const;
 export type NativeProviderName = (typeof nativeProviderNames)[number];
 
@@ -19,6 +25,9 @@ export const noNativeCinemaProvider = {
   cinetixxCinemaId: null,
   cineprogBaseUrl: null,
   uciCinemaId: null,
+  dieselKinoSlug: null,
+  starMovieSlug: null,
+  megaplexSlug: null,
 } satisfies Prisma.CinemaWhereInput;
 
 export const nativeProviderWhere = {
@@ -26,6 +35,9 @@ export const nativeProviderWhere = {
   Cinetixx: { cinetixxCinemaId: { not: null } },
   Cineprog: { cineprogBaseUrl: { not: null } },
   UCI: { uciCinemaId: { not: null } },
+  DieselKino: { dieselKinoSlug: { not: null } },
+  StarMovie: { starMovieSlug: { not: null } },
+  Megaplex: { megaplexSlug: { not: null } },
 } satisfies Record<NativeProviderName, Prisma.CinemaWhereInput>;
 
 export const nativeCinemaSourceKey = (
@@ -37,6 +49,9 @@ export const nativeCinemaSourceKey = (
     | "cineprogBaseUrl"
     | "uciCinemaId"
     | "uciCinemaSlug"
+    | "dieselKinoSlug"
+    | "starMovieSlug"
+    | "megaplexSlug"
   >,
 ) =>
   JSON.stringify([
@@ -46,6 +61,9 @@ export const nativeCinemaSourceKey = (
     cinema.cineprogBaseUrl,
     cinema.uciCinemaId,
     cinema.uciCinemaSlug,
+    cinema.dieselKinoSlug,
+    cinema.starMovieSlug,
+    cinema.megaplexSlug,
   ]);
 
 export const fetchNativeCinema = async (
@@ -84,5 +102,17 @@ const fetchConfiguredCinema = (
         siteId: cinema.uciCinemaId,
         slug: cinema.uciCinemaSlug,
       });
+    case "DieselKino":
+      if (!cinema.dieselKinoSlug || cinema.country !== "AUSTRIA")
+        throw new Error(`Invalid Diesel Kino mapping for cinema ${cinema.id}`);
+      return getDieselKinoMovies(cinema.id, cinema.dieselKinoSlug);
+    case "StarMovie":
+      if (!cinema.starMovieSlug || cinema.country !== "AUSTRIA")
+        throw new Error(`Invalid Star Movie mapping for cinema ${cinema.id}`);
+      return getStarMovieMovies(cinema.id, cinema.starMovieSlug);
+    case "Megaplex":
+      if (!cinema.megaplexSlug || cinema.country !== "AUSTRIA")
+        throw new Error(`Invalid Megaplex mapping for cinema ${cinema.id}`);
+      return getMegaplexMovies(cinema.id, cinema.megaplexSlug);
   }
 };

@@ -129,6 +129,7 @@ export const MobileAnalyticsEventNameSchema = z.enum([
 
 export const MobileAnalyticsEventInputSchema = z.object({
   name: MobileAnalyticsEventNameSchema,
+  platform: z.enum(["ios", "android"]).optional(),
   screen: MobileAnalyticsScreenSchema.optional(),
   slug: z.string().optional(),
   result: z.enum(["granted", "denied", "error"]).optional(),

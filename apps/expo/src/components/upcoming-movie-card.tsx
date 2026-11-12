@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import { usePrimaryColor } from "@waslaeuftin/expo/utils/theme";
@@ -51,29 +51,38 @@ export function UpcomingMovieCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-card border-border/40 mb-3 flex-row gap-3 rounded-2xl border p-3"
+      accessible={!!onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+      className="bg-card mb-3 flex-row gap-3 rounded-3xl p-4"
       style={{ borderCurve: "continuous" }}
     >
       <MoviePoster coverUrl={movie.posterUrl} size="md" />
       <View className="min-w-0 flex-1 justify-between gap-2">
         <View className="gap-1">
           <Text
-            className="text-foreground text-base font-bold tracking-tight"
+            className="text-foreground text-lg font-semibold"
             numberOfLines={2}
           >
             {movie.title}
           </Text>
           {releaseLabel ? (
-            <Text className="text-muted-foreground text-xs font-medium">
+            <Text className="text-muted-foreground text-sm">
               Kinostart: {releaseLabel}
             </Text>
           ) : null}
           {movie.overview ? (
             <Pressable
               onPress={() => setIsOverviewExpanded(!isOverviewExpanded)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isOverviewExpanded
+                  ? "Beschreibung einklappen"
+                  : "Beschreibung erweitern"
+              }
+              accessibilityState={{ expanded: isOverviewExpanded }}
             >
               <Text
-                className="text-muted-foreground text-xs"
+                className="text-muted-foreground text-sm"
                 numberOfLines={isOverviewExpanded ? undefined : 3}
               >
                 {movie.overview}
@@ -82,38 +91,60 @@ export function UpcomingMovieCard({
           ) : null}
         </View>
 
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row flex-wrap items-center gap-2">
           <Pressable
             onPress={onToggleReminder}
-            hitSlop={8}
-            className={`flex-row items-center gap-1.5 rounded-lg px-3 py-1.5 ${
-              isReminded ? "bg-primary" : "bg-primary/10"
-            }`}
+            accessibilityRole="button"
+            accessibilityLabel={`${movie.title}: ${isReminded ? "Erinnerung entfernen" : "An Film erinnern"}`}
+            accessibilityState={{ selected: isReminded }}
+            style={{ minHeight: 44 }}
+            className="justify-center active:opacity-70"
           >
-            <Ionicons
-              name={isReminded ? "notifications" : "notifications-outline"}
-              size={14}
-              color={isReminded ? "#fff" : primaryColor}
-            />
-            <Text
-              className={`text-xs font-bold ${
-                isReminded ? "text-white" : "text-primary"
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                minHeight: 30,
+              }}
+              className={`flex-row items-center gap-1.5 rounded-full ${
+                isReminded ? "bg-action" : "bg-primary/10"
               }`}
             >
-              {isReminded ? "Erinnerung aktiv" : "Erinnern"}
-            </Text>
+              <AppIcon
+                name={isReminded ? "bell.fill" : "bell"}
+                size={12}
+                color={isReminded ? "#fff" : primaryColor}
+              />
+              <Text
+                className={`text-xs font-semibold ${
+                  isReminded ? "text-white" : "text-primary"
+                }`}
+              >
+                {isReminded ? "Erinnerung aktiv" : "Erinnern"}
+              </Text>
+            </View>
           </Pressable>
 
           <Pressable
             onPress={openTmdb}
-            className="bg-muted border-border/60 active:bg-muted/80 flex-row items-center gap-1 rounded-lg border px-2.5 py-1.5"
+            accessibilityRole="button"
+            accessibilityLabel={`${movie.title} auf TMDB öffnen`}
+            style={{ minHeight: 44 }}
+            className="justify-center active:opacity-70"
           >
-            <Ionicons
-              name="film-outline"
-              size={12}
-              className="text-foreground"
-            />
-            <Text className="text-foreground text-xs font-semibold">TMDB</Text>
+            <View
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                minHeight: 30,
+              }}
+              className="bg-muted flex-row items-center gap-1 rounded-full"
+            >
+              <AppIcon name="film" size={12} color={primaryColor} />
+              <Text className="text-foreground text-xs font-semibold">
+                TMDB
+              </Text>
+            </View>
           </Pressable>
         </View>
       </View>

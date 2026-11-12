@@ -1,13 +1,13 @@
 import {
   Modal,
   Platform,
-  Pressable,
   Text as RNText,
   useColorScheme,
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Button, FieldGroup, Host, Picker, Text } from "@expo/ui";
+import { buttonStyle, controlSize } from "@expo/ui/swift-ui/modifiers";
 
 import { openExternalUrl } from "@waslaeuftin/expo/utils/open-url";
 import {
@@ -27,6 +27,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
+      allowSwipeDismissal
       onRequestClose={onClose}
     >
       {visible ? <SettingsModalContent onClose={onClose} /> : null}
@@ -71,17 +72,22 @@ function SettingsModalContent({
         <RNText style={{ color: textColor, fontSize: 20, fontWeight: "700" }}>
           Einstellungen
         </RNText>
-        <Pressable onPress={onClose} hitSlop={8}>
-          <RNText
-            style={{ color: primaryColor, fontSize: 16, fontWeight: "600" }}
-          >
-            Fertig
-          </RNText>
-        </Pressable>
+        <Host matchContents seedColor={primaryColor}>
+          <Button
+            label="Fertig"
+            variant="text"
+            onPress={onClose}
+            modifiers={
+              Platform.OS === "ios"
+                ? [buttonStyle("glassProminent"), controlSize("large")]
+                : undefined
+            }
+          />
+        </Host>
       </View>
 
       {/* ── Native SwiftUI / Compose settings form ── */}
-      <Host style={{ flex: 1 }}>
+      <Host style={{ flex: 1 }} seedColor={primaryColor}>
         <FieldGroup>
           <FieldGroup.Section title="Suchradius">
             <FieldGroup.SectionFooter>
@@ -102,19 +108,19 @@ function SettingsModalContent({
 
           <FieldGroup.Section title="Rechtliches & Datenschutz">
             <Button
+              label="Impressum"
+              variant="text"
               onPress={() =>
                 void openExternalUrl("https://waslaeuft.in/legal#impressum")
               }
-            >
-              Impressum
-            </Button>
+            />
             <Button
+              label="Datenschutzerklärung"
+              variant="text"
               onPress={() =>
                 void openExternalUrl("https://waslaeuft.in/legal#datenschutz")
               }
-            >
-              Datenschutzerklärung
-            </Button>
+            />
             <FieldGroup.SectionFooter>
               <Text>
                 Filmdaten & Poster werden von The Movie Database (TMDB)

@@ -153,6 +153,9 @@ model Cinema {
   cineprogBaseUrl              String?
   uciCinemaId                  String?
   uciCinemaSlug                String?
+  dieselKinoSlug               String?
+  starMovieSlug                String?
+  megaplexSlug                 String?
   myVueCinemaId                String?
   lastFetchedAt                DateTime?
   cinemaxxVueCinemasMetadata   CinemaxxVueCinemasMetadata? @relation(fields: [cinemaxxVueCinemasMetadataId], references: [id], onDelete: Cascade)

@@ -1,7 +1,12 @@
+import type {
+  ProviderCatalog,
+  RawProviderShowing,
+} from "@waslaeuftin/cinema-providers/server";
 import type { Movie, Showing } from "@waslaeuftin/db";
 import type { TmdbMatchEvaluation } from "@waslaeuftin/types/TmdbMatchEvaluation";
 import type { MovieIdentityEvidence } from "@waslaeuftin/validators";
 import { classifySneakTitle, extractYear } from "@waslaeuftin/core";
+import { MovieIdentityEvidenceSchema } from "@waslaeuftin/validators";
 
 export type ShowingReviewInput = Pick<
   Showing,
@@ -127,4 +132,149 @@ export const planShowingRepairs = (
     }
   }
   return rows;
+};
+
+export type ShowingRepairRequest = {
+  showingId: number;
+  sourceMovieId: number;
+  targetTmdbId: number;
+  updatedAt: Date;
+};
+
+// This path only proposes null-to-TMDB corrections. It has no persistence API.
+// Callers must supply freshly fetched catalogs, never stored fallback evidence.
+export const planBoundShowingRepairs = async ({
+  requests,
+  showings,
+  movies,
+  catalogs,
+  occupiedSlots,
+  capturedAt,
+  evaluate,
+}: {
+  requests: ShowingRepairRequest[];
+  showings: (ShowingReviewInput &
+    Pick<
+      Showing,
+      | "bookingUrl"
+      | "providerSessionId"
+      | "updatedAt"
+      | "isListed"
+      | "showingAdditionalData"
+    >)[];
+  movies: Pick<Movie, "id" | "tmdbMovieId" | "coverUrl">[];
+  catalogs: ProviderCatalog[];
+  occupiedSlots: Pick<Showing, "cinemaId" | "movieId" | "dateTime">[];
+  capturedAt: Date;
+  evaluate: (
+    title: string,
+    evidence: MovieIdentityEvidence,
+  ) => Promise<TmdbMatchEvaluation>;
+}) => {
+  if (new Set(requests.map((row) => row.showingId)).size !== requests.length)
+    throw new Error("Duplicate repair showing IDs");
+  const bound: {
+    request: ShowingRepairRequest;
+    before: (typeof showings)[number] | null;
+    source: RawProviderShowing | null;
+    evaluation: TmdbMatchEvaluation | null;
+    error: string | null;
+  }[] = [];
+  const inputs: ShowingReviewInput[] = [];
+  const decisions = new Map<number, ShowingReviewDecision>();
+  for (const request of requests) {
+    const before = showings.find((row) => row.id === request.showingId) ?? null;
+    const candidates = before?.bookingUrl
+      ? catalogs
+          .flatMap((catalog) => catalog.showings)
+          .filter(
+            (row) =>
+              row.cinemaId === before.cinemaId &&
+              row.dateTime.getTime() === before.dateTime.getTime() &&
+              row.bookingUrl === before.bookingUrl,
+          )
+      : [];
+    const source = candidates.length === 1 ? candidates[0]! : null;
+    const storedMovie = movies.find((row) => row.id === before?.movieId);
+    let error: string | null = null;
+    let evaluation: TmdbMatchEvaluation | null = null;
+    if (!before) error = "showing-not-found";
+    else if (
+      before.movieId !== request.sourceMovieId ||
+      before.updatedAt.getTime() !== request.updatedAt.getTime()
+    )
+      error = "stored-state-changed";
+    else if (!before.isListed || before.dateTime <= capturedAt)
+      error = "showing-not-current";
+    else if (!storedMovie || storedMovie.tmdbMovieId !== null)
+      error = "source-not-unmatched";
+    else if (!source) error = "source-booking-not-unique";
+    else if (
+      source.provider !== "KinoTicketsExpress" ||
+      (before.sourceProvider != null &&
+        before.sourceProvider !== source.provider) ||
+      !source.providerFilmId ||
+      (before.providerFilmId != null &&
+        before.providerFilmId !== source.providerFilmId) ||
+      (before.providerSessionId &&
+        before.providerSessionId !== source.providerSessionId) ||
+      source.movieName !== before.rawMovieName
+    )
+      error = "source-identity-conflict";
+    if (!error && source && before) {
+      try {
+        const evidence = MovieIdentityEvidenceSchema.parse(
+          source.evidence ?? {},
+        );
+        if (!Object.keys(evidence).length) {
+          error = "missing-fresh-evidence";
+        } else {
+          evaluation = await evaluate(before.rawMovieName, evidence);
+          const candidate = evaluation.acceptedCandidate;
+          if (evaluation.requestedTitle !== before.rawMovieName)
+            error = "source-title-conflict";
+          else if (!candidate || evaluation.decisionReason !== "matched")
+            error = evaluation.decisionReason ?? "insufficient-evidence";
+          else if (candidate.tmdbMovieId !== request.targetTmdbId)
+            error = "expected-target-conflict";
+          else if (
+            !candidate.posterPath ||
+            !movies.find((row) => row.tmdbMovieId === request.targetTmdbId)
+              ?.coverUrl
+          )
+            error = "target-cover-missing";
+          else {
+            inputs.push({
+              ...before,
+              sourceProvider: source.provider,
+              providerFilmId: source.providerFilmId,
+              evidence,
+            });
+            decisions.set(before.id, { evaluation });
+          }
+        }
+      } catch (cause) {
+        error = cause instanceof Error ? cause.message : String(cause);
+      }
+    }
+    bound.push({ request, before, source, evaluation, error });
+  }
+  const proposals = planShowingRepairs(
+    inputs,
+    movies,
+    decisions,
+    occupiedSlots,
+  );
+  return bound.map((row) => {
+    const proposal = proposals.find(
+      (item) => item.showingId === row.request.showingId,
+    );
+    return {
+      ...row,
+      status: proposal?.status ?? "held",
+      reason: row.error ?? proposal?.reason ?? "insufficient-evidence",
+      proposedTmdbId: row.evaluation?.acceptedCandidate?.tmdbMovieId ?? null,
+      targetMovieId: proposal?.targetMovieId ?? null,
+    };
+  });
 };

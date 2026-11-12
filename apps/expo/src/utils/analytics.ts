@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import type { RouterInputs } from "@waslaeuftin/expo/utils/api";
 import { apiClient } from "@waslaeuftin/expo/utils/api";
@@ -11,7 +12,13 @@ export const trackMobileEvent = (event: MobileAnalyticsEvent) => {
   }
 
   void apiClient.analytics.trackMobileEvent
-    .mutate(event)
+    .mutate({
+      ...event,
+      platform:
+        Platform.OS === "ios" || Platform.OS === "android"
+          ? Platform.OS
+          : undefined,
+    })
     .catch((error) => console.error("Failed to track analytics event", error));
 };
 

@@ -39,7 +39,7 @@ export function CinemaCard({
 }: CinemaCardProps) {
   return (
     <View
-      className="bg-card border-border/40 mb-4 rounded-2xl border p-4 shadow-sm"
+      className="bg-card mb-4 rounded-3xl p-4"
       style={{ borderCurve: "continuous" }}
     >
       {/* Header */}

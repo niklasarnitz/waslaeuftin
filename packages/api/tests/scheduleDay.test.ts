@@ -70,6 +70,7 @@ describe("scheduleDay", () => {
       },
     }));
     await mock.module("@waslaeuftin/api/internal/umami", () => ({
+      getAnalyticsPlatform: () => undefined,
       getAnalyticsSource: () => "web",
       trackCinemaView: () => Promise.resolve(undefined),
       trackCityView: () => Promise.resolve(undefined),

@@ -58,10 +58,19 @@ export const getAnalyticsSource = (headers: Headers) => {
   return source === "expo-react" ? "mobile" : "web";
 };
 
+export const getAnalyticsPlatform = (headers: Headers) => {
+  const platform = headers.get("x-app-platform");
+  return getAnalyticsSource(headers) === "mobile" &&
+    (platform === "ios" || platform === "android")
+    ? platform
+    : undefined;
+};
+
 export const trackCinemaView = async (
   cinema: Cinema | Cinema[],
   ip?: string,
   source = "web",
+  platform?: MobileAnalyticsEventInput["platform"],
 ) => {
   if (process.env.NODE_ENV !== "production" || !umamiClient) {
     return;
@@ -82,6 +91,7 @@ export const trackCinemaView = async (
         data: {
           slug: item.slug,
           source,
+          ...(platform ? { platform } : {}),
         },
       });
     }),
@@ -92,6 +102,7 @@ export const trackCityView = async (
   city: City | City[],
   ip?: string,
   source = "web",
+  platform?: MobileAnalyticsEventInput["platform"],
 ) => {
   if (process.env.NODE_ENV !== "production" || !umamiClient) {
     return;
@@ -112,6 +123,7 @@ export const trackCityView = async (
         data: {
           slug: item.slug,
           source,
+          ...(platform ? { platform } : {}),
         },
       });
     }),
@@ -133,12 +145,22 @@ export const trackMobileEvent = async (
   const input = MobileAnalyticsEventInputSchema.parse(event);
 
   if (input.name === "cinema-view" && input.slug) {
-    await trackCinemaView({ slug: input.slug } as Cinema, ip, "mobile");
+    await trackCinemaView(
+      { slug: input.slug } as Cinema,
+      ip,
+      "mobile",
+      input.platform,
+    );
     return;
   }
 
   if (input.name === "city-view" && input.slug) {
-    await trackCityView({ slug: input.slug } as City, ip, "mobile");
+    await trackCityView(
+      { slug: input.slug } as City,
+      ip,
+      "mobile",
+      input.platform,
+    );
     return;
   }
 
@@ -147,6 +169,7 @@ export const trackMobileEvent = async (
   const data = Object.fromEntries(
     Object.entries({
       source: "mobile",
+      platform: input.platform,
       screen: input.screen,
       slug: input.slug,
       result: input.result,

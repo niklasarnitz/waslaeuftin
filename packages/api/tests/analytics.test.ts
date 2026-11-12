@@ -3,6 +3,26 @@ import { describe, expect, test } from "bun:test";
 import { MobileAnalyticsEventInputSchema } from "@waslaeuftin/validators";
 
 describe("Mobile Analytics Event Schema", () => {
+  test("retains only supported coarse platforms while accepting older clients", () => {
+    for (const platform of ["ios", "android"]) {
+      expect(
+        MobileAnalyticsEventInputSchema.parse({ name: "app-opened", platform })
+          .platform,
+      ).toBe(platform);
+    }
+    expect(
+      MobileAnalyticsEventInputSchema.parse({ name: "app-opened" }).platform,
+    ).toBeUndefined();
+    for (const platform of ["web", "iOS 27", "device-id"]) {
+      expect(
+        MobileAnalyticsEventInputSchema.safeParse({
+          name: "app-opened",
+          platform,
+        }).success,
+      ).toBe(false);
+    }
+  });
+
   test("validates app-opened event", () => {
     const input = MobileAnalyticsEventInputSchema.parse({
       name: "app-opened",

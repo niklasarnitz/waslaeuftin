@@ -63,6 +63,13 @@ export default function CinemaScreen() {
         ? () => (
             <Pressable
               onPress={() => toggleFavoriteCinema(cinema.id)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isFavorite
+                  ? "Kino aus Favoriten entfernen"
+                  : "Kino zu Favoriten hinzufügen"
+              }
+              accessibilityState={{ selected: isFavorite }}
               hitSlop={12}
               className="p-1"
             >
@@ -105,6 +112,7 @@ export default function CinemaScreen() {
         </View>
       ) : cinema ? (
         <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={{ padding: 16 }}
           refreshControl={
             <RefreshControl

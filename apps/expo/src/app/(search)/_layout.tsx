@@ -13,7 +13,7 @@ export default function SearchLayout() {
         headerTintColor: primaryColor,
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Kinos & Städte suchen" }} />
+      <Stack.Screen name="index" options={{ title: "Suchen" }} />
       <Stack.Screen
         name="city/[citySlug]"
         options={{ title: "", headerLargeTitle: false }}

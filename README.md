@@ -109,6 +109,27 @@ from writing after a source switch. Native raw evidence remains separate from
 canonical movie metadata; a native runtime disagreement does not establish
 which source is correct.
 
+## Austrian direct providers
+
+Diesel Kino, Star Movie and Megaplex/Metropol use the native-provider updater.
+
+Apply `20261106120000_add_austrian_cinema_providers` and
+`20261106130000_add_missing_tmdb_metadata_fields` before deployment, then run
+`bun run db:generate` locally. The Docker entrypoint does not run migrations.
+
+Preview the programmes from the repository root:
+
+```sh
+bun apps/nextjs/scripts/create-austrian-cinemas.ts
+bun apps/nextjs/scripts/create-austrian-cinemas.ts StarMovie
+```
+
+Add `--apply` to register missing cities and cinemas after checking venues and
+source permissions. This does not import showings or change existing provider
+mappings. Coordinates come from Star Movie contact pages and OpenStreetMap
+cinema objects (© OpenStreetMap contributors, ODbL); existing coordinates stay
+unchanged. Use `configure-native-cinema.ts` for an existing cinema.
+
 ## Movie matching
 
 Matching uses the raw listing title plus observed provider evidence, not just a

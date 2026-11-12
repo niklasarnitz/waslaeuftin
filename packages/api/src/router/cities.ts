@@ -7,6 +7,7 @@ import {
   publicProcedure,
 } from "@waslaeuftin/api/internal/trpc";
 import {
+  getAnalyticsPlatform,
   getAnalyticsSource,
   trackCityView,
 } from "@waslaeuftin/api/internal/umami";
@@ -152,9 +153,12 @@ export const citiesRouter = createTRPCRouter({
       }
 
       // Fire-and-forget analytics tracking to prevent blocking the API response.
-      void trackCityView(city, ctx.ip, getAnalyticsSource(ctx.headers)).catch(
-        console.error,
-      );
+      void trackCityView(
+        city,
+        ctx.ip,
+        getAnalyticsSource(ctx.headers),
+        getAnalyticsPlatform(ctx.headers),
+      ).catch(console.error);
 
       // Transform to preserve the movies[] shape per cinema for the frontend
       return {

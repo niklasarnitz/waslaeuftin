@@ -8,11 +8,11 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
 import type { ListingMovieCard as GroupedMovie } from "@waslaeuftin/core";
 import type { RouterOutputs } from "@waslaeuftin/expo/utils/api";
+import { AppIcon } from "@waslaeuftin/expo/components/app-icon";
 import { CinemaShowingsCard } from "@waslaeuftin/expo/components/cinema-showings-card";
 import { MoviePoster } from "@waslaeuftin/expo/components/movie-poster";
 import { useTrackMobileScreen } from "@waslaeuftin/expo/utils/analytics";
@@ -184,7 +184,7 @@ export default function MovieDetailScreen() {
       }
     >
       <View
-        className="bg-card border-border/40 gap-4 rounded-2xl border p-4 shadow-sm"
+        className="bg-card gap-4 rounded-3xl p-4"
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex-row gap-4">
@@ -217,7 +217,7 @@ export default function MovieDetailScreen() {
               ) : null}
               {meta?.voteAverage ? (
                 <View className="flex-row items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5">
-                  <Ionicons name="star" color="#F59E0B" size={10} />
+                  <AppIcon name="star.fill" color="#F59E0B" size={10} />
                   <Text className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
                     {meta.voteAverage.toFixed(1)}
                   </Text>
@@ -242,10 +242,11 @@ export default function MovieDetailScreen() {
               {meta?.trailerUrl && (
                 <Pressable
                   onPress={() => meta.trailerUrl && openWebUrl(meta.trailerUrl)}
-                  className="bg-primary flex-row items-center gap-1.5 rounded-xl px-3 py-2 shadow-sm active:opacity-80"
-                  style={{ borderCurve: "continuous" }}
+                  accessibilityRole="button"
+                  className="bg-action flex-row items-center gap-1.5 rounded-full px-4 py-2 active:opacity-80"
+                  style={{ borderCurve: "continuous", minHeight: 44 }}
                 >
-                  <Ionicons name="play" color="#FFF" size={14} />
+                  <AppIcon name="play" color="#FFF" size={14} />
                   <Text className="text-xs font-bold text-white">
                     Trailer ansehen
                   </Text>
@@ -255,14 +256,11 @@ export default function MovieDetailScreen() {
               {tmdbMovieUrl ? (
                 <Pressable
                   onPress={() => openWebUrl(tmdbMovieUrl)}
-                  className="bg-secondary/90 border-border/80 flex-row items-center gap-1.5 rounded-xl border px-3 py-2 active:opacity-80"
-                  style={{ borderCurve: "continuous" }}
+                  accessibilityRole="button"
+                  className="bg-secondary flex-row items-center gap-1.5 rounded-full px-4 py-2 active:opacity-80"
+                  style={{ borderCurve: "continuous", minHeight: 44 }}
                 >
-                  <Ionicons
-                    name="film-outline"
-                    size={14}
-                    className="text-foreground"
-                  />
+                  <AppIcon name="film" size={14} color={primaryColor} />
                   <Text className="text-foreground text-xs font-semibold">
                     TMDB öffnen
                   </Text>

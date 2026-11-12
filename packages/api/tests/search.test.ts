@@ -53,6 +53,7 @@ await mock.module("@waslaeuftin/db/client", () => ({
   },
 }));
 await mock.module("@waslaeuftin/api/internal/umami", () => ({
+  getAnalyticsPlatform: () => undefined,
   getAnalyticsSource: () => "web",
   trackCityView: () => Promise.resolve(undefined),
 }));
