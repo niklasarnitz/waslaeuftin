@@ -116,6 +116,39 @@ test("Cineprog public function enriches WOKI array sessions without inventing la
   });
 });
 
+test("Cineprog reads WOKI films that list separate 2D and 3D screening groups", async () => {
+  const threeD = {
+    ...cineprogWokiSession,
+    zeit: "20:00",
+    link_mobile: {},
+    link_fixticket:
+      "https://www.kinoheld.de/Kino-Bonn/WOKI?mode=widget&change=0&rb=1&showId=52632",
+  };
+  const fixture = fixtureRequest({
+    film_125231: {
+      filmfakten: cineprogWokiFacts,
+      vorstellungen: [
+        film().vorstellungen,
+        {
+          vorstellungen_fakten: { ...cineprogGroupFacts, DreiD: "1" },
+          termine: { "datum_2026-11-05": [threeD] },
+        },
+      ],
+    },
+  });
+  const result = await getCineprogMovies(13, base, fixture.request);
+  expect(result.movies).toHaveLength(1);
+  expect(
+    result.showings.map((showing) => [
+      showing.dateTime.toISOString(),
+      showing.showingAdditionalData.includes("3D"),
+    ]),
+  ).toEqual([
+    ["2026-11-05T14:00:00.000Z", false],
+    ["2026-11-05T19:00:00.000Z", true],
+  ]);
+});
+
 test("Cineprog Park singleton rows use desktop performance, not stale fixticket/mobile", async () => {
   const session = {
     ...cineprogParkSession,

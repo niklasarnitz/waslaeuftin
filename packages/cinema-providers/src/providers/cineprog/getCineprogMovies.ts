@@ -250,8 +250,12 @@ export const getCineprogMovies = async (
       runtimeMinutes:
         positiveInteger(detail.laufzeit) ?? positiveInteger(facts.laufzeit),
     };
-    const screenings = object(film.vorstellungen);
-    const groupFacts = object(screenings.vorstellungen_fakten ?? {});
+    // Films with several versions (e.g. WOKI's 2D and 3D) list one group each.
+    const groups = (
+      Array.isArray(film.vorstellungen)
+        ? film.vorstellungen
+        : [film.vorstellungen]
+    ).map(object);
     if (!seenMovies.has(id)) {
       seenMovies.add(id);
       catalog.movies.push({
@@ -267,95 +271,103 @@ export const getCineprogMovies = async (
           identityScope: "catalogue-version-or-event",
           filmfakten: facts,
           detailFilmfakten: detail,
-          vorstellungen_fakten: groupFacts,
+          vorstellungen_fakten: groups.map((group) =>
+            object(group.vorstellungen_fakten ?? {}),
+          ),
         },
       });
     }
-    for (const [dateKey, value] of Object.entries(object(screenings.termine))) {
-      if (!/^datum_\d{4}-\d\d-\d\d$/.test(dateKey))
-        throw new Error("Invalid Cineprog date key");
-      const sessions = Array.isArray(value) ? value : [value];
-      for (const entry of sessions) {
-        const session = object(entry);
-        if (!Object.keys(session).length) continue;
-        const date = text(session.datum);
-        const time = text(session.zeit);
-        if (dateKey !== `datum_${date}` || !time || !/^\d\d:\d\d$/.test(time))
-          throw new Error("Invalid Cineprog session date/time");
-        const local = `${date}T${time}`;
-        const crosscheck = offsets.get(`${id}:${local}`);
-        const dateTime = sessionTime(local, crosscheck);
-        // Park's fixticket can repeat the day's FIRST session. Desktop is the
-        // authoritative per-row link; never borrow IDs from another candidate.
-        const desktop = ticketLink(session.link_desktop, base);
-        const mobile = ticketLink(session.link_mobile, base);
-        const fixed = ticketLink(session.link_fixticket, base);
-        const native = desktop ?? mobile ?? fixed;
-        const external = ticketLink(session.external_ticket_url, base);
-        const identity = nativeIdentity(native);
-        const room = text(session.saal);
-        const composite = `${id}:${local}:${room ?? text(session.saal_bezeichnung) ?? "unknown-room"}`;
-        const providerSessionId = identity
-          ? `${cinemaId}:${identity.host}:${identity.kind}:${identity.id}`
-          : `${cinemaId}:composite:${composite}`;
-        const previous = seenSessions.get(providerSessionId);
-        if (previous && previous !== composite)
-          throw new Error("Conflicting Cineprog session ID");
-        if (previous) continue;
-        seenSessions.set(providerSessionId, composite);
-        const labels = { ...facts, ...groupFacts, ...session };
-        const additional = [
-          text(session.saal_bezeichnung) ?? (room ? `Saal ${room}` : undefined),
-          text(facts.Versionsmarker),
-          ...Object.entries(versionLabels)
-            .filter(([key]) => {
-              const flag = labels[key];
-              return (
-                flag === true || flag === 1 || flag === "1" || flag === "true"
-              );
-            })
-            .map(([, label]) => label),
-        ].filter((label): label is string => Boolean(label));
-        catalog.showings.push({
-          cinemaId,
-          movieName: name,
-          provider: "Cineprog",
-          providerFilmId: id,
-          providerSessionId,
-          evidence,
-          dateTime,
-          bookingUrl: (external ?? native)?.href,
-          showingAdditionalData: [...new Set(additional)],
-          sourceMetadata: {
-            sourceUrl,
-            fetchedAt,
-            session,
-            vorstellungen_fakten: groupFacts,
-            nativeSessionId: identity?.id,
-            nativeSessionIdKind: identity?.kind,
-            sessionIdentity: identity
-              ? "native-ticket-link"
-              : "film-time-room-composite",
-            selectedNativeLink: native?.href,
-            linkConflict:
-              new Set(
-                [desktop, mobile, fixed].filter(Boolean).map((url) => {
-                  const candidate = nativeIdentity(url);
-                  return candidate
-                    ? `${candidate.kind}:${candidate.id}`
-                    : url?.href;
-                }),
-              ).size > 1,
-            timezone: "Europe/Berlin",
-            jsonLdStartDates: crosscheck ? [...crosscheck] : [],
-            timeCrosscheck: crosscheck ? "matched" : "unavailable",
-            audioLanguage: null,
-            subtitleLanguage: null,
-            availability: null,
-            cancellationStatus: null,
-            accessibilityScope: "film-or-group-not-session-confirmed",
-          },
-        });
+    for (const screenings of groups) {
+      const groupFacts = object(screenings.vorstellungen_fakten ?? {});
+      for (const [dateKey, value] of Object.entries(
+        object(screenings.termine),
+      )) {
+        if (!/^datum_\d{4}-\d\d-\d\d$/.test(dateKey))
+          throw new Error("Invalid Cineprog date key");
+        const sessions = Array.isArray(value) ? value : [value];
+        for (const entry of sessions) {
+          const session = object(entry);
+          if (!Object.keys(session).length) continue;
+          const date = text(session.datum);
+          const time = text(session.zeit);
+          if (dateKey !== `datum_${date}` || !time || !/^\d\d:\d\d$/.test(time))
+            throw new Error("Invalid Cineprog session date/time");
+          const local = `${date}T${time}`;
+          const crosscheck = offsets.get(`${id}:${local}`);
+          const dateTime = sessionTime(local, crosscheck);
+          // Park's fixticket can repeat the day's FIRST session. Desktop is the
+          // authoritative per-row link; never borrow IDs from another candidate.
+          const desktop = ticketLink(session.link_desktop, base);
+          const mobile = ticketLink(session.link_mobile, base);
+          const fixed = ticketLink(session.link_fixticket, base);
+          const native = desktop ?? mobile ?? fixed;
+          const external = ticketLink(session.external_ticket_url, base);
+          const identity = nativeIdentity(native);
+          const room = text(session.saal);
+          const composite = `${id}:${local}:${room ?? text(session.saal_bezeichnung) ?? "unknown-room"}`;
+          const providerSessionId = identity
+            ? `${cinemaId}:${identity.host}:${identity.kind}:${identity.id}`
+            : `${cinemaId}:composite:${composite}`;
+          const previous = seenSessions.get(providerSessionId);
+          if (previous && previous !== composite)
+            throw new Error("Conflicting Cineprog session ID");
+          if (previous) continue;
+          seenSessions.set(providerSessionId, composite);
+          const labels = { ...facts, ...groupFacts, ...session };
+          const additional = [
+            text(session.saal_bezeichnung) ??
+              (room ? `Saal ${room}` : undefined),
+            text(facts.Versionsmarker),
+            ...Object.entries(versionLabels)
+              .filter(([key]) => {
+                const flag = labels[key];
+                return (
+                  flag === true || flag === 1 || flag === "1" || flag === "true"
+                );
+              })
+              .map(([, label]) => label),
+          ].filter((label): label is string => Boolean(label));
+          catalog.showings.push({
+            cinemaId,
+            movieName: name,
+            provider: "Cineprog",
+            providerFilmId: id,
+            providerSessionId,
+            evidence,
+            dateTime,
+            bookingUrl: (external ?? native)?.href,
+            showingAdditionalData: [...new Set(additional)],
+            sourceMetadata: {
+              sourceUrl,
+              fetchedAt,
+              session,
+              vorstellungen_fakten: groupFacts,
+              nativeSessionId: identity?.id,
+              nativeSessionIdKind: identity?.kind,
+              sessionIdentity: identity
+                ? "native-ticket-link"
+                : "film-time-room-composite",
+              selectedNativeLink: native?.href,
+              linkConflict:
+                new Set(
+                  [desktop, mobile, fixed].filter(Boolean).map((url) => {
+                    const candidate = nativeIdentity(url);
+                    return candidate
+                      ? `${candidate.kind}:${candidate.id}`
+                      : url?.href;
+                  }),
+                ).size > 1,
+              timezone: "Europe/Berlin",
+              jsonLdStartDates: crosscheck ? [...crosscheck] : [],
+              timeCrosscheck: crosscheck ? "matched" : "unavailable",
+              audioLanguage: null,
+              subtitleLanguage: null,
+              availability: null,
+              cancellationStatus: null,
+              accessibilityScope: "film-or-group-not-session-confirmed",
+            },
+          });
+        }
       }
     }
   }
