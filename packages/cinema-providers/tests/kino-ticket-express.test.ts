@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from "bun:test";
+import { expect, setSystemTime, spyOn, test } from "bun:test";
 
 import {
   getKinoTicketsExpressMovies,
@@ -127,6 +127,8 @@ test("identity evidence: breakfast combinations use only unambiguous film-card e
       ${card(12, "Frühstück- Einzeln nicht buchbar!", 60)}
     </ul></main>`),
   );
+  // The fixture lists dates without a year as seen on 2026-11-02.
+  setSystemTime(new Date("2026-11-02T12:00:00Z"));
   try {
     const catalog = await getKinoTicketsExpressMovies(2, "karlsruhe_schauburg");
     for (const records of [catalog.movies, catalog.showings]) {
@@ -167,6 +169,7 @@ test("identity evidence: breakfast combinations use only unambiguous film-card e
     ).toBe(true);
   } finally {
     request.mockRestore();
+    setSystemTime();
   }
 });
 
@@ -423,6 +426,8 @@ test("identity evidence: Kinemathek film credits require the exact title and fil
       </aside>`),
     );
   });
+  // The fixture lists dates without a year as seen on 2026-11-02.
+  setSystemTime(new Date("2026-11-02T12:00:00Z"));
   try {
     const catalog = await getKinoTicketsExpressMovies(
       7,
@@ -477,6 +482,7 @@ test("identity evidence: Kinemathek film credits require the exact title and fil
     );
   } finally {
     request.mockRestore();
+    setSystemTime();
   }
 });
 
@@ -635,6 +641,34 @@ test(
   },
   { timeout: 20000 },
 );
+
+test("kino tickets express: yearless dates after New Year belong to next year", async () => {
+  setSystemTime(new Date("2026-11-26T12:00:00Z"));
+  const request = spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(`
+    <main><ul><li class="bg-white" id="movie-1">
+      <h2 class="text-xl sm:text-3xl font-bold text-primary">Met Opera</h2>
+      <ul><li><div class="w-14"><div>26.11.</div></div><a href="/test/booking/1">19:00</a></li>
+      <li><div class="w-14"><div>23.01.</div></div><a href="/test/booking/2">18:55</a></li></ul>
+      <a href="/test/booking/3">Fr 05.02.[20:00]</a>
+      <a href="/test/booking/4">Sa 05.06.[18:00]</a>
+    </li></ul></main>`),
+  );
+  try {
+    const catalog = await getKinoTicketsExpressMovies(42, "test");
+    expect(
+      catalog.showings.map((showing) => showing.dateTime.toISOString()).sort(),
+    ).toEqual([
+      "2026-11-26T18:00:00.000Z",
+      "2027-01-23T17:55:00.000Z",
+      "2027-02-05T19:00:00.000Z",
+      "2027-06-05T16:00:00.000Z",
+    ]);
+  } finally {
+    request.mockRestore();
+    setSystemTime();
+  }
+});
 
 test("kino tickets express: parses provider-local times in Europe/Berlin", () => {
   const parsed = parseKinoTicketsExpressDateTime(

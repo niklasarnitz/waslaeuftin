@@ -28,6 +28,24 @@ export const parseKinoTicketsExpressDateTime = (
   return parsedDateTime.toDate();
 };
 
+/**
+ * The pages list upcoming showings as "DD.MM." without a year, so use the first
+ * year in which the date has not passed (with a day of slack for today's).
+ */
+const parseYearlessDateTime = (day: string, month: string, time: string) => {
+  const year = moment.tz(BERLIN_TIMEZONE).year();
+  const earliest = moment().subtract(1, "day").valueOf();
+  const candidates = [year - 1, year, year + 1].map((candidate) =>
+    parseKinoTicketsExpressDateTime(
+      `${candidate}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`,
+      "YYYY-MM-DD HH:mm",
+    ),
+  );
+  return (
+    candidates.find((date) => date.getTime() >= earliest) ?? candidates[2]!
+  );
+};
+
 const parseShowingAdditionalData = (
   metadataParagraph: string,
 ): string[] | undefined => {
@@ -74,10 +92,8 @@ const parseLegacyFormatShowings = (
     if (dateStr && timeStr) {
       try {
         const [day, month] = dateStr.split(".");
-        const dateTime = parseKinoTicketsExpressDateTime(
-          `${new Date().getFullYear()}-${month}-${day}-${timeStr}`,
-          "YYYY-MM-DD-HH:mm",
-        );
+        if (!day || !month) return;
+        const dateTime = parseYearlessDateTime(day, month, timeStr);
 
         const bookingUrl = container$(a).attr("href");
         if (bookingUrl) {
@@ -140,12 +156,7 @@ const parseNewFormatShowings = (
               const month = dateParts[1];
 
               if (day && month) {
-                // Create date with current year
-                const currentYear = new Date().getFullYear();
-                const dateTime = parseKinoTicketsExpressDateTime(
-                  `${currentYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${timeText}`,
-                  "YYYY-MM-DD HH:mm",
-                );
+                const dateTime = parseYearlessDateTime(day, month, timeText);
 
                 showings.push({
                   dateTime,
